@@ -1,0 +1,40 @@
+<h1>View</h1>
+<style>
+    .run-group {
+        fill: none;
+        stroke: steelblue;
+        stroke-width: 2px;
+        clip-path: url(#clip);
+    }
+
+    /*  .annotation-group {
+        clip-path: url(#clip);
+    } */
+</style>
+
+<div class='view'>
+    <svg width="960" height="550"></svg>
+    <div class='column-panel' ng-cloak>
+        <md-content class='content'>
+            <md-tabs md-dynamic-height md-border-bottom>
+
+                <md-tab ng-repeat='run in runs' label='{{run.id}}'>
+                    <md-content>
+                        <md-list ng-repeat="column in run.columns" flex>
+                            <md-list-item class="md-2-line" ng-click="null">
+                                <h3>{{column}}</h3>
+                                <md-list-item class="md-2-line" ng-click="null">
+                                    <md-checkbox aria-label="Checkbox "></md-checkbox>
+                        </md-list>
+                    </md-content>
+                </md-tab>
+            </md-tabs>
+        </md-content>
+        <md-switch class='column-switch' aria-label="Switch 1">
+            Columns
+        </md-switch>
+    </div>
+
+</div>
+
+<md-button ng-click='test1()'>Test</md-button>

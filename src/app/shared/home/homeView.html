@@ -1,0 +1,35 @@
+<h2>Home Page</h2>
+
+<button ng-click='login()'>Login</button>
+<button ng-click="loginOneDrive()">Login OneDrive</button>
+<div class='search'>
+    <!-- <input type="text" ng-change="inputChange(search)" ng-model="search" ng-model-options="{debounce: 800}"></input> -->
+    
+    <js-tag js-tag-mode="typeahead"js-tag-options="jsTagOptions"></js-tag>  
+    <md-button class="md-raised" ng-click='searchClick()'>Search</md-button>
+</div>
+
+
+<div class='runButtons'>
+    <md-button class='md-raised'>View</md-button>
+    <md-button class='md-raised'>Export</md-button>
+    <md-button class='md-raised'>Delete</md-button>
+</div>
+
+<div class="result">
+    <md-list ng-repeat="result in results" flex>
+        <md-list-item class="md-2-line" ng-click="null">
+            <p>{{result._id}}</p>
+
+            <div class="md-list-item-text" layout="column">
+                <h3 layout-padding>{{dateDecode(result.date)}}</h3>
+                <h3 layout-padding>{{timeDecode(result.time)}}</h3>
+            </div>
+            <div class="md-list-item-text" ng-repeat="tag in result.tags"layout="row">
+                <h3 layout-padding>{{tag}}</h3>
+            </div>
+            <md-checkbox ng-model="result.selected" aria-label="Checkbox ">
+                
+            </md-checkbox>
+    </md-list>
+</div>

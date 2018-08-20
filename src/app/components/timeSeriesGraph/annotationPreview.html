@@ -1,0 +1,40 @@
+<md-dialog class='annotation-preview'>
+    <div ng-controller="annotationPreviewController">
+        <md-toolbar>
+            <div class="md-toolbar-tools">
+                <h4>Annotation</h4>
+
+                <span flex></span>
+                <div ng-if='!editMode'>
+                    <md-button class='md-small' aria-label="annotation position edit button">
+                        <md-icon md-svg-src="../../assets/img/arrow_down.svg" ng-click="annotationPosEdit()"></md-icon>
+                    </md-button>
+                    <md-button class='md-small' aria-label="annotation desciption edit button">
+                        <md-icon md-svg-src="../../assets/img/pencil.svg" ng-click="annotationEdit()"></md-icon>
+                    </md-button>
+                </div>
+
+            </div>
+        </md-toolbar>
+        <div class='annotation-description'>
+            <h2>
+                {{annotationTitle}}
+            </h2>
+            <p ng-hide='editMode'>
+                {{annotationDescription}}
+            </p>
+            <textarea ng-show='editMode' class='annotation-edit-box' ng-model='annotationDescription'>
+
+            </textarea>
+        </div>
+        
+        <md-dialog-actions ng-if='editMode' layout="row">
+            <md-button ng-click="cancel()">
+                Cancel
+            </md-button>
+            <md-button ng-click="confirm()">
+                Confirm
+            </md-button>
+        </md-dialog-actions>
+    </div>
+</md-dialog>

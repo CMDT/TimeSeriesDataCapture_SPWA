@@ -1,0 +1,101 @@
+.result md-list-item {
+    border-radius: 15px 15px 15px 15px;
+-moz-border-radius: 15px 15px 15px 15px;
+-webkit-border-radius: 15px 15px 15px 15px;
+border: 3px solid #d4d4d4;
+}
+
+md-dialog {
+    width: 80%;
+}
+
+.search js-tag .jt-editor{
+    width: 50%;
+    display: inline-block !important;
+
+}
+
+.search{
+    position: relative;
+    left: 20%;
+    padding-bottom: 2%;
+}
+
+.runButtons{
+    position: relative;
+    left: 35%;
+    padding-bottom: 2%;
+}
+
+.importButtons{
+    width: 10%;
+    
+}
+
+.result{
+    width: 70%;
+    position: relative;
+    left: 13%;
+}
+
+.breadcrumb{
+    display: flex;
+    flex-wrap: wrap;
+    background-color: rgba(220,224,251,1);
+}
+
+.breadcrumb md-checkbox{
+    margin-left: auto;
+    align-self: flex-end;
+    padding-right: 1.5%;
+}
+
+.data {
+    display: flex;
+    flex-direction: row;
+}
+
+.annotation-preview {
+    min-width: 50%;
+    width: fit-content;
+}
+
+.annotation-description {
+    padding: 2%;
+}
+
+.annotation-edit-box{
+    width: 100%;
+    max-width: 100%;
+    height: 90px;
+    max-height: 150px;
+}
+
+.md-button.md-small{
+    min-width:1%;
+}
+
+.view {
+    display : flex;
+    flex-direction: row;
+}
+
+.view .column-panel{
+    width: 20%;
+    padding : 2%;
+    margin-left: 5%;
+    min-height: 100px;
+   
+}
+
+.view .column-panel .column-switch{
+    margin-left: 40%;
+}
+
+.view .column-panel .content{
+    border: #d4d4d4;
+    border-style: solid;
+    min-height: 450px;
+}
+
+
