@@ -3,15 +3,13 @@ app.controller('homeController', ['$scope', '$log', '$filter', 'authenticationSe
     this.uiOnParamsChanged = function (params) {
         if (params.query != undefined) {
             $scope.search(params.query);
-            $scope.addTagsInput(params.query);
         }
-
     }
 
     $scope.search = function (query) {
-        $log.log(query);
+        $log.log('search query ' + query);
         searchPageService.search(query).then(function (result) {
-            for(var i=0,n=result.length;i<n;i++){
+            for (var i = 0, n = result.length; i < n; i++) {
                 result[i].selected = false;
             }
             $scope.results = result;
@@ -20,22 +18,22 @@ app.controller('homeController', ['$scope', '$log', '$filter', 'authenticationSe
     }
 
     $scope.addTagsInput = function (query) {
-        var queryArray = query.split(' ');
+        console.log('add tags' + query);
+        var queryArray = query.split('%20');
         queryArray = queryArray.splice(1);
         $scope.tags = new JSTagsCollection(queryArray);
-        console.log($scope.tags);
-
+        $log.log($scope);
     }
 
 
     if ($stateParams.query != undefined) {
-       
         $scope.search($stateParams.query);
         $scope.addTagsInput($stateParams.query);
+    } else {
+        $scope.tags = new JSTagsCollection();
+        
     }
 
-
-    $scope.tags = new JSTagsCollection();
 
     // Export jsTags options, inlcuding our own tags object
     $scope.jsTagOptions = {
@@ -45,17 +43,19 @@ app.controller('homeController', ['$scope', '$log', '$filter', 'authenticationSe
         }
     };
 
-
-
-    // **** Typeahead code **** //
-
     // Build suggestions array
     var suggestions = ['gold', 'silver', 'golden'];
-    suggestions = suggestions.map(function (item) { return { "suggestion": item } });
+    suggestions = suggestions.map(function (item) {
+        return {
+            "suggestion": item
+        }
+    });
 
     // Instantiate the bloodhound suggestion engine
     var suggestions = new Bloodhound({
-        datumTokenizer: function (d) { return Bloodhound.tokenizers.whitespace(d.suggestion); },
+        datumTokenizer: function (d) {
+            return Bloodhound.tokenizers.whitespace(d.suggestion);
+        },
         queryTokenizer: Bloodhound.tokenizers.whitespace,
         local: suggestions
     });
@@ -87,18 +87,19 @@ app.controller('homeController', ['$scope', '$log', '$filter', 'authenticationSe
         oneDriveAuthenticationService.login();
     }
 
-    
+
     $scope.searchClick = function () {
-        $log.log($scope);
+        $log.log('search tags' + $scope.extractTags());
         $state.go('.', {
             query: encodeURI($scope.extractTags())
         });
-       
+
     }
 
-    
+
     $scope.extractTags = function () {
         var query = '';
+        console.log($scope.tags);
         Object.keys($scope.tags.tags).forEach(function (key, index) {
             query += ' ' + ($scope.tags.tags[key].value);
         });
@@ -114,7 +115,7 @@ app.controller('homeController', ['$scope', '$log', '$filter', 'authenticationSe
     }
 
 
-    
+
 
 
 

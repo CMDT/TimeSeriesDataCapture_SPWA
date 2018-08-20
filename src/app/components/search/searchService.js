@@ -16,11 +16,10 @@ app.service('searchService', ['$log', '$http','$rootScope', 'queryKeywordService
             if(value.length > 1){
                 config.params[queryArray[i].name] = self.queryParamArray(value);
             }else{
-        
                 config.params[queryArray[i].name] = value[0];
             }
         }
-        var url = $rootScope.url + '/apis/search?query=silver';
+        
         $log.log(url);
         return $http.get(url, config);
     }
