@@ -54,7 +54,7 @@ run.$inject = [
 ]
 
 function run($rootScope){
-  $rootScope.url = 'http://192.168.2.1:8000';
+  $rootScope.url = 'https://dashboard.heroku.com/apps/timeseriesdatacapture-browse';
 }
 
 
