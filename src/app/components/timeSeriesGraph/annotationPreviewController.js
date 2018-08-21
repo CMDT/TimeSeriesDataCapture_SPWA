@@ -41,6 +41,11 @@ app.controller('annotationPreviewController', ['$scope', '$log','$mdDialog','tim
         $scope.editMode = false;
     }
 
+    $scope.deleteAnnotation = function(){
+        timeSeriesAnnotationService.removeAnnotation(timeSeriesGraphService.getActiveRunId(),annotation.id);
+        $mdDialog.cancel();
+    }
+
     $scope.annotationPosEdit = function(){
         $log.log(annotation);
         savedAnnotation = annotation;

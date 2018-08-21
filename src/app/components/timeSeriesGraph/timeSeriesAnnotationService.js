@@ -49,7 +49,7 @@ app.service('timeSeriesAnnotationService', ['$log', '$filter', function ($log, $
        var annotationGroup = annotationGroups.get(annotationGroupId);
        for(var i=0,n=annotationGroup.annotations.length;i<n;i++){
            if(annotationGroup.annotations[i].id === annotationId){
-               annotationGroup.annotations[i].splice(i,1);
+               annotationGroup.annotations.splice(i,1);
            }
        }
     }

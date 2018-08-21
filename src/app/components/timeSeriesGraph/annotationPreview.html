@@ -12,6 +12,7 @@
                     <md-button class='md-small' aria-label="annotation desciption edit button">
                         <md-icon md-svg-src="../../assets/img/pencil.svg" ng-click="annotationEdit()"></md-icon>
                     </md-button>
+
                 </div>
 
             </div>
@@ -27,13 +28,18 @@
 
             </textarea>
         </div>
-        
+
         <md-dialog-actions ng-if='editMode' layout="row">
             <md-button ng-click="cancel()">
                 Cancel
             </md-button>
             <md-button ng-click="confirm()">
                 Confirm
+            </md-button>
+        </md-dialog-actions>
+        <md-dialog-actions ng-if='!editMode' layout="row">
+            <md-button ng-click="deleteAnnotation()">
+                Delete
             </md-button>
         </md-dialog-actions>
     </div>

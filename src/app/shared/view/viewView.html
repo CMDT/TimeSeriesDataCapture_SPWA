@@ -16,9 +16,9 @@
     <svg width="100%" height="550"></svg>
     <div class='column-panel' ng-cloak>
         <md-content class='content'>
-            <md-tabs md-dynamic-height md-border-bottom>
+            <md-tabs md-selected='activeTabIndex' md-dynamic-height md-border-bottom>
 
-                <md-tab ng-repeat='run in runs' label='{{run.id}}'>
+                <md-tab  ng-repeat='run in runs' label='{{run.id}}'>
                     <md-content>
                         <md-list ng-repeat="column in run.columns" flex>
                             <md-list-item class="md-2-line" ng-click="null">

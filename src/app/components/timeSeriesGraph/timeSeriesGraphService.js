@@ -1,4 +1,4 @@
-app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'runRequestService', 'timeSeriesAnnotationService', function ($log, $mdDialog, runRequestService, timeSeriesAnnotationService) {
+app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotationService', function ($log, $mdDialog, timeSeriesAnnotationService) {
 
 
     var self = this;
@@ -126,7 +126,7 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'runRequestService',
         .attr('class','annotation-add')
         
     annotationAdd.append('svg:image')
-        .attr('xlink:href','./assets/img/lock_unlocked.svg')
+        .attr('xlink:href','./assets/img/add.svg')
         .attr('width','30')
         .attr('height','30')
         .on('click',function(){
@@ -135,24 +135,24 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'runRequestService',
     
     function annotationAddNew(){
         $log.log('adding annotation');
-        var newAnnotation = timeSeriesAnnotationService.addAnnotation(activeRunId,'3423432',{Time : 4000, RTH:0, description: ''},undefined);
+        var xt = endZoomVector.rescaleX(x);
+        var newAnnotation = timeSeriesAnnotationService.addAnnotation(activeRunId,'3423432',{Time : xt.invert(500), RTH:0, description: ''},undefined);
         annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId,undefined));
         annotationClick(newAnnotation);
     }
 
-    getData(['2B497C4DAFF48A9C!160', '2B497C4DAFF48A9C!178'])
+   
 
-    function getData(idArray) {
-        var getRunPromises = idArray.map(runRequestService.getRun);
-        Promise.all(getRunPromises).then(function (result) {
+    self.graphInit = function(result) {
+       
             var results = [];
-
+            
             for (var i = 0, n = result.length; i < n; i++) {
-                var resultArray = dataObjectToArray(result[i].data.runData);
-                results.push({ id: result[i].data.id, values: resultArray });
+                var resultArray = dataObjectToArray(result[i].runData);
+                results.push({ id: result[i].id, values: resultArray });
 
-                var annotationGroupId = timeSeriesAnnotationService.addAnnotationGroup(result[i].data.id);
-                extractAnnotations(annotationGroupId, result[i].data.annotations);
+                var annotationGroupId = timeSeriesAnnotationService.addAnnotationGroup(result[i].id);
+                extractAnnotations(annotationGroupId, result[i].annotations);
 
             }
 
@@ -160,7 +160,6 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'runRequestService',
             timeSeriesAnnotationService.addAnnotation('2B497C4DAFF48A9C!178', '16884', { Time: 4000, RTH: 0, description: 'Hi there' }, undefined);
 
             drawGraph(results);
-        })
     }
 
     function extractAnnotations(annotationGroupId, annotations) {
@@ -367,6 +366,10 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'runRequestService',
 
     self.getAnnotationInEdit = function () {
         return annotationInEdit;
+    }
+
+    self.getActiveRunId = function(){
+        return activeRunId;
     }
 
     function dragended(d) {
