@@ -120,6 +120,7 @@ app.controller('importPanelController', ['$scope', '$log', '$mdDialog', 'getFold
             runArray.push(run);
         });
 
+        $log.log(selectedMap);
         getFolderService.importRuns(runArray);
         $scope.cancel();
     }

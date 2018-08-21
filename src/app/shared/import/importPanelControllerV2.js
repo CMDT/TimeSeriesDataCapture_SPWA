@@ -7,6 +7,7 @@ app.controller('importPanelControllerV2', ['$scope', '$log', '$mdDialog','$filte
     $scope.breadcrumb = [];
     $scope.preview = false;
 
+   var selectionId = selectionService.addSelectionGroup('1','importSelection');
     var pathChange = function (component) {
         folderBreadcrumbService.navigate(component);
         $scope.breadcrumb = folderBreadcrumbService.getPath();
@@ -54,7 +55,7 @@ app.controller('importPanelControllerV2', ['$scope', '$log', '$mdDialog','$filte
     }
 
     $scope.selectedToggle = function (runId) {
-        selectionService.selectedToggle(runId);
+        selectionService.selectedToggle(selectionService.getSelectionGroup(selectionId),runId);
     }
 
     $scope.selectedAllToggle = function(){
@@ -62,11 +63,11 @@ app.controller('importPanelControllerV2', ['$scope', '$log', '$mdDialog','$filte
         if(!$scope.selectedAllIsChecked()){
             var runs = $filter('runFilter')(components);
             for(var i=0,n=runs.length;i<n;i++){
-                selectionService.addSelected(runs[i].id,runs[i].data);
+                selectionService.addSelected(selectionService.getSelectionGroup(selectionId),runs[i].id);
             }
         }else{
             for(var i=0,n=components.length;i<n;i++){
-                selectionService.removeSelected(components[i].id);
+                selectionService.removeSelected(selectionService.getSelectionGroup(selectionId),components[i].id);
             }
         }
     }
@@ -79,16 +80,13 @@ app.controller('importPanelControllerV2', ['$scope', '$log', '$mdDialog','$filte
         var components = $scope.activePage.data;
         var runs = $filter('runFilter')(components);
         var runsIds = $filter('componentIdFilter')(runs);
-        return selectionService.isSelectedAll(runsIds);
+        return selectionService.isSelectedAll(selectionService.getSelectionGroup(selectionId),runsIds);
     }
 
    
 
     $scope.exists = function (runId) {
-        if(selectedMap.get(runId) != undefined){
-            return true;
-        }
-        return false
+       return selectionService.isSelected(selectionService.getSelectionGroup(selectionId),runId);
     }
 
     $scope.cancel = function () {
@@ -98,11 +96,7 @@ app.controller('importPanelControllerV2', ['$scope', '$log', '$mdDialog','$filte
     }
 
     $scope.confirm = function () {
-        var runArray = [];
-        selectedMap.forEach(run => {
-            runArray.push(run);
-        });
-        getFolderService.importRuns(runArray);
+        getFolderService.importRuns(selectionService.selectedToArray(selectionId));
         $scope.cancel();
     }
 

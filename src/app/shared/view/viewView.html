@@ -18,13 +18,14 @@
         <md-content class='content'>
             <md-tabs md-selected='activeTabIndex' md-dynamic-height md-border-bottom>
 
-                <md-tab  ng-repeat='run in runs' label='{{run.id}}'>
+                <md-tab ng-repeat='run in runs' label='{{run.id}}'>
                     <md-content>
                         <md-list ng-repeat="column in run.columns" flex>
                             <md-list-item class="md-2-line" ng-click="null">
                                 <h3>{{column}}</h3>
                                 <md-list-item class="md-2-line" ng-click="null">
-                                    <md-checkbox aria-label="Checkbox "></md-checkbox>
+                                    <md-checkbox md-no-ink='false' ng-click="selectedToggle(run.id,column)" ng-checked="exists(run.id,column)" aria-label="Checkbox ">
+                                    </md-checkbox>
                         </md-list>
                     </md-content>
                 </md-tab>

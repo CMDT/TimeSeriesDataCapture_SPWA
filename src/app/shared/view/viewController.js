@@ -1,17 +1,11 @@
-app.controller('viewController', ['$scope', '$log', 'runRequestService', 'timeSeriesGraphService', function ($scope, $log, runRequestService, timeSeriesGraphService) {
+app.controller('viewController', ['$scope', '$log', 'runRequestService', 'timeSeriesGraphService','selectionService', function ($scope, $log, runRequestService, timeSeriesGraphService,selectionService) {
 
 
     $scope.runs = [];
 
     $scope.activeTabIndex;
 
-    angular.element(document).ready(function () {
-        $log.log($scope.activeTabIndex);
-    });
-
-    $scope.test1 = function () {
-        $log.log($scope.activeTabIndex);
-    }
+   
 
     getData(['2B497C4DAFF48A9C!160', '2B497C4DAFF48A9C!178'])
 
@@ -22,7 +16,9 @@ app.controller('viewController', ['$scope', '$log', 'runRequestService', 'timeSe
             $log.log(result);
             for (var i = 0, n = result.length; i < n; i++) {
                 results.push(result[i].data);
+                selectionService.addSelectionGroup(result[i].data.id);
                 extractColumnNames(result[i].data.id,result[i].data.runData)
+                selectionService.selectedToggle(selectionService.getSelectionGroup(result[i].data.id),'RTH');
             }
             timeSeriesGraphService.graphInit(results);
         });
@@ -40,6 +36,17 @@ app.controller('viewController', ['$scope', '$log', 'runRequestService', 'timeSe
         $scope.runs.push(tabObject);
         $log.log($scope.runs);
         $scope.$apply();
+    }
+
+    $scope.selectedToggle = function(id,columnName){
+        selectionService.clearSelection(id);
+        selectionService.selectedToggle(selectionService.getSelectionGroup(id),columnName);
+        timeSeriesGraphService.redrawGraph();
+        
+    }
+
+    $scope.exists = function(id,columnName){
+        return selectionService.isSelected(selectionService.getSelectionGroup(id),columnName);
     }
 
 

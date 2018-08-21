@@ -1,4 +1,4 @@
-<div ng-controller="importPanelController">
+<div ng-controller="importPanelControllerV2">
     <md-toolbar>
         <div class="md-toolbar-tools">
             <h4>Import</h4>
@@ -34,7 +34,7 @@
                     <md-button ng-click="previewToggle(result)">
                         <md-icon md-svg-src="../../assets/img/previewIcon.svg" aria-label="Preview Icon"></md-icon>
                     </md-button>
-                    <md-checkbox md-no-ink='false' ng-click="selectedToggle(result.id)" ng-checked="exists(result.id)" aria-label="Checkbox 1">
+                    <md-checkbox md-no-ink='false' ng-click="selectedToggle(result.id)" ng-checked="exists(result.id)" aria-label="Checkbox ">
                     </md-checkbox>
 
                 </div>

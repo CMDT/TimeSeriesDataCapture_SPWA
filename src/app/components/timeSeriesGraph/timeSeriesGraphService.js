@@ -1,9 +1,11 @@
-app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotationService', function ($log, $mdDialog, timeSeriesAnnotationService) {
+app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotationService', 'selectionService', function ($log, $mdDialog, timeSeriesAnnotationService, selectionService) {
 
 
     var self = this;
     var annotationInEdit;
     var activeRunId = '2B497C4DAFF48A9C!160';
+    var activeY = 'RTH';
+    var data;
     // set the dimensions and margins of the graph
     var margin = {
         top: 110,
@@ -30,9 +32,10 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
 
     var ctrlDown = false;
 
+
     var line = d3.line()
         .x(function (d) { return x(d.Time); })
-        .y(function (d) { return y(d.RTH); });
+        .y(function (d) { return y(d[activeY]); });
 
 
     var zoom = d3.zoom()
@@ -119,47 +122,49 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
         .on('click', function () {
             lockToggle(xLock);
         });
-    
+
     //annotation add
     var annotationAdd = svg.append('g')
-        .attr('transform','translate(' + (width + margin.left * 1.2) + ',' + (margin.top * 0.8) + ')')
-        .attr('class','annotation-add')
-        
+        .attr('transform', 'translate(' + (width + margin.left * 1.2) + ',' + (margin.top * 0.8) + ')')
+        .attr('class', 'annotation-add')
+
     annotationAdd.append('svg:image')
-        .attr('xlink:href','./assets/img/add.svg')
-        .attr('width','30')
-        .attr('height','30')
-        .on('click',function(){
+        .attr('xlink:href', './assets/img/add.svg')
+        .attr('width', '30')
+        .attr('height', '30')
+        .on('click', function () {
             annotationAddNew();
         })
-    
-    function annotationAddNew(){
+
+    function annotationAddNew() {
         $log.log('adding annotation');
         var xt = endZoomVector.rescaleX(x);
-        var newAnnotation = timeSeriesAnnotationService.addAnnotation(activeRunId,'3423432',{Time : xt.invert(500), RTH:0, description: ''},undefined);
-        annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId,undefined));
+        var newAnnotation = timeSeriesAnnotationService.addAnnotation(activeRunId, '3423432', { Time: xt.invert(500), description: '' }, undefined);
+        annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId, undefined));
         annotationClick(newAnnotation);
     }
 
-   
 
-    self.graphInit = function(result) {
-       
-            var results = [];
-            
-            for (var i = 0, n = result.length; i < n; i++) {
-                var resultArray = dataObjectToArray(result[i].runData);
-                results.push({ id: result[i].id, values: resultArray });
 
-                var annotationGroupId = timeSeriesAnnotationService.addAnnotationGroup(result[i].id);
-                extractAnnotations(annotationGroupId, result[i].annotations);
+    self.graphInit = function (result) {
 
-            }
+        var results = [];
 
-            timeSeriesAnnotationService.addAnnotationGroup('2B497C4DAFF48A9C!178');
-            timeSeriesAnnotationService.addAnnotation('2B497C4DAFF48A9C!178', '16884', { Time: 4000, RTH: 0, description: 'Hi there' }, undefined);
+        for (var i = 0, n = result.length; i < n; i++) {
+            var resultArray = dataObjectToArray(result[i].runData);
+            results.push({ id: result[i].id, values: resultArray });
 
-            drawGraph(results);
+            var annotationGroupId = timeSeriesAnnotationService.addAnnotationGroup(result[i].id);
+            extractAnnotations(annotationGroupId, result[i].annotations);
+
+        }
+
+        data = results;
+
+        timeSeriesAnnotationService.addAnnotationGroup('2B497C4DAFF48A9C!178');
+        timeSeriesAnnotationService.addAnnotation('2B497C4DAFF48A9C!178', '16884', { Time: 4000, description: 'Hi there' }, undefined);
+
+        drawGraph(results);
     }
 
     function extractAnnotations(annotationGroupId, annotations) {
@@ -169,7 +174,6 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
             var data = {
                 Time: annotationObject[annotationIds[j]].xcoordinate,
                 description: annotationObject[annotationIds[j]].description,
-                RTH: 0
             }
             timeSeriesAnnotationService.addAnnotation(annotationGroupId, annotationIds[j], data, undefined);
         }
@@ -194,17 +198,11 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
 
 
     function drawGraph(runsData) {
-        var xDomain = [
-            d3.min(runsData, function (c) { return d3.min(c.values, function (d) { return d.Time }) }),
-            d3.max(runsData, function (c) { return d3.max(c.values, function (d) { return d.Time }) })
-        ];
-        x.domain(d3.extent(xDomain));
+        calculateXdomain(runsData);
+        calculateYdomain(runsData);
         z.domain(runsData.map(function (r) { return r.id }))
 
-        y.domain([
-            d3.min(runsData, function (c) { return d3.min(c.values, function (d) { return d.RTH; }); }),
-            d3.max(runsData, function (c) { return d3.max(c.values, function (d) { return d.RTH; }); })
-        ]);
+
 
         $log.log(runsData);
 
@@ -235,10 +233,50 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
 
         runs.append("path")
             .attr("class", "line")
-            .attr("d", function (d) { return line(d.values); })
+            .attr("d", function (d) {
+                activeY = (selectionService.selectedToArray(d.id)[0]);
+                return line(d.values);
+            })
             .style("stroke", function (d) { return z(d.id); })
         annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId));
     }
+
+    function calculateXdomain(runsData) {
+        var xDomain = [
+            d3.min(runsData, function (c) { return d3.min(c.values, function (d) { return d.Time }) }),
+            d3.max(runsData, function (c) { return d3.max(c.values, function (d) { return d.Time }) })
+        ];
+        x.domain(d3.extent(xDomain));
+    }
+
+    function calculateYdomain(runsData) {
+        var values = runsData;
+
+        if (activeRunId != undefined) {
+            for (var i = 0, n = runsData.length; i < n; i++) {
+                if (runsData[i].id === activeRunId) {
+                    values = runsData[i];
+
+                    break;
+                }
+            }
+
+            y.domain([
+                d3.min(values, function (c) { return d3.min(c.values, function (d) { return d[activeY]; }); }),
+                d3.max(values, function (c) { return d3.max(c.values, function (d) { return d[activeY]; }); })
+            ]);
+        }
+
+
+        y.domain([
+            d3.min(runsData[0]['values'], function (c) { return c[activeY] }),
+            d3.max(runsData[0]['values'], function (c) { return c[activeY] })
+        ]);
+
+
+      
+    }
+
 
     function annotationBadgeRender(annotations, t) {
         var xt = endZoomVector.rescaleX(x);
@@ -309,6 +347,42 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
     }
 
 
+    self.redrawGraph = function () {
+
+      
+        calculateYdomain(data);
+
+    
+
+
+        var line = d3.line()
+            .x(function (d) {
+                return x(d.Time);
+            })
+            .y(function (d) {
+                return y(d[activeY]);
+            })
+
+        
+        var id = activeRunId.split('!');
+        graph.select('.run-group').select('.run' + id[0] + id[1]).select('.line')
+            .attr('d', function (d) {
+                activeY = (selectionService.selectedToArray(d.id)[0]);
+                return line(d.values);
+            });
+
+        graph.select('.axis--x').call(xAxis.scale(x));
+        graph.select('.axis--y').call(yAxis.scale(y));
+        graph.selectAll('.line')
+            .attr('d', function (d) {
+                activeY = (selectionService.selectedToArray(d.id)[0]);
+                return line(d.values);
+            });
+
+        annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId), endZoomVector);
+        annotationLabelRender(endZoomVector);
+    }
+
 
     function zoomed() {
         var t = d3.event.transform;
@@ -324,12 +398,15 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
         var xt = t.rescaleX(x);
         var yt = t.rescaleY(y);
 
+        calculateXdomain(data);
+        calculateYdomain(data);
+
         var line = d3.line()
             .x(function (d) {
                 return xt(d.Time);
             })
             .y(function (d) {
-                return yt(d.RTH);
+                return yt(d[activeY]);
             })
 
         if (isZooming || ctrlDown) {
@@ -337,12 +414,14 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
             graph.select('.axis--y').call(yAxis.scale(yt));
             graph.selectAll('.line')
                 .attr('d', function (d) {
+                    activeY = (selectionService.selectedToArray(d.id)[0]);
                     return line(d.values);
                 });
         } else {
             var id = activeRunId.split('!');
             graph.select('.run-group').select('.run' + id[0] + id[1]).select('.line')
                 .attr('d', function (d) {
+                    activeY = (selectionService.selectedToArray(d.id)[0]);
                     return line(d.values);
                 });
         }
@@ -368,7 +447,7 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
         return annotationInEdit;
     }
 
-    self.getActiveRunId = function(){
+    self.getActiveRunId = function () {
         return activeRunId;
     }
 
@@ -437,6 +516,13 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
 
             annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId));
         })
+    }
+
+    self.setActiveY = function (yColumnName) {
+        activeY = yColumnName;
+        calculateXdomain(data);
+        calculateYdomain(data);
+        zoomed();
     }
 
     d3.selection.prototype.moveToFront = function () {
