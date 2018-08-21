@@ -1,7 +1,7 @@
 app.service('timeSeriesAnnotationService', ['$log', '$filter', function ($log, $filter) {
 
     var self = this;
-    var annotations = [];
+    
 
     var annotationGroups = new Map();
      
@@ -12,7 +12,7 @@ app.service('timeSeriesAnnotationService', ['$log', '$filter', function ($log, $
         this.annotations=annotations;
     }
 
-    function annotationBadge(annotationIdGroup,id,data,label = self.titleGen()) {
+    function annotationBadge(annotationIdGroup,id,data,label = self.titleGen(annotationIdGroup)) {
         this.annotationIdGroup = annotationIdGroup;
         this.id = id;
         this.title = label;
@@ -42,6 +42,7 @@ app.service('timeSeriesAnnotationService', ['$log', '$filter', function ($log, $
         var newAnnotation = new annotationBadge(annotationGroupId,id,data,label);
         var annotationGroup = annotationGroups.get(annotationGroupId);
         annotationGroup.annotations.push(newAnnotation);
+        return newAnnotation
     }
 
     self.removeAnnotation = function(annotationGroupId,annotationId){
@@ -76,10 +77,17 @@ app.service('timeSeriesAnnotationService', ['$log', '$filter', function ($log, $
         }
     }
 
-    self.titleGen = function () {
-        asciiA = 65;
-        asciiValue = asciiA + annotations.length;
-        return String.fromCharCode(asciiValue);
+    self.titleGen = function (annotationGroupId) {
+        var annotationGroup = annotationGroups.get(annotationGroupId);
+        var  asciiA = 65;
+        var asciiValueNormalized = self.normalizeLength([0,26],[65,91],annotationGroup.annotations.length % 26)
+
+        $log.log(asciiValueNormalized);
+        return String.fromCharCode(asciiValueNormalized);
+    }
+
+    self.normalizeLength = function(from,to,s){
+        return to[0] + (s - from[0]) * (to[1] - to[0]) / (from[1] - from[0]);
     }
 
 }])

@@ -6,13 +6,13 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'runRequestService',
     var activeRunId = '2B497C4DAFF48A9C!160';
     // set the dimensions and margins of the graph
     var margin = {
-        top: 150,
-        right: 50,
-        bottom: 50,
-        left: 100
+        top: 110,
+        right: 170,
+        bottom: 70,
+        left: 160
     }
-    var width = 960 - margin.left - margin.right;
-    var height = 550 - margin.top - margin.bottom;
+    var width = 1300 - margin.left - margin.right;
+    var height = 600 - margin.top - margin.bottom;
 
 
     var trendLineColors = ['#8cc2d0', '#152e34']
@@ -40,7 +40,7 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'runRequestService',
 
 
 
-    var svg = d3.select('svg').attr("viewBox", "0 0 960 550")
+    var svg = d3.select('svg').attr("viewBox", "0 0 1300 600")
         .attr("preserveAspectRatio", "xMinYMax meet");
     // appends a 'group' element to 'svg'
     // moves the 'group' element to the top left margin
@@ -119,6 +119,26 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'runRequestService',
         .on('click', function () {
             lockToggle(xLock);
         });
+    
+    //annotation add
+    var annotationAdd = svg.append('g')
+        .attr('transform','translate(' + (width + margin.left * 1.2) + ',' + (margin.top * 0.8) + ')')
+        .attr('class','annotation-add')
+        
+    annotationAdd.append('svg:image')
+        .attr('xlink:href','./assets/img/lock_unlocked.svg')
+        .attr('width','30')
+        .attr('height','30')
+        .on('click',function(){
+            annotationAddNew();
+        })
+    
+    function annotationAddNew(){
+        $log.log('adding annotation');
+        var newAnnotation = timeSeriesAnnotationService.addAnnotation(activeRunId,'3423432',{Time : 4000, RTH:0, description: ''},undefined);
+        annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId,undefined));
+        annotationClick(newAnnotation);
+    }
 
     getData(['2B497C4DAFF48A9C!160', '2B497C4DAFF48A9C!178'])
 
@@ -365,7 +385,7 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'runRequestService',
             .attr('id', annotation.id)
             .append('svg:image')
             .attr('x', (xCor - (width / 2)))
-            .attr('y', annotation._y - 70)
+            .attr('y', -80)
             .attr('xlink:href', './assets/img/arrow_down.svg')
             .attr('width', width)
             .attr('height', height)
@@ -378,7 +398,7 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'runRequestService',
             .attr('class', 'confirm')
             .append('svg:image')
             .attr('x', (xCor - (width / 2)))
-            .attr('y', annotation._y - 110)
+            .attr('y', -110)
             .attr('xlink:href', './assets/img/stop.svg')
             .attr('width', width)
             .attr('height', height)

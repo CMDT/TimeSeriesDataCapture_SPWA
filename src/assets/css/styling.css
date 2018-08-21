@@ -76,14 +76,16 @@ md-dialog {
 }
 
 .view {
-    display : flex;
-    flex-direction: row;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .view .column-panel{
     width: 20%;
     padding : 2%;
-    margin-left: 5%;
+    margin-left: 40%;
+    margin-top: 5%;
     min-height: 100px;
    
 }
@@ -97,5 +99,7 @@ md-dialog {
     border-style: solid;
     min-height: 450px;
 }
+
+
 
 
