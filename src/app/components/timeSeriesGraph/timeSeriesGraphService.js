@@ -254,7 +254,6 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
     }
 
     function calculateYdomain(runData) {
-        $log.log('active Y ', activeY)
         yActive.domain([
             d3.min(runData, function (d) { return d[activeY]; }),
             d3.max(runData, function (d) { return d[activeY]; })
@@ -412,8 +411,9 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
                     }
 
                 });
-            $log.log(y.domain());
         }
+
+      
 
 
         var lineActive = d3.line()
@@ -438,6 +438,8 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
         annotationLabelRender(t);
         endZoomVector = t;
     }
+
+  
 
     function lockToggle(lock) {
         var image = lock.select('image');
