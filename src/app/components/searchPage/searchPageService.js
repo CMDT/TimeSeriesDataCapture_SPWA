@@ -2,12 +2,14 @@ app.service('searchPageService', ['$log', 'tagPredictionService', 'searchService
 
     var self = this;
 
+    
+
     self.search = function (query) {
         return new Promise(function (resolve, reject) {
-           
+
             $log.log('query' + query);
             var queryObject = self.searchExtractV2(query);
-            searchService.searchRequest(queryObject).then(function(result){
+            searchService.searchRequest(queryObject).then(function (result) {
                 $log.log('result ' + result);
                 resolve(result.data);
             })
@@ -15,17 +17,26 @@ app.service('searchPageService', ['$log', 'tagPredictionService', 'searchService
             //     searchService.searchRequest(result).then(function(result){
             //         resolve(result.data);
             //     })
-               
+
             // })
         });
     }
 
-    self.searchExtractV2 = function(search){
+    self.search1 = function (query){
+        return new Promise(function (resolve, reject){
+            $log.log('query', query);
+            var queries = queryKeywordService.extractQueries(query);
+            $log.log(queries);
+        })
+    }
+
+
+    self.searchExtractV2 = function (search) {
         var queries = search.split('%20');
         var queryObject = {
-            query : []
+            query: []
         }
-        for(var i=0,n=queries.length;i<n;i++){
+        for (var i = 0, n = queries.length; i < n; i++) {
             queryObject.query.push(queries[i]);
         }
 
@@ -53,12 +64,12 @@ app.service('searchPageService', ['$log', 'tagPredictionService', 'searchService
         return query;
     }
 
-  
-    self.queryUrlEncode = function(queryArray){
-        return new Promise(function(resolve,reject){
+
+    self.queryUrlEncode = function (queryArray) {
+        return new Promise(function (resolve, reject) {
             const promisesToResolve = queryArray.map(self.urlEncode);
-            Promise.all(promisesToResolve).then(function(result){
-                for(var i=0,n=queryArray.length;i<n;i++){
+            Promise.all(promisesToResolve).then(function (result) {
+                for (var i = 0, n = queryArray.length; i < n; i++) {
                     queryArray[i].value = result[i];
                 }
                 resolve(queryArray);
@@ -66,30 +77,30 @@ app.service('searchPageService', ['$log', 'tagPredictionService', 'searchService
         })
     }
 
-    self.urlEncode = function(queryObject){
-        return new Promise(function(resolve,reject){
-            queryKeywordService.urlEncode(queryObject.name,queryObject.value).then(function(result){
+    self.urlEncode = function (queryObject) {
+        return new Promise(function (resolve, reject) {
+            queryKeywordService.urlEncode(queryObject.name, queryObject.value).then(function (result) {
                 resolve(result);
             })
         });
     }
 
-    self.queryUrlDecode = function(queryArray){
-        return new Promise(function(resolve,reject){
+    self.queryUrlDecode = function (queryArray) {
+        return new Promise(function (resolve, reject) {
             const promisesToResolve = queryArray.map(self.urlDecode);
-            Promise.all(promisesToResolve).then(function(result){
-                for(var i=0,n=queryArray.length;i<n;i++){
+            Promise.all(promisesToResolve).then(function (result) {
+                for (var i = 0, n = queryArray.length; i < n; i++) {
                     queryArray[i].value = result[i]
                 }
                 resolve(queryArray);
-                
+
             })
         });
     }
-    
 
 
-   
+
+
 
 
 }])
