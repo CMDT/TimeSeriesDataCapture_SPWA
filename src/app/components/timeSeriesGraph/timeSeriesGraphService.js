@@ -22,6 +22,7 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
     // set the ranges
     var x = d3.scaleLinear().range([0, width]);
     var y = d3.scaleLinear().range([height, 0]);
+    var yActive = d3.scaleLinear().range([height, 0]);
     var z = d3.scaleOrdinal(trendLineColors);
 
 
@@ -253,7 +254,8 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
     }
 
     function calculateYdomain(runData) {
-        y.domain([
+        $log.log('active Y ', activeY)
+        yActive.domain([
             d3.min(runData, function (d) { return d[activeY]; }),
             d3.max(runData, function (d) { return d[activeY]; })
         ])
@@ -353,11 +355,11 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
                 return x(d.Time);
             })
             .y(function (d) {
-                return y(d[activeY]);
+                return yActive(d[activeY]);
             })
 
         graph.select('.axis--x').transition(transition).call(xAxis.scale(x));
-        graph.select('.axis--y').transition(transition).call(yAxis.scale(y));
+        graph.select('.axis--y').transition(transition).call(yAxis.scale(yActive));
 
 
         var id = activeRunId.split('!');
@@ -386,6 +388,8 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
         var xt = t.rescaleX(x);
         var yt = t.rescaleY(y);
 
+        var ytActive = t.rescaleY(yActive);
+
 
 
         var line = d3.line()
@@ -398,22 +402,38 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
 
         if (isZooming || ctrlDown) {
             graph.select('.axis--x').call(xAxis.scale(xt));
-            graph.select('.axis--y').call(yAxis.scale(yt));
+            graph.select('.axis--y').call(yAxis.scale(ytActive));
             graph.selectAll('.line')
                 .attr('d', function (d) {
+                    if (d.id !== activeRunId) {
+                        activeY = (selectionService.selectedToArray(d.id)[0]);
+                        calculateYdomain(d.values);
+                        return line(d.values);
+                    }
 
-                    activeY = (selectionService.selectedToArray(d.id)[0]);
-                    return line(d.values);
                 });
-        } else {
-            var id = activeRunId.split('!');
-            graph.select('.run-group').select('.run' + id[0] + id[1]).select('.line')
-                .attr('d', function (d) {
-                    activeY = (selectionService.selectedToArray(d.id)[0]);
-                    return line(d.values);
-                });
+            $log.log(y.domain());
         }
-        //zoom.translateBy(svg,-4,-2);
+
+
+        var lineActive = d3.line()
+        .x(function (d) {
+            return xt(d.Time);
+        })
+        .y(function (d) {
+            return ytActive(d[activeY]);
+        })
+
+
+        var id = activeRunId.split('!');
+        graph.select('.run-group').select('.run' + id[0] + id[1]).select('.line')
+            .attr('d', function (d) {
+                activeY = (selectionService.selectedToArray(d.id)[0]);
+                calculateYdomain(d.values);
+                return lineActive(d.values);
+            });
+
+      
         annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId), t);
         annotationLabelRender(t);
         endZoomVector = t;
