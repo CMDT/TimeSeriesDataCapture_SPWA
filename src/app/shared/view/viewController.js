@@ -39,8 +39,16 @@ app.controller('viewController', ['$scope', '$log', 'runRequestService', 'timeSe
     }
 
     $scope.selectedToggle = function(id,columnName){
-        selectionService.selectedToggle(selectionService.getSelectionGroup(id),columnName);
-        timeSeriesGraphService.selectedColumn(id,columnName);
+        var selection = selectionService.getSelectionGroup(id);
+        if(selectionService.isSelected(selection,columnName)){
+            selectionService.removeSelected(selection,columnName);
+            timeSeriesGraphService.deselectColumn(id,columnName);
+        }else{
+            selectionService.addSelected(selection,columnName);
+            timeSeriesGraphService.selectedColumn(id,columnName);
+        }
+
+       
         
     }
 
