@@ -1,11 +1,11 @@
-app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotationService', 'selectionService', function ($log, $mdDialog, timeSeriesAnnotationService, selectionService) {
+app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotationService', 'selectionService', 'timeSeriesTrendService', function ($log, $mdDialog, timeSeriesAnnotationService, selectionService, timeSeriesTrendService) {
 
 
     var self = this;
     var annotationInEdit;
     var activeRunId = '2B497C4DAFF48A9C!160';
     var activeY = 'RTH';
-    var data;
+    var runData;
     // set the dimensions and margins of the graph
     var margin = {
         top: 110,
@@ -22,7 +22,6 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
     // set the ranges
     var x = d3.scaleLinear().range([0, width]);
     var y = d3.scaleLinear().range([height, 0]);
-    var yActive = d3.scaleLinear().range([height, 0]);
     var z = d3.scaleOrdinal(trendLineColors);
 
 
@@ -33,16 +32,8 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
 
     var ctrlDown = false;
 
-
-    var line = d3.line()
-        .x(function (d) { return x(d.Time); })
-        .y(function (d) { return y(d[activeY]); });
-
-
     var zoom = d3.zoom()
         .on('zoom', zoomed)
-
-
 
     var svg = d3.select('svg')
         .attr("width", '100%')
@@ -56,9 +47,6 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
         .attr('class', 'graph')
         .attr("transform",
             "translate(" + margin.left + "," + margin.top + ")");
-
-
-
 
     svg.call(zoom)
         .on("dblclick.zoom", null);
@@ -144,6 +132,10 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
 
 
 
+
+
+
+
     self.graphInit = function (result) {
 
         var results = [];
@@ -157,7 +149,7 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
 
         }
 
-        data = results;
+        runData = results;
 
         timeSeriesAnnotationService.addAnnotationGroup('2B497C4DAFF48A9C!178');
         timeSeriesAnnotationService.addAnnotation('2B497C4DAFF48A9C!178', '16884', { Time: 4000, description: 'Hi there' }, undefined);
@@ -196,18 +188,24 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
 
 
     function drawGraph(runsData) {
-        calculateXdomain(runsData);
-
-        y.domain([
-            d3.min(runsData, function (c) { return d3.min(c.values, function (d) { return d[activeY]; }); }),
-            d3.max(runsData, function (c) { return d3.max(c.values, function (d) { return d[activeY]; }); })
-        ]);
 
         z.domain(runsData.map(function (r) { return r.id }))
 
+        for (var i = 0, n = runsData.length; i < n; i++) {
+            var selectedColumns = selectionService.selectedToArray(runsData[i].id);
+            for (var o = 0, m = selectedColumns.length; o < m; o++) {
+                var data = extractColumn(runsData[i]['values'], 'Time', selectedColumns[o]);
+                var trend = timeSeriesTrendService.addTrend(runsData[i].id, d3.scaleLinear(), d3.scaleLinear(), 'Time', selectedColumns[o], data);
+                trend.scaleY.range([height, 0]);
+                calculateYDomain(trend.scaleY, trend.data, 'Y');
+            }
+        }
 
-
-        $log.log(runsData);
+        var xDomain = [
+            d3.min(runsData, function (c) { return d3.min(c.values, function (d) { return d.Time }) }),
+            d3.max(runsData, function (c) { return d3.max(c.values, function (d) { return d.Time }) })
+        ];
+        x.domain(d3.extent(xDomain));
 
         graph.append("g")
             .attr("class", "axis axis--x")
@@ -221,15 +219,15 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
         var runGroup = graph.append('g')
             .attr('class', 'run-group')
 
+        $log.log(timeSeriesTrendService.getTrends());
         var runs = runGroup.selectAll(".run")
-            .data(runsData)
+            .data(timeSeriesTrendService.getTrends())
             .enter().append("g")
             .attr("class", function (d) {
                 var id = (d.id.split('!'))
                 return 'run' + id[0] + id[1];
             })
             .on('click', function (d) {
-
                 activeRunId = d.id;
                 annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId))
                 d3.select(this).moveToFront();
@@ -237,27 +235,51 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
 
         runs.append("path")
             .attr("class", "line")
-            .attr("d", function (d) {
-                activeY = (selectionService.selectedToArray(d.id)[0]);
-                return line(d.values);
+            .attr('column', function (trend) {
+                return trend.yLabel;
+            })
+            .attr("d", function (trend) {
+                $log.log(trend);
+
+                var line = d3.line()
+                    .x(function (d) { return x(d.x); })
+                    .y(function (d) { return trend.scaleY(d.y); })
+
+                return line(trend.data)
+
             })
             .style("stroke", function (d) { return z(d.id); })
         annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId));
     }
 
-    function calculateXdomain(runsData) {
-        var xDomain = [
-            d3.min(runsData, function (c) { return d3.min(c.values, function (d) { return d.Time }) }),
-            d3.max(runsData, function (c) { return d3.max(c.values, function (d) { return d.Time }) })
-        ];
-        x.domain(d3.extent(xDomain));
+
+
+    function calculateXDomain(scale, data) {
+        scale.domain([
+            d3.min(data, function (d) { return d.x; }),
+            d3.max(data, function (d) { return d.x; })
+        ])
     }
 
-    function calculateYdomain(runData) {
-        yActive.domain([
-            d3.min(runData, function (d) { return d[activeY]; }),
-            d3.max(runData, function (d) { return d[activeY]; })
+    function calculateYDomain(scale, data) {
+        scale.domain([
+            d3.min(data, function (d) { return d.y; }),
+            d3.max(data, function (d) { return d.y; })
         ])
+    }
+
+
+
+    function extractColumn(data, columnX, columnY) {
+        var dataArray = [];
+        for (var i = 0, n = data.length; i < n; i++) {
+            dataArray.push({
+                x: data[i][columnX],
+                y: data[i][columnY]
+            });
+        }
+
+        return dataArray;
     }
 
 
@@ -329,15 +351,65 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
 
     }
 
+    self.selectedColumn = function (id, columnName) {
+        activeRunId = id;
+
+        var data;
+        for (var i = 0, n = runData.length; i < n; i++) {
+            if (runData[i].id === id) {
+                data = runData[i].values;
+            }
+        }
+
+        data = extractColumn(data, 'Time', columnName);
+        var trend = timeSeriesTrendService.addTrend(id, d3.scaleLinear(), d3.scaleLinear(), 'Time', columnName, data);
+        trend.scaleY.range([height, 0]);
+        calculateYDomain(trend.scaleY, trend.data, 'Y');
+
+
+        var transition = d3.transition()
+            .duration(750)
+            .ease(d3.easeLinear);
+
+
+        graph.select('.axis--x').transition(transition).call(xAxis.scale(x));
+        graph.select('.axis--y').transition(transition).call(yAxis.scale(trend.scaleY));
+
+
+        var run = graph.select('.run-group')
+            .selectAll('run')
+            .data([trend])
+            .enter().append('g')
+            .attr('class', function (d) {
+                var id = (d.id.split('!'))
+                return 'run' + id[0] + id[1];
+            })
+
+        run.append('path')
+            .attr('class', 'line')
+            .attr('column', function (trend) {
+                return trend.yLabel;
+            })
+            .attr('d', function (trend) {
+                var line = d3.line()
+                    .x(function (d) { return x(d.x); })
+                    .y(function (d) { return trend.scaleY(d.y); })
+
+                return line(trend.data)
+            })
+           
+        
+    }
+
 
     self.redrawGraph = function () {
         activeY = selectionService.selectedToArray(activeRunId)[0];
 
 
         var values;
-        for (var i = 0, n = data.length; i < n; i++) {
-            if (data[i].id === activeRunId) {
-                values = data[i].values;
+        for (var i = 0, n = runData.length; i < n; i++) {
+            if (runData[i].id === activeRunId) {
+                values = runData[i].values;
                 break;
             }
         }
@@ -375,7 +447,7 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
 
     function zoomed() {
         var t = d3.event.transform;
-        $log.log(t);
+
         var isZooming = endZoomVector.k != t.k;
 
         var xIsLocked = (xLock.attr('locked') == 1);
@@ -385,61 +457,49 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
         t.y = yIsLocked && !isZooming ? endZoomVector.y : t.y;
 
         var xt = t.rescaleX(x);
-        var yt = t.rescaleY(y);
-
-        var ytActive = t.rescaleY(yActive);
 
 
-
-        var line = d3.line()
-            .x(function (d) {
-                return xt(d.Time);
-            })
-            .y(function (d) {
-                return yt(d[activeY]);
-            })
 
         if (isZooming || ctrlDown) {
             graph.select('.axis--x').call(xAxis.scale(xt));
-            graph.select('.axis--y').call(yAxis.scale(ytActive));
-            graph.selectAll('.line')
-                .attr('d', function (d) {
-                    if (d.id !== activeRunId) {
-                        activeY = (selectionService.selectedToArray(d.id)[0]);
-                        calculateYdomain(d.values);
-                        return line(d.values);
-                    }
 
+            graph.selectAll('.line')
+                .attr('d', function (trend) {
+
+                    var yt = t.rescaleY(trend.scaleY);
+                    if (trend.id === activeRunId) {
+                        graph.select('.axis--y').call(yAxis.scale(yt));
+                    }
+                    var line = d3.line()
+                        .x(function (d) { return xt(d.x); })
+                        .y(function (d) { return yt(d.y); })
+
+                    return line(trend.data)
+
+
+                });
+        } else {
+            var id = activeRunId.split('!');
+            graph.select('.run-group').select('.run' + id[0] + id[1]).selectAll('.line')
+                .attr('d', function (trend) {
+                    var yt = t.rescaleY(trend.scaleY);
+                    var line = d3.line()
+                        .x(function (d) { return xt(d.x); })
+                        .y(function (d) { return yt(d.y); })
+
+                    return line(trend.data)
                 });
         }
 
-      
 
-
-        var lineActive = d3.line()
-        .x(function (d) {
-            return xt(d.Time);
-        })
-        .y(function (d) {
-            return ytActive(d[activeY]);
-        })
-
-
-        var id = activeRunId.split('!');
-        graph.select('.run-group').select('.run' + id[0] + id[1]).select('.line')
-            .attr('d', function (d) {
-                activeY = (selectionService.selectedToArray(d.id)[0]);
-                calculateYdomain(d.values);
-                return lineActive(d.values);
-            });
-
-      
         annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId), t);
         annotationLabelRender(t);
+
         endZoomVector = t;
+
     }
 
-  
+
 
     function lockToggle(lock) {
         var image = lock.select('image');
@@ -531,8 +591,8 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
 
     self.setActiveY = function (yColumnName) {
         activeY = yColumnName;
-        calculateXdomain(data);
-        calculateYdomain(data);
+        calculateXdomain(runData);
+        calculateYdomain(runData);
         zoomed();
     }
 

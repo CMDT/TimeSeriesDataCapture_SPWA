@@ -68,7 +68,12 @@ app.service('selectionService', ['$log', function ($log) {
 
 
     self.selectedToArray = function(selectionGroupId){
-        var selection = selectionGroups.get(selectionGroupId).selected;
+        var selection = selectionGroups.get(selectionGroupId);
+        if(selection == undefined){
+            return undefined;
+        }
+
+        selection = selection.selected
         var selectedArray = [];
 
       
