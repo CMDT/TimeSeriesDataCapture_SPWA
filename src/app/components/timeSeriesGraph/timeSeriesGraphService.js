@@ -29,6 +29,7 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
     var yAxis = d3.axisLeft(y);
 
     var endZoomVector = d3.zoomIdentity.scale(1).translate(0, 0);
+    var activeEndZoomVector = d3.zoomIdentity.scale(1).translate(0, 0);
 
     var ctrlDown = false;
 
@@ -379,7 +380,7 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
         graph.select('.axis--x').transition(transition).call(xAxis.scale(x));
         graph.select('.axis--y').transition(transition).call(yAxis.scale(trend.scaleY));
 
-       
+
 
         var run = graph.select('.run-group')
             .selectAll('run')
@@ -411,23 +412,25 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
             )
     }
 
-    self.deselectColumn = function(id,columnName){
+    self.deselectColumn = function (id, columnName) {
         var id = (id.split('!'))
-
+        id = '_' + id[0] + id[1]
         graph.select('.run-group')
-            .select('run ' + id + ' ' + columnName)
+            .select('.run ' + id + ' ' + columnName)
             .delete();
 
         svg.call(zoom).transition()
             .duration(1500)
-            .call(zoom.transform,endZoomVector);
+            .call(zoom.transform, endZoomVector);
     }
 
 
 
-     function zoomed() {
+    function zoomed() {
         var t = d3.event.transform;
 
+
+       $log.log(d3.zoomTransform(this));
 
         var isZooming = endZoomVector.k != t.k;
 
@@ -439,22 +442,21 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
 
 
         var xt = t.rescaleX(x);
-        graph.select('.axis--x').call(xAxis.scale(xt));
-       
+
+
 
         if (isZooming || ctrlDown) {
+            graph.select('.axis--x').call(xAxis.scale(xt));
             $log.log('zooming');
             graph.selectAll('.line')
                 .attr('d', function (trend) {
                     var yt = t.rescaleY(trend.scaleY);
                     var xt = t.rescaleX(x);
 
-
-
                     if (trend.id === activeRunId) {
                         graph.select('.axis--y').call(yAxis.scale(yt));
                     }
-                   
+
                     var line = d3.line()
                         .x(function (d) { return xt(d.x); })
                         .y(function (d) { return yt(d.y); })
@@ -464,11 +466,13 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
 
                 });
             endZoomVector = t;
+
+
         } else {
             var id = activeRunId.split('!');
-            id= '_' + id[0] + id[1]
+            id = '_' + id[0] + id[1]
             $log.log(id);
-            graph.select('.run-group .' +id).selectAll('.line')
+            graph.select('.run-group .' + id).selectAll('.line')
                 .attr('d', function (trend) {
                     var yt = t.rescaleY(trend.scaleY);
                     var line = d3.line()
@@ -477,11 +481,13 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
 
                     return line(trend.data)
                 });
+            activeEndZoomVector = t;
         }
 
         annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId), t);
         annotationLabelRender(t);
-    } 
+
+    }
 
 
 
