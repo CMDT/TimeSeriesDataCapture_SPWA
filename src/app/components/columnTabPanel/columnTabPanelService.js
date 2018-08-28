@@ -108,13 +108,14 @@ app.service('columnTabPanelService', ['$log', 'runRequestService', 'selectionSer
         var selectedColumns = self.allColumnsSelected(selectionGroupIds);
 
         for (var i = 0, n = selectedColumns.length; i < n; i++) {
+       
             if (selectedColumns[i].selectionGroup == id) {
                 
                 var selected = selectedColumns[i].selected;
                 var found = false;
-                for(var i=0,n=selected.length;i<n;i++){
-                    if(selected[i] == columnName){
-                        selected.splice(i,1);
+                for(var o=0,m=selected.length;o<m;o++){
+                    if(selected[o] == columnName){
+                        selected.splice(o,1);
                         found = true;
                         break;
                     }
@@ -171,7 +172,7 @@ app.service('columnTabPanelService', ['$log', 'runRequestService', 'selectionSer
             for(var o=0,m=selection.length;o<m;o++){
                 if(!(columns[i].selected.includes(selection[o]))){
                     //remove selection
-                    selectionService.removeSelected(selectionService.getSelectionGroup(columns[i].selectionGroup),columns[i].selected[o]);
+                    selectionService.removeSelected(selectionService.getSelectionGroup(columns[i].selectionGroup),selection[o]);
                     $log.log('remove selection',selection[o]);
                 }
             }

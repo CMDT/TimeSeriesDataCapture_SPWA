@@ -21,7 +21,8 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', '$
 
     $scope.selectedToggle = function (id, columnName) {
 
-        $log.log('selected');
+        $log.log(id);
+        $log.log(columnName);
         var selectedColumns = columnTabPanelService.columnSelectToggle(id,columnName);
         var columnParam = '';
         for(var i=0,n=selectedColumns.length;i<n;i++){
