@@ -68,11 +68,13 @@ app.service('timeSeriesAnnotationService', ['$log', '$filter', function ($log, $
        }
     }
 
-    self.updateAnnotation = function(title,updateData){
-        for(var i=0,n=annotations.length;i<n;i++){
-            if(annotations[i].title === title){
+    self.updateAnnotation = function(annotationGroupId,annotationId,updateData){
+        var annotationGroup = annotationGroups.get(annotationGroupId);
+
+        for(var i=0,n=annotationGroup.annotations.length;i<n;i++){
+            if(annotationGroup.annotations[i].id === annotationId){
                 annotations[i].data = updateData;
-                return annotations[i];
+                return annotationGroup.annotations[i];
             }
         }
     }
@@ -80,10 +82,9 @@ app.service('timeSeriesAnnotationService', ['$log', '$filter', function ($log, $
     self.titleGen = function (annotationGroupId) {
         var annotationGroup = annotationGroups.get(annotationGroupId);
         var  asciiA = 65;
-        var asciiValueNormalized = self.normalizeLength([0,26],[65,91],annotationGroup.annotations.length % 26)
-
+        var asciiValueNormalized = self.normalizeLength([0,26],[asciiA,91],annotationGroup.annotations.length % 26)
         $log.log(asciiValueNormalized);
-        return String.fromCharCode(asciiValueNormalized);
+        return (String.fromCharCode(asciiValueNormalized) + Math.floor(annotationGroup.annotations.length / 26));
     }
 
     self.normalizeLength = function(from,to,s){

@@ -1,69 +1,33 @@
-app.controller('viewController', ['$scope', '$log', 'runRequestService', 'timeSeriesGraphService','selectionService', function ($scope, $log, runRequestService, timeSeriesGraphService,selectionService) {
+app.controller('viewController', ['$scope', '$log','tagEditPanelService','columnTabPanelService','timeSeriesGraphControlService', function ($scope, $log,tagEditPanelService,columnTabPanelService,timeSeriesGraphControlService) {
 
 
     $scope.runs = [];
+    $scope.tabs = [];
 
     $scope.activeTabIndex;
 
-   
+    $scope.isColumns = true;
 
-    getData(['2B497C4DAFF48A9C!160', '2B497C4DAFF48A9C!178'])
+    $scope.tags = ['tag1','tag2','tag3'];
 
-    function getData(idArray) {
-        var getRunPromises = idArray.map(runRequestService.getRun);
-        Promise.all(getRunPromises).then(function (result) {
-            var results = [];
-            $log.log(result);
-            for (var i = 0, n = result.length; i < n; i++) {
-                results.push(result[i].data);
-                selectionService.addSelectionGroup(result[i].data.id);
-                extractColumnNames(result[i].data.id,result[i].data.runData)
-                selectionService.selectedToggle(selectionService.getSelectionGroup(result[i].data.id),'RTH');
-            }
-            timeSeriesGraphService.graphInit(results);
-        });
-    }
-
-    function extractColumnNames(id, runData) {
-        
-        var tabObject = {
-            id: id,
-            columns: []
-        }
-
-        var runKeys = Object.keys(runData);
-        tabObject.columns = (runKeys);
-        $scope.runs.push(tabObject);
-        $log.log($scope.runs);
+    columnTabPanelService.getRun(['2B497C4DAFF48A9C!160', '2B497C4DAFF48A9C!178']).then(function(result){
+        $scope.runs = result;
+        $scope.tabs = columnTabPanelService.createRunTabs(result);
         $scope.$apply();
-    }
+
+        timeSeriesGraphControlService.drawGraph(result);
+    })
 
     $scope.selectedToggle = function(id,columnName){
-        var selection = selectionService.getSelectionGroup(id);
-        if(selectionService.isSelected(selection,columnName)){
-            selectionService.removeSelected(selection,columnName);
-            timeSeriesGraphService.deselectColumn(id,columnName);
-        }else{
-            selectionService.addSelected(selection,columnName);
-            timeSeriesGraphService.selectedColumn(id,columnName);
-        }
-
-       
-        
+        columnTabPanelService.selectedToggle(id,columnName);
     }
 
+    $scope.tagEdit = function(){
+        tagEditPanelService.showTagEditPanel(undefined,$scope.tags);
+    }
+    
     $scope.exists = function(id,columnName){
-        return selectionService.isSelected(selectionService.getSelectionGroup(id),columnName);
+        return columnTabPanelService.exists(id,columnName);
     }
-
-
-
-
-
-
-
-
-
-
 
 }])

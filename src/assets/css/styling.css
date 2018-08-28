@@ -100,6 +100,11 @@ md-dialog {
     min-height: 450px;
 }
 
+.md-button.tag-button{
+    min-width: 1%;
+    float: right;
+}
+
 
 
 

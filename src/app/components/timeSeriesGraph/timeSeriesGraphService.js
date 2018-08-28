@@ -1,10 +1,9 @@
 app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotationService', 'selectionService', 'timeSeriesTrendService', function ($log, $mdDialog, timeSeriesAnnotationService, selectionService, timeSeriesTrendService) {
 
-
     var self = this;
     var annotationInEdit;
     var activeRunId = '2B497C4DAFF48A9C!160';
-    var activeY = 'RTH';
+
     var runData;
     // set the dimensions and margins of the graph
     var margin = {
@@ -16,7 +15,6 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
     var width = 1300 - margin.left - margin.right;
     var height = 600 - margin.top - margin.bottom;
 
-
     var trendLineColors = ['#8cc2d0', '#152e34']
 
     // set the ranges
@@ -24,12 +22,10 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
     var y = d3.scaleLinear().range([height, 0]);
     var z = d3.scaleOrdinal(trendLineColors);
 
-
     var xAxis = d3.axisBottom(x);
     var yAxis = d3.axisLeft(y);
 
     var endZoomVector = d3.zoomIdentity.scale(1).translate(0, 0);
-    var activeEndZoomVector = d3.zoomIdentity.scale(1).translate(0, 0);
 
     var ctrlDown = false;
 
@@ -41,107 +37,100 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
         .attr("height", 'auto')
         .attr("viewBox", "0 0 1300 600")
         .attr("preserveAspectRatio", "xMinYMax meet");
-    // appends a 'group' element to 'svg'
-    // moves the 'group' element to the top left margin
 
+    var graph;
 
+    var annotationLabelGroup;
+    var annotationGroup;
 
+    var yLock;
+    var xLock;
 
-    var graph = svg
-        .append("g")
-        .attr('class', 'graph')
-        .attr("transform",
-            "translate(" + margin.left + "," + margin.top + ")");
+    var annotationAdd;
 
-    svg.call(zoom)
-        .on("dblclick.zoom", null);
-
-    d3.select('body')
-        .on('keydown', function () {
-            $log.log(d3.event.keyCode);
-            if (d3.event.keyCode === 16) {
-                $log.log('keyPress');
-                ctrlDown = true;
-            }
-        })
-    d3.select('body')
-        .on('keyup', function () {
-            if (d3.event.keyCode === 16) {
-                $log.log('keyUp');
-                ctrlDown = false;
-            }
-        })
-
-    svg.append("defs").append("clipPath")
-        .attr("id", "clip")
-        .append("rect")
-        .attr("width", width)
-        .attr("height", height);
-
-
-
-    var annotationLabelGroup = graph.append('g').attr('class', 'annotationLabel-group');
-    var annotationGroup = graph.append('g').attr('class', 'annotation-group');
-
-
-    //yLock
-    var yLock = svg.append('g')
-        .attr('transform', 'translate(' + (margin.left * 0.85) + ',' + (margin.top * 0.6) + ')')
-        .attr('class', 'y-lock')
-        .attr('locked', 0)
-
-    yLock.append('svg:image')
-        .attr('xlink:href', './assets/img/lock_unlocked.svg')
-        .attr('width', '30')
-        .attr('height', '30')
-        .on('click', function () {
-            lockToggle(yLock);
-        });
-
-
-
-    //xLock
-    var xLock = svg.append('g')
-        .attr('transform', 'translate(' + (width + margin.left * 1.2) + ',' + (height + margin.top * 0.8) + ')')
-        .attr('class', 'x-lock')
-        .attr('locked', 0)
-
-    xLock.append('svg:image')
-        .attr('xlink:href', './assets/img/lock_unlocked.svg')
-        .attr('width', '30')
-        .attr('height', '30')
-        .on('click', function () {
-            lockToggle(xLock);
-        });
-
-    //annotation add
-    var annotationAdd = svg.append('g')
-        .attr('transform', 'translate(' + (width + margin.left * 1.2) + ',' + (margin.top * 0.8) + ')')
-        .attr('class', 'annotation-add')
-
-    annotationAdd.append('svg:image')
-        .attr('xlink:href', './assets/img/add.svg')
-        .attr('width', '30')
-        .attr('height', '30')
-        .on('click', function () {
-            annotationAddNew();
-        })
-
-    function annotationAddNew() {
+    function annotationAddNew(id, time, description) {
         $log.log('adding annotation');
-        var xt = endZoomVector.rescaleX(x);
-        var newAnnotation = timeSeriesAnnotationService.addAnnotation(activeRunId, '3423432', { Time: xt.invert(500), description: '' }, undefined);
-        annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId, undefined));
+
+        var newAnnotation = timeSeriesAnnotationService.addAnnotation(activeRunId, id, { Time: time, description: description }, undefined);
+        annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId));
         annotationClick(newAnnotation);
     }
 
 
-
-
-
-
-
     self.graphInit = function (result) {
+
+        graph = svg
+            .append("g")
+            .attr('class', 'graph')
+            .attr("transform",
+                "translate(" + margin.left + "," + margin.top + ")");
+
+        svg.call(zoom)
+            .on("dblclick.zoom", null);
+
+        d3.select('body')
+            .on('keydown', function () {
+                $log.log(d3.event.keyCode);
+                if (d3.event.keyCode === 16) {
+                    $log.log('keyPress');
+                    ctrlDown = true;
+                }
+            })
+        d3.select('body')
+            .on('keyup', function () {
+                if (d3.event.keyCode === 16) {
+                    $log.log('keyUp');
+                    ctrlDown = false;
+                }
+            })
+
+        svg.append("defs").append("clipPath")
+            .attr("id", "clip")
+            .append("rect")
+            .attr("width", width)
+            .attr("height", height);
+
+        annotationLabelGroup = graph.append('g').attr('class', 'annotationLabel-group');
+        annotationGroup = graph.append('g').attr('class', 'annotation-group');
+
+        yLock = svg.append('g')
+            .attr('transform', 'translate(' + (margin.left * 0.85) + ',' + (margin.top * 0.6) + ')')
+            .attr('class', 'y-lock')
+            .attr('locked', 0)
+
+        yLock.append('svg:image')
+            .attr('xlink:href', './assets/img/lock_unlocked.svg')
+            .attr('width', '30')
+            .attr('height', '30')
+            .on('click', function () {
+                lockToggle(yLock);
+            });
+
+        xLock = svg.append('g')
+            .attr('transform', 'translate(' + (width + margin.left * 1.2) + ',' + (height + margin.top * 0.8) + ')')
+            .attr('class', 'x-lock')
+            .attr('locked', 0)
+
+        xLock.append('svg:image')
+            .attr('xlink:href', './assets/img/lock_unlocked.svg')
+            .attr('width', '30')
+            .attr('height', '30')
+            .on('click', function () {
+                lockToggle(xLock);
+            });
+
+        annotationAdd = svg.append('g')
+            .attr('transform', 'translate(' + (width + margin.left * 1.2) + ',' + (margin.top * 0.8) + ')')
+            .attr('class', 'annotation-add')
+
+        annotationAdd.append('svg:image')
+            .attr('xlink:href', './assets/img/add.svg')
+            .attr('width', '30')
+            .attr('height', '30')
+            .on('click', function () {
+                var xt = endZoomVector.rescaleX(x);
+                annotationAddNew('231323', xt.invert(500), '');
+            })
 
         var results = [];
 
@@ -297,7 +286,6 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
             yt = t.rescaleY(y);
         }
 
-        var lastTime = - 1;
         var makeAnnotations = d3.annotation()
             .notePadding(15)
             .type(d3.annotationBadge)
@@ -429,9 +417,6 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
     function zoomed() {
         var t = d3.event.transform;
 
-
-       $log.log(d3.zoomTransform(this));
-
         var isZooming = endZoomVector.k != t.k;
 
         var xIsLocked = (xLock.attr('locked') == 1);
@@ -440,10 +425,7 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
         t.x = xIsLocked && !isZooming ? endZoomVector.x : t.x;
         t.y = yIsLocked && !isZooming ? endZoomVector.y : t.y;
 
-
         var xt = t.rescaleX(x);
-
-
 
         if (isZooming || ctrlDown) {
             graph.select('.axis--x').call(xAxis.scale(xt));
@@ -466,8 +448,6 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
 
                 });
             endZoomVector = t;
-
-
         } else {
             var id = activeRunId.split('!');
             id = '_' + id[0] + id[1]
@@ -486,7 +466,6 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
 
         annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId), t);
         annotationLabelRender(t);
-
     }
 
 

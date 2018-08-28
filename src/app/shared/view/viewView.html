@@ -5,13 +5,8 @@
         stroke: steelblue;
         stroke-width: 2px;
         clip-path: url(#clip);
-        
-    }
-    
 
-    /*  .annotation-group {
-        clip-path: url(#clip);
-    } */
+    }
 </style>
 
 <div class='view'>
@@ -20,20 +15,27 @@
         <md-content class='content'>
             <md-tabs md-selected='activeTabIndex' md-dynamic-height md-border-bottom>
 
-                <md-tab ng-repeat='run in runs' label='{{run.id}}'>
+                <md-tab ng-repeat='run in tabs' label='{{run.id}}'>
                     <md-content>
-                        <md-list ng-repeat="column in run.columns" flex>
-                            <md-list-item class="md-2-line" ng-click="null">
+                        <md-list ng-show='isColumns' flex>
+                            <md-list-item ng-repeat="column in run.columns" class="md-2-line" ng-click="null">
                                 <p>{{column}}</p>
                                 <md-list-item class="md-2-line" ng-click="null">
-                                    <md-checkbox md-no-ink='false' ng-click="selectedToggle(run.id,column)" ng-checked="exists(run.id,column)" aria-label="Checkbox ">
-                                    </md-checkbox>
+                                    <md-checkbox md-no-ink='false' ng-click="selectedToggle(run.id,column)" ng-checked="exists(run.id,column)" aria-label="Checkbox "></md-checkbox>
+                        </md-list>
+                        <md-button ng-show='!isColumns' class='tag-button' ng-click="tagEdit()">
+                            <md-icon md-svg-src="../../assets/img/pencil.svg" aria-label="Edit Icon"></md-icon>
+                        </md-button>
+                        <md-list ng-show="!isColumns" flex>
+                            <md-list-item class="md-2-line" ng-repeat="tag in tags" ng-click="null">
+                                <p>{{tag}}</p>
+                            </md-list-item>
                         </md-list>
                     </md-content>
                 </md-tab>
             </md-tabs>
         </md-content>
-        <md-switch class='column-switch' aria-label="Switch 1">
+        <md-switch class='column-switch' ng-model='isColumns' aria-label="Column Tab Switch">
             Columns
         </md-switch>
     </div>

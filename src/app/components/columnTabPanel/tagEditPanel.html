@@ -1,0 +1,25 @@
+<md-dialog class='annotation-preview'>
+        <div>
+            <md-toolbar>
+                <div class="md-toolbar-tools">
+                    <h4>Tags</h4>
+    
+                    <span flex></span>
+                </div>
+            </md-toolbar>
+            <div class='annotation-description'>
+                
+                    <js-tag js-tag-mode="typeahead"js-tag-options="jsTagOptions"></js-tag>
+            </div>
+    
+            <md-dialog-actions layout="row">
+                <md-button ng-click="cancel()">
+                    Cancel
+                </md-button>
+                <md-button ng-click="confirm()">
+                    Confirm
+                </md-button>
+            </md-dialog-actions>
+     
+        </div>
+    </md-dialog>
