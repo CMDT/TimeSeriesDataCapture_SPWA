@@ -3,6 +3,8 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
     var self = this;
     var annotationInEdit;
     var activeRunId = '2B497C4DAFF48A9C!160';
+    var activeColumn;
+
 
     var runData;
     // set the dimensions and margins of the graph
@@ -131,58 +133,10 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
                 var xt = endZoomVector.rescaleX(x);
                 annotationAddNew('231323', xt.invert(500), '');
             })
-
-        var results = [];
-
-        for (var i = 0, n = result.length; i < n; i++) {
-            var resultArray = dataObjectToArray(result[i].runData);
-            results.push({ id: result[i].id, values: resultArray });
-
-            var annotationGroupId = timeSeriesAnnotationService.addAnnotationGroup(result[i].id);
-            extractAnnotations(annotationGroupId, result[i].annotations);
-
-        }
-
-        runData = results;
-
-        timeSeriesAnnotationService.addAnnotationGroup('2B497C4DAFF48A9C!178');
-        timeSeriesAnnotationService.addAnnotation('2B497C4DAFF48A9C!178', '16884', { Time: 4000, description: 'Hi there' }, undefined);
-
-        drawGraph(results);
-    }
-
-    function extractAnnotations(annotationGroupId, annotations) {
-        var annotationObject = annotations;
-        var annotationIds = Object.keys(annotationObject);
-        for (var j = 0, m = annotationIds.length; j < m; j++) {
-            var data = {
-                Time: annotationObject[annotationIds[j]].xcoordinate,
-                description: annotationObject[annotationIds[j]].description,
-            }
-            timeSeriesAnnotationService.addAnnotation(annotationGroupId, annotationIds[j], data, undefined);
-        }
     }
 
 
-
-    function dataObjectToArray(dataObject) {
-        var dataArray = [];
-        $log.log(dataObject);
-        var objectKeys = Object.keys(dataObject);
-        for (var i = 0, n = dataObject[objectKeys[0]].length; i < n; i++) {
-            var row = {};
-            for (var o = 0, m = objectKeys.length; o < m; o++) {
-                row[objectKeys[o]] = Number(dataObject[objectKeys[o]][i]);
-            }
-            dataArray.push(row);
-        }
-        return dataArray;
-    }
-
-
-
-    function drawGraph(runsData) {
-
+    self.drawGraph = function (runsData) {
         z.domain(runsData.map(function (r) { return r.id }))
 
         for (var i = 0, n = runsData.length; i < n; i++) {
@@ -400,6 +354,17 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
             )
     }
 
+    self.transition = function (scale,x,y) {
+        svg.call(zoom).transition()
+            .call(zoom.transform, d3.zoomIdentity
+                .scale(scale)
+                .translate(x,y))
+    }
+
+    self.Offset = function(x,y){
+
+    }
+
     self.deselectColumn = function (id, columnName) {
         var id = (id.split('!'))
         id = '_' + id[0] + id[1]
@@ -426,6 +391,8 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
         t.y = yIsLocked && !isZooming ? endZoomVector.y : t.y;
 
         var xt = t.rescaleX(x);
+
+        $log.log(t);
 
         if (isZooming || ctrlDown) {
             graph.select('.axis--x').call(xAxis.scale(xt));
@@ -461,7 +428,6 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
 
                     return line(trend.data)
                 });
-            activeEndZoomVector = t;
         }
 
         annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId), t);
@@ -542,7 +508,7 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', 'timeSeriesAnnotatio
 
     function showAnnotation() {
         $mdDialog.show({
-            templateUrl: 'app/components/timeSeriesGraph/annotationPreview.html',
+            templateUrl: 'app/components/annotations/annotationPreview.html',
             parent: angular.element(document.body),
             clickOutsideToClose: true,
 

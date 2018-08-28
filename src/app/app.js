@@ -36,7 +36,30 @@ function config($stateProvider) {
 
   var viewState = {
     name: 'view',
-    url: '/view',
+    url: '/view?runs&columns&viewVector&offsetVector&activeRun&activeColumn&panelView',
+    params : {
+      runs :{
+        dynamic: true
+      },
+      columns: {
+        dynamic: true
+      },
+      viewVector: {
+        dynamic: true
+      },
+      offsetVector: {
+        dynamic: true
+      },
+      activeRun: {
+        dynamic: true
+      },
+      activeColumn: {
+        dynamic: true
+      },
+      panelView: {
+        dynamic: true
+      } 
+    },
     templateUrl: 'app/shared/view/viewView.html',
     controller: 'viewController'
   }
@@ -56,8 +79,5 @@ run.$inject = [
 function run($rootScope){
   $rootScope.url = 'https://timeseriesdatacapture-browse.herokuapp.com';
 }
-
-
-
 
 

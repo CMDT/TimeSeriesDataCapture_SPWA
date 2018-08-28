@@ -4,19 +4,23 @@ app.service('timeSeriesGraphControlService', ['$log', 'timeSeriesGraphService', 
 
 
     self.drawGraph = function (runArray) {
-
-        timeSeriesGraphService.graphInit();
         var runs = [];
         $log.log(runArray);
-        runs = (self.parseDataToArray(runArray[0].runData));
-        self.extractAnnotations(runArray[0].id, runArray[0].annotations);
-
        
+        for (var i = 0, n = runArray.length; i < n; i++) {
+            var runData = self.parseDataToArray(runArray[i].runData);
+            $log.log(runData);
+            runs.push({
+                id: runArray[i].id,
+                values : runData
+            })
+            self.extractAnnotations(runArray[i].id, runArray[i].annotations);
+        }
 
+        timeSeriesGraphService.graphInit();
+        timeSeriesGraphService.drawGraph(runs)
 
-
-        timeSeriesAnnotationService.addAnnotationGroup('2B497C4DAFF48A9C!178');
-        timeSeriesAnnotationService.addAnnotation('2B497C4DAFF48A9C!178', '16884', { Time: 4000, description: 'Hi there' }, undefined);
+        self.graphTransition(0.8,0,0);
     }
 
     self.parseRunArray = function (runArray) {
@@ -25,6 +29,7 @@ app.service('timeSeriesGraphControlService', ['$log', 'timeSeriesGraphService', 
             runs.push(parseDataToArray(runArray[i].runData));
             self.extractAnnotations(runArray[i].id, runArray[i].annotations);
         }
+        return runs;
     }
 
     self.extractAnnotations = function (annotationGroupId, annotations) {
@@ -61,6 +66,14 @@ app.service('timeSeriesGraphControlService', ['$log', 'timeSeriesGraphService', 
             dataArray.push(row);
         }
         return dataArray;
+    }
+
+    self.graphTransition = function(scale,x,y){
+        timeSeriesGraphService.transition(scale,x,y);
+    }
+
+    self.graphOffset = function(x,y){
+        timeSeriesGraphService.transition(x,y);
     }
 
 

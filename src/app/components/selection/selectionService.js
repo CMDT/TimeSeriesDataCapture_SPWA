@@ -65,6 +65,15 @@ app.service('selectionService', ['$log', function ($log) {
 
     }
 
+    self.getGroupIds = function(){
+        var groups = [];
+        selectionGroups.forEach(function(value,id){
+            groups.push(id);
+        })
+
+        return groups;
+    }
+
 
 
     self.selectedToArray = function(selectionGroupId){
