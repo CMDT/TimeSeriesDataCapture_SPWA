@@ -36,7 +36,7 @@ function config($stateProvider) {
 
   var viewState = {
     name: 'view',
-    url: '/view?runs&columns&viewVector&offsetVector&activeRun&activeColumn&panelView',
+    url: '/view?runs&columns&viewVector&offsetVector&active&panelView',
     params : {
       runs :{
         dynamic: true
@@ -50,10 +50,7 @@ function config($stateProvider) {
       offsetVector: {
         dynamic: true
       },
-      activeRun: {
-        dynamic: true
-      },
-      activeColumn: {
+      active: {
         dynamic: true
       },
       panelView: {

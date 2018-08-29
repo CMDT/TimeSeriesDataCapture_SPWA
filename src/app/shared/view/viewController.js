@@ -12,35 +12,27 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', '$
 
     columnTabPanelService.getRun(['2B497C4DAFF48A9C!160', '2B497C4DAFF48A9C!178']).then(function (result) {
         $scope.runs = result;
-        $scope.tabs = columnTabPanelService.createRunTabs(result);
-        $log.log($scope.tabs);
+        columnTabPanelService.createRunTabs(result);
+        $scope.tabs = columnTabPanelService.getTabs();
+
+        if ($stateParams.columns != undefined) {
+            var columns = columnTabPanelService.parseUrlColumns($stateParams.columns);
+            columnTabPanelService.selectColumns(columns);
+
+        }
+
         $scope.$apply();
 
         timeSeriesGraphControlService.drawGraph(result);
     })
 
     $scope.selectedToggle = function (id, columnName) {
-
-        $log.log(id);
-        $log.log(columnName);
-        var selectedColumns = columnTabPanelService.columnSelectToggle(id,columnName);
-        var columnParam = '';
-        for(var i=0,n=selectedColumns.length;i<n;i++){
-            var id= selectedColumns[i].selectionGroup;
-            for(o=0,m=selectedColumns[i].selected.length;o<m;o++){
-                columnParam += id + ':'+ selectedColumns[i].selected[o] + '+';
-                
-            }
-        }
-
-       
-
-        $state.go('.',{
-            columns  : columnParam
+        var selectedColumns = columnTabPanelService.getSelectedColumns(id, columnName);
+        var columnParam = columnTabPanelService.parseColumnsUrl(selectedColumns);
+        $log.log('columParam', columnParam);
+        $state.go('.', {
+            columns: columnParam
         })
-       
-
-
     }
 
     $scope.tagEdit = function () {
@@ -52,7 +44,6 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', '$
     }
 
     $scope.selectedTab = function () {
-        columnTabPanelService.setSelectedTab($scope.activeTabIndex);
         $state.go('.', {
             activeRun: $scope.tabs[$scope.activeTabIndex].id
         })
@@ -65,7 +56,7 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', '$
     }
 
     this.uiOnParamsChanged = function (params) {
-       
+        $log.log(params);
         //activeRun
         if (params.hasOwnProperty('activeRun')) {
             for (var i = 0, n = $scope.tabs.length; i < n; i++) {
@@ -83,12 +74,20 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', '$
 
         //columns viewed
         if (params.hasOwnProperty('columns')) {
-            var columnsSelected = params.columns.split('+');
-            columnsSelected.pop();
-            columnsSelected = (columnTabPanelService.parseUrlColumns(columnsSelected));
-            columnTabPanelService.selectColumns(columnsSelected);
+            if (params.columns == undefined) {
+                params.columns = '';
+                columnTabPanelService.selectColumns(columnsSelected);
+            } else {
+                columnsSelected = (columnTabPanelService.parseUrlColumns(params.columns));
+                columnTabPanelService.selectColumns(columnsSelected);
+            }
+
         }
     }
+
+
+
+
 
 
 
