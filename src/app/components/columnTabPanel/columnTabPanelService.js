@@ -148,7 +148,21 @@ app.service('columnTabPanelService', ['$log', 'runRequestService', 'selectionSer
     }
 
     self.selectColumns = function (columns) {
-        $log.log(columns);
+        var columnIds = [];
+        for(var i=0, n= columns.length; i<n;i++){
+            columnIds.push(columns[i].selectionGroup);
+        }
+
+        var diff = selectionService.getGroupIds().filter(x => !columnIds.includes(x));
+        
+        for(var i=0,n=diff.length;i<n;i++){
+            columns.push({
+                selectionGroup : diff[i],
+                selected: []
+            })
+        }
+
+
         for (var i = 0, n = columns.length; i < n; i++) {
             var selection = selectionService.selectedToArray(columns[i].selectionGroup);
 
@@ -168,6 +182,10 @@ app.service('columnTabPanelService', ['$log', 'runRequestService', 'selectionSer
                 }
             }
         }
+    }
+
+    self.clearSelection = function (selectionGroupIds){
+        selectionService.clearSelection(selectionGroupIds);
     }
 
 

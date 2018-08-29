@@ -74,14 +74,12 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', '$
 
         //columns viewed
         if (params.hasOwnProperty('columns')) {
-            if (params.columns == undefined) {
-                params.columns = '';
-                columnTabPanelService.selectColumns(columnsSelected);
-            } else {
+            if (params.columns != undefined) {
                 columnsSelected = (columnTabPanelService.parseUrlColumns(params.columns));
                 columnTabPanelService.selectColumns(columnsSelected);
+            } else {
+                columnTabPanelService.selectColumns([]);
             }
-
         }
     }
 
