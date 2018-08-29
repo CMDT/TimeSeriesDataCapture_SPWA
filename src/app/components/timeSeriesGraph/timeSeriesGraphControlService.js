@@ -1,15 +1,13 @@
 app.service('timeSeriesGraphControlService', ['$log', 'timeSeriesGraphService', 'timeSeriesAnnotationService', function ($log, timeSeriesGraphService, timeSeriesAnnotationService) {
 
     var self = this;
-
+    var timeSeriesData;
 
     self.drawGraph = function (runArray) {
         var runs = [];
-        $log.log(runArray);
-       
+    
         for (var i = 0, n = runArray.length; i < n; i++) {
             var runData = self.parseDataToArray(runArray[i].runData);
-            $log.log(runData);
             runs.push({
                 id: runArray[i].id,
                 values : runData
@@ -17,10 +15,10 @@ app.service('timeSeriesGraphControlService', ['$log', 'timeSeriesGraphService', 
             self.extractAnnotations(runArray[i].id, runArray[i].annotations);
         }
 
+        timeSeriesData = runs;
+
         timeSeriesGraphService.graphInit();
         timeSeriesGraphService.drawGraph(runs)
-
-        self.graphTransition(0.8,0,0);
     }
 
     self.parseRunArray = function (runArray) {
@@ -47,8 +45,6 @@ app.service('timeSeriesGraphControlService', ['$log', 'timeSeriesGraphService', 
             Time: annotation.xcoordinate,
             description: annotation.description
         }
-        $log.log(annotation);
-        $log.log(data);
         timeSeriesAnnotationService.addAnnotation(annotationGroupId, annotation.id, data, undefined);
     }
 
@@ -68,13 +64,43 @@ app.service('timeSeriesGraphControlService', ['$log', 'timeSeriesGraphService', 
         return dataArray;
     }
 
-    self.graphTransition = function(scale,x,y){
-        timeSeriesGraphService.transition(scale,x,y);
+    self.addTrend = function(id,columnName){
+        
+        var data;
+        for(var i=0, n= timeSeriesData.length; i<n;i++){
+            if(timeSeriesData[i].id === id){
+                data = timeSeriesData[i].values
+                break;
+            }
+        }
+
+        timeSeriesGraphService.addTrend(id,columnName,data);
     }
 
-    self.graphOffset = function(x,y){
-        timeSeriesGraphService.transition(x,y);
+    
+
+    self.graphTransition = function(transitionVector,offsetVector){
+        timeSeriesGraphService.transition(transitionVector,offsetVector);
     }
+
+   
+    self.setActiveRun = function(runId){
+        timeSeriesGraphService.setActiveRun(runId);
+    }
+
+    self.setActiveColumn = function(columnName){
+        timeSeriesGraphService.setActiveColumn(columnName);
+    }
+
+    self.getActiveRun = function(){
+        return timeSeriesGraphService.getActiveRun();
+    }
+
+    self.getActiveColumn = function(){
+        return timeSeriesGraphService.getActiveColumn();
+    }
+
+    
 
 
 

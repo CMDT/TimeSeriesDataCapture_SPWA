@@ -10,21 +10,44 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', '$
 
     $scope.tags = ['tag1', 'tag2', 'tag3'];
 
-    columnTabPanelService.getRun(['2B497C4DAFF48A9C!160', '2B497C4DAFF48A9C!178']).then(function (result) {
-        $scope.runs = result;
-        columnTabPanelService.createRunTabs(result);
-        $scope.tabs = columnTabPanelService.getTabs();
 
-        if ($stateParams.columns != undefined) {
-            var columns = columnTabPanelService.parseUrlColumns($stateParams.columns);
-            columnTabPanelService.selectColumns(columns);
+    if ($stateParams.runs != undefined) {
+        columnTabPanelService.getRun($stateParams.runs.split('+')).then(function (result) {
 
-        }
+            $scope.runs = result;
+            columnTabPanelService.createRunTabs(result);
+            $scope.tabs = columnTabPanelService.getTabs();
+            timeSeriesGraphControlService.drawGraph(result);
+            if ($stateParams.columns != undefined) {
+                var columns = columnTabPanelService.parseUrlColumns($stateParams.columns);
+                columnTabPanelService.selectColumns(columns);
+            }
 
-        $scope.$apply();
+            if ($stateParams.active != undefined) {
+                var active = $stateParams.active.split('+');
+                timeSeriesGraphControlService.setActiveRun(active[0]);
+                timeSeriesGraphControlService.setActiveColumn(active[1]);
+            }
 
-        timeSeriesGraphControlService.drawGraph(result);
-    })
+
+            var offsetVector;
+            var viewVector;
+            if ($stateParams.offsetVector != undefined) {
+                offsetVector = JSON.parse($stateParams.offsetVector);
+            }
+
+            if ($stateParams.viewVector != undefined) {
+                viewVector = JSON.parse($stateParams.viewVector);
+            }
+            timeSeriesGraphControlService.graphTransition(viewVector, offsetVector);
+            $scope.$apply();
+
+
+        }).catch(function(error){
+            $log.log(error);
+        })
+    }
+
 
     $scope.selectedToggle = function (id, columnName) {
         var selectedColumns = columnTabPanelService.getSelectedColumns(id, columnName);
@@ -43,34 +66,22 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', '$
         return columnTabPanelService.exists(id, columnName);
     }
 
-    $scope.selectedTab = function () {
-        $state.go('.', {
-            activeRun: $scope.tabs[$scope.activeTabIndex].id
-        })
-    }
+    $scope.selectedColumn = function (tabId, columnName) {
 
-    $scope.selectedColumn = function (columnName) {
         $state.go('.', {
-            activeColumn: columnName
+            active: tabId + '+' + columnName
         })
     }
 
     this.uiOnParamsChanged = function (params) {
-        $log.log(params);
-        //activeRun
-        if (params.hasOwnProperty('activeRun')) {
-            for (var i = 0, n = $scope.tabs.length; i < n; i++) {
-                if ($scope.tabs[i].id === params.activeRun) {
-                    $scope.activeTabIndex = i;
-                }
-            }
+        //active selection
+
+        if (params.hasOwnProperty('active')) {
+            var active = params.active.split('+');
+            timeSeriesGraphControlService.setActiveRun(active[0]);
+            timeSeriesGraphControlService.setActiveColumn(active[1]);
         }
 
-        //activeColumn
-        if (params.hasOwnProperty('activeColumn')) {
-            $log.log(params.activeColumn);
-            columnTabPanelService.setActiveColumn(params.activeColumn);
-        }
 
         //columns viewed
         if (params.hasOwnProperty('columns')) {

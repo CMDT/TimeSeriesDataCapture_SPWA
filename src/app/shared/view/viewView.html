@@ -18,7 +18,7 @@
                 <md-tab  ng-repeat='run in tabs' label='{{run.id}}' md-on-select='selectedTab()'>
                     <md-content>
                         <md-list ng-show='isColumns' flex>
-                            <md-list-item ng-repeat="column in run.columns" class="md-2-line" ng-click="selectedColumn(column)">
+                            <md-list-item ng-repeat="column in run.columns" class="md-2-line" ng-click="selectedColumn(run.id,column)">
                                 <p>{{column}}</p>
                                 <md-list-item class="md-2-line" ng-click="null">
                                     <md-checkbox md-no-ink='false' ng-click="selectedToggle(run.id,column)" ng-checked="exists(run.id,column)" aria-label="Checkbox "></md-checkbox>

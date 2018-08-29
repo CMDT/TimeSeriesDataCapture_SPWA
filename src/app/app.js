@@ -39,7 +39,7 @@ function config($stateProvider) {
     url: '/view?runs&columns&viewVector&offsetVector&active&panelView',
     params : {
       runs :{
-        dynamic: true
+        dynamic: false
       },
       columns: {
         dynamic: true

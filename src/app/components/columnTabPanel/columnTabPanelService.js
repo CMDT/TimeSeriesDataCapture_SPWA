@@ -1,4 +1,4 @@
-app.service('columnTabPanelService', ['$log', 'runRequestService', 'selectionService', function ($log, runRequestService, selectionService) {
+app.service('columnTabPanelService', ['$log', 'runRequestService', 'selectionService','timeSeriesGraphControlService', function ($log, runRequestService, selectionService, timeSeriesGraphControlService) {
 
     var self = this;
     var tabs = new Map();
@@ -10,6 +10,9 @@ app.service('columnTabPanelService', ['$log', 'runRequestService', 'selectionSer
             Promise.all(getRunPromises)
                 .then(function (result) {
                     resolve(result);
+                })
+                .catch(function(error){
+                    reject(error);
                 })
         })
     }
@@ -23,15 +26,12 @@ app.service('columnTabPanelService', ['$log', 'runRequestService', 'selectionSer
                     results.push(result[i].data);
                 }
                 resolve(results);
+            }).catch(function(error){
+                reject(error);
             })
         });
     }
 
-    self.addRunSelectionGroup = function (runId, defaultColumn) {
-        //create selection group for each id, add defaultColumn as selected
-        selectionService.addSelectionGroup(runId);
-        selectionService.selectedToggle(selectionService.getSelectionGroup(runId), defaultColumn);
-    }
 
     self.exists = function (id, columnName) {
         return selectionService.isSelected(selectionService.getSelectionGroup(id), columnName);
@@ -171,6 +171,7 @@ app.service('columnTabPanelService', ['$log', 'runRequestService', 'selectionSer
                 if (!selection.includes(columns[i].selected[o])) {
                     selectionService.addSelected(selectionService.getSelectionGroup(columns[i].selectionGroup), columns[i].selected[o]);
                     $log.log('add selection', columns[i].selected[o]);
+                    timeSeriesGraphControlService.addTrend(columns[i].selectionGroup,columns[i].selected[o]);
                 }
             }
 
