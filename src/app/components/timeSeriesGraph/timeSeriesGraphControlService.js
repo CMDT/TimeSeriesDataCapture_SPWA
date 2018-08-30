@@ -4,6 +4,7 @@ app.service('timeSeriesGraphControlService', ['$log', 'timeSeriesGraphService', 
     var timeSeriesData;
 
     self.drawGraph = function (runArray) {
+        $log.log('drawing graph');
         var runs = [];
     
         for (var i = 0, n = runArray.length; i < n; i++) {
@@ -52,7 +53,7 @@ app.service('timeSeriesGraphControlService', ['$log', 'timeSeriesGraphService', 
 
     self.parseDataToArray = function (dataObject) {
         var dataArray = [];
-        $log.log(dataObject);
+        
 
         //converts each column array into an array of object rows
         var objectKeys = Object.keys(dataObject);

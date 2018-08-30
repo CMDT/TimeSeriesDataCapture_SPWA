@@ -18,10 +18,6 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', '$
             columnTabPanelService.createRunTabs(result);
             $scope.tabs = columnTabPanelService.getTabs();
             timeSeriesGraphControlService.drawGraph(result);
-            if ($stateParams.columns != undefined) {
-                var columns = columnTabPanelService.parseUrlColumns($stateParams.columns);
-                columnTabPanelService.selectColumns(columns);
-            }
 
             if ($stateParams.active != undefined) {
                 var active = $stateParams.active.split('+');
@@ -29,6 +25,13 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', '$
                 timeSeriesGraphControlService.setActiveColumn(active[1]);
             }
 
+
+            if ($stateParams.columns != undefined) {
+                var columns = columnTabPanelService.parseUrlColumns($stateParams.columns);
+                columnTabPanelService.selectColumns(columns);
+            }
+
+            
 
             var offsetVector;
             var viewVector;

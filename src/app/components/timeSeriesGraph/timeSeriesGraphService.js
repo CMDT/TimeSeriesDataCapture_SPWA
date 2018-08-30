@@ -1,4 +1,4 @@
-app.service('timeSeriesGraphService', ['$log', '$mdDialog', '$state', 'timeSeriesAnnotationService', 'selectionService', 'timeSeriesTrendService', 'annotationPreviewService', function ($log, $mdDialog, $state, timeSeriesAnnotationService, selectionService, timeSeriesTrendService, annotationPreviewService) {
+app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesAnnotationService', 'selectionService', 'timeSeriesTrendService', 'annotationPreviewService', function ($log, $state, $filter, timeSeriesAnnotationService, selectionService, timeSeriesTrendService, annotationPreviewService) {
 
     var self = this;
     var annotationInEdit;
@@ -22,6 +22,9 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', '$state', 'timeSerie
     var height = 600 - margin.top - margin.bottom;
 
     var trendLineColors = ['#8cc2d0', '#152e34']
+
+    var circleX;
+    var circleY;
 
     // set the ranges
     var x = d3.scaleLinear().range([0, width]);
@@ -55,6 +58,8 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', '$state', 'timeSerie
 
     var annotationAdd;
 
+    var offsetLine;
+
     function annotationAddNew(id, time, description) {
         $log.log('adding annotation');
         $log.log(activeRunId);
@@ -68,6 +73,7 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', '$state', 'timeSerie
     }
 
     self.getActiveRun = function () {
+
         return activeRunId;
     }
 
@@ -141,6 +147,21 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', '$state', 'timeSerie
                 lockToggle(xLock);
             });
 
+        offsetLine = graph.append('g').attr('class', 'offsetLine-group');
+
+        graph.append("g")
+            .attr("class", "axis axis--x")
+            .attr("transform", "translate(0," + height + ")")
+            .call(xAxis);
+
+        graph.append("g")
+            .attr("class", "axis axis--y")
+            .call(yAxis)
+
+        graph.append('g')
+            .attr('class', 'run-group')
+
+
         annotationAdd = svg.append('g')
             .attr('transform', 'translate(' + (width + margin.left * 1.2) + ',' + (margin.top * 0.8) + ')')
             .attr('class', 'annotation-add')
@@ -157,67 +178,10 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', '$state', 'timeSerie
 
 
     self.drawGraph = function (runsData) {
-        $log.log(runsData);
-        z.domain(runsData.map(function (r) { return r.id }))
 
-        for (var i = 0, n = runsData.length; i < n; i++) {
-            var selectedColumns = selectionService.selectedToArray(runsData[i].id);
-            for (var o = 0, m = selectedColumns.length; o < m; o++) {
-                var data = extractColumn(runsData[i]['values'], 'Time', selectedColumns[o]);
-                var trend = timeSeriesTrendService.addTrend(runsData[i].id, d3.scaleLinear(), d3.scaleLinear(), 'Time', selectedColumns[o], data);
-                trend.scaleY.range([height, 0]);
-                calculateYDomain(trend.scaleY, trend.data, 'Y');
-            }
-        }
 
-        var xDomain = [
-            d3.min(runsData, function (c) { return d3.min(c.values, function (d) { return d.Time }) }),
-            d3.max(runsData, function (c) { return d3.max(c.values, function (d) { return d.Time }) })
-        ];
-        x.domain(d3.extent(xDomain));
 
-        graph.append("g")
-            .attr("class", "axis axis--x")
-            .attr("transform", "translate(0," + height + ")")
-            .call(xAxis);
 
-        graph.append("g")
-            .attr("class", "axis axis--y")
-            .call(yAxis)
-
-        var runGroup = graph.append('g')
-            .attr('class', 'run-group')
-
-        var runs = runGroup.selectAll(".run")
-            .data(timeSeriesTrendService.getTrends())
-            .enter().append("g")
-            .attr("class", function (d) {
-                var id = (d.id.split('!'))
-                return 'run _' + id[0] + id[1] + ' ' + d.yLabel;
-            })
-            .on('click', function (d) {
-                activeRunId = d.id;
-                annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId))
-                d3.select(this).moveToFront();
-            });
-
-        runs.append("path")
-            .attr("class", "line")
-            .attr('column', function (trend) {
-                return trend.yLabel;
-            })
-            .attr("d", function (trend) {
-                $log.log(trend);
-
-                var line = d3.line()
-                    .x(function (d) { return x(d.x); })
-                    .y(function (d) { return trend.scaleY(d.y); })
-
-                return line(trend.data)
-
-            })
-            .style("stroke", function (d) { return z(d.id); })
-        annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId));
     }
 
 
@@ -318,13 +282,29 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', '$state', 'timeSerie
 
     }
 
-    self.addTrend = function (id,columnName, data) {
-        $log.log('DATA', data);
+    self.addTrend = function (id, columnName, data) {
+        $log.log('ADDING TREND');
         data = extractColumn(data, 'Time', columnName);
         var trend = timeSeriesTrendService.addTrend(id, d3.scaleLinear(), d3.scaleLinear(), 'Time', columnName, data);
         trend.scaleY.range([height, 0]);
         calculateYDomain(trend.scaleY, trend.data, 'Y');
+        calculateXDomain(x, trend.data)
 
+        $log.log(id, 'COMPARE', activeRunId);
+        if (id === activeRunId) {
+            circleX = trend.data[0].x;
+            circleY = trend.data[1].y;
+            graph.append('line')
+                .attr('class', 'offsetLine')
+                .attr('x1', x(trend.data[0].x))
+                .attr('y1', y(trend.data[1].y))
+                .attr('x2', x(trend.data[0].x))
+                .attr('y2', y(trend.data[1].y))
+                .style('stroke','rgb(255,0,0)')
+                .style('stroke-width','2')
+
+           
+        }
 
         var transition = d3.transition()
             .duration(750)
@@ -341,8 +321,8 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', '$state', 'timeSerie
             .data([trend])
             .enter().append('g')
             .attr('class', function (d) {
-                var id = (d.id.split('!'))
-                return 'run _' + id[0] + id[1] + ' ' + d.yLabel;
+                var id = $filter('componentIdClassFilter')(d.id);
+                return 'run ' + id + ' ' + d.yLabel;
             })
 
         run.append('path')
@@ -366,9 +346,8 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', '$state', 'timeSerie
             )
     }
 
-    self.removeTrend = function (id,columnName) {
-        var id = id.split('!');
-        id = '_' + id[0] + id[1]
+    self.removeTrend = function (id, columnName) {
+        var id = $filter('componentIdClassFilter')(id);
 
         graph.select('.run-group').select('.' + id + '.' + columnName).remove();
 
@@ -398,8 +377,7 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', '$state', 'timeSerie
                     user = false;
                     var xO = activeOffsetVector.x + activeViewVector.x;
                     var yO = activeOffsetVector.y + activeViewVector.y;
-                    var id = activeRunId.split('!');
-                    id = '_' + id[0] + id[1]
+
                     $log.log('ENDED');
                     svg.call(zoom).transition()
                         .duration(1500)
@@ -422,7 +400,7 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', '$state', 'timeSerie
 
     function zoomed() {
         var t = d3.event.transform;
-      
+
 
         t.k = parseFloat((t.k).toFixed(2));
         t.x = parseFloat((t.x).toFixed(2));
@@ -442,11 +420,12 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', '$state', 'timeSerie
         $log.log('ZOOMING', isZooming);
         if (user && (ctrlDown || isZooming)) {
 
+            var yt;
             graph.select('.axis--x').call(xAxis.scale(xt));
             graph.selectAll('.line')
                 .attr('d', function (trend) {
                     $log.log(trend);
-                    var yt = t.rescaleY(trend.scaleY);
+                    yt = t.rescaleY(trend.scaleY);
                     var xt = t.rescaleX(x);
 
                     if (trend.id === activeRunId) {
@@ -467,6 +446,13 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', '$state', 'timeSerie
             annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId), t);
             annotationLabelRender(t);
 
+            graph.select('.offsetLine')
+                .attr('x1', xt(circleX))
+                .attr('y1', yt(circleY))
+                .attr('x2', xt(circleX))
+                .attr('y2', yt(circleY))
+            
+
             endZoomVector = t;
             $log.log('VIEW', t)
             var viewVector = JSON.stringify(t);
@@ -480,21 +466,30 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', '$state', 'timeSerie
                 offsetVector: offsetVector
             })
         } else {
-            var id = activeRunId.split('!');
-            id = '_' + id[0] + id[1]
+            var id = $filter('componentIdClassFilter')(activeRunId);
 
 
             var line = graph.select('.run-group').select('.' + id + '.' + activeColumn).selectAll('.line');
-
+            var yt;
             if (!line.empty()) {
                 line.attr('d', function (trend) {
-                    var yt = t.rescaleY(trend.scaleY);
+                    yt = t.rescaleY(trend.scaleY);
                     var line = d3.line()
                         .x(function (d) { return xt(d.x); })
                         .y(function (d) { return yt(d.y); })
 
                     return line(trend.data)
                 });
+
+
+
+                graph.select('.offsetLine')
+                    .attr('x2', xt(circleX))
+                    .attr('y2', yt(circleY))
+                    
+
+
+
 
                 var xDiffrence = t.x - endZoomVector.x;
                 var yDiffrence = t.y - endZoomVector.y;
@@ -600,7 +595,7 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', '$state', 'timeSerie
 
     }
 
-   
+
 
     d3.selection.prototype.moveToFront = function () {
         return this.each(function () {
