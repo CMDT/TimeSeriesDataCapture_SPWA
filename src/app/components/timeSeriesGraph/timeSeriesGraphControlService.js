@@ -98,6 +98,7 @@ app.service('timeSeriesGraphControlService', ['$log', 'timeSeriesGraphService', 
 
     self.setActiveColumn = function(columnName){
         timeSeriesGraphService.setActiveColumn(columnName);
+        timeSeriesGraphService.setOffsetLine(timeSeriesData,columnName);
     }
 
     self.getActiveRun = function(){
