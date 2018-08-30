@@ -105,6 +105,10 @@ md-dialog {
     float: right;
 }
 
+.active-column {
+    color: blue;
+}
+
 
 
 

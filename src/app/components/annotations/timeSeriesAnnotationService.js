@@ -55,7 +55,12 @@ app.service('timeSeriesAnnotationService', ['$log', '$filter', function ($log, $
     }
 
     self.getAnnotations = function (annotationGroupId) {
-        return annotationGroups.get(annotationGroupId).annotations;
+         var annotationGroup = annotationGroups.get(annotationGroupId);
+         if(annotationGroup != undefined){
+             return annotationGroup.annotations;
+         }else{
+             return [];
+         }
     }
 
     self.getAnnotation = function (annotationGroupId,annotationId) {

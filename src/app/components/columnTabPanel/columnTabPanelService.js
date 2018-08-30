@@ -180,6 +180,7 @@ app.service('columnTabPanelService', ['$log', 'runRequestService', 'selectionSer
                 if (!(columns[i].selected.includes(selection[o]))) {
                     selectionService.removeSelected(selectionService.getSelectionGroup(columns[i].selectionGroup), selection[o]);
                     $log.log('remove selection', selection[o]);
+                    timeSeriesGraphControlService.removeTrend(columns[i].selectionGroup,selection[o])
                 }
             }
         }

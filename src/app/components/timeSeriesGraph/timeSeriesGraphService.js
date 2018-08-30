@@ -1,16 +1,16 @@
-app.service('timeSeriesGraphService', ['$log', '$mdDialog', '$state', 'timeSeriesAnnotationService', 'selectionService', 'timeSeriesTrendService','annotationPreviewService', function ($log, $mdDialog, $state, timeSeriesAnnotationService, selectionService, timeSeriesTrendService,annotationPreviewService) {
+app.service('timeSeriesGraphService', ['$log', '$mdDialog', '$state', 'timeSeriesAnnotationService', 'selectionService', 'timeSeriesTrendService', 'annotationPreviewService', function ($log, $mdDialog, $state, timeSeriesAnnotationService, selectionService, timeSeriesTrendService, annotationPreviewService) {
 
     var self = this;
     var annotationInEdit;
-    var activeRunId = '2B497C4DAFF48A9C!160';
-    var activeColumn = 'RTH';
+    var activeRunId;
+    var activeColumn;
 
     var activeOffsetVector = undefined;
     var activeViewVector = undefined;
 
+    var user = true;
 
 
-    var runData;
     // set the dimensions and margins of the graph
     var margin = {
         top: 110,
@@ -57,8 +57,8 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', '$state', 'timeSerie
 
     function annotationAddNew(id, time, description) {
         $log.log('adding annotation');
-
-        var newAnnotation = timeSeriesAnnotationService.addAnnotation(activeRunId, id, { Time: time, description: description }, undefined);
+        $log.log(activeRunId);
+        var newAnnotation = timeSeriesAnnotationService.addAnnotation(activeRunId, id, { Time: time, description: description, groupId: activeRunId }, undefined);
         annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId));
         annotationClick(newAnnotation);
     }
@@ -157,6 +157,7 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', '$state', 'timeSerie
 
 
     self.drawGraph = function (runsData) {
+        $log.log(runsData);
         z.domain(runsData.map(function (r) { return r.id }))
 
         for (var i = 0, n = runsData.length; i < n; i++) {
@@ -187,7 +188,6 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', '$state', 'timeSerie
         var runGroup = graph.append('g')
             .attr('class', 'run-group')
 
-        $log.log(timeSeriesTrendService.getTrends());
         var runs = runGroup.selectAll(".run")
             .data(timeSeriesTrendService.getTrends())
             .enter().append("g")
@@ -318,10 +318,8 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', '$state', 'timeSerie
 
     }
 
-    self.addTrend = function (id, columnName, data) {
-        activeRunId = id;
-
-
+    self.addTrend = function (id,columnName, data) {
+        $log.log('DATA', data);
         data = extractColumn(data, 'Time', columnName);
         var trend = timeSeriesTrendService.addTrend(id, d3.scaleLinear(), d3.scaleLinear(), 'Time', columnName, data);
         trend.scaleY.range([height, 0]);
@@ -368,9 +366,25 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', '$state', 'timeSerie
             )
     }
 
+    self.removeTrend = function (id,columnName) {
+        var id = id.split('!');
+        id = '_' + id[0] + id[1]
+
+        graph.select('.run-group').select('.' + id + '.' + columnName).remove();
+
+        svg.call(zoom).transition()
+            .duration(1500)
+            .call(zoom.transform, endZoomVector);
+    }
+
+
     self.transition = function (transitionVector, offsetVector) {
-        $log.log('TRANSVECTOR',transitionVector);
-        $log.log('OFFSVECOTR',offsetVector);
+        $log.log('TRANSVECTOR', transitionVector);
+        $log.log('OFFSVECOTR', offsetVector);
+
+        activeViewVector = transitionVector;
+        activeOffsetVector = offsetVector;
+
         if (transitionVector != undefined) {
             ctrlDown = true;
             svg.call(zoom).transition()
@@ -379,69 +393,36 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', '$state', 'timeSerie
                     .translate(transitionVector.x, transitionVector.y)
                     .scale(transitionVector.k)
 
-                )
-            ctrlDown = false;
+                ).on('end', function () {
+                    ctrlDown = false;
+                    user = false;
+                    var xO = activeOffsetVector.x + activeViewVector.x;
+                    var yO = activeOffsetVector.y + activeViewVector.y;
+                    var id = activeRunId.split('!');
+                    id = '_' + id[0] + id[1]
+                    $log.log('ENDED');
+                    svg.call(zoom).transition()
+                        .duration(1500)
+                        .call(zoom.transform, d3.zoomIdentity
+                            .translate(xO, yO)
+                            .scale(activeViewVector.k)
+                        )
+                        .on('end', function () {
+                            activeOffsetVector = undefined;
+                            user = true;
+                        })
+                })
         }
-
-        activeViewVector = transitionVector;
-        activeOffsetVector = offsetVector;
-
-
-    }
-
-
-
-    self.removeTrend = function (id, columnName) {
-        var id = (id.split('!'))
-        id = '_' + id[0] + id[1]
-        graph.select('.run-group')
-            .select('.run ' + id + ' ' + columnName)
-            .delete();
-
-        svg.call(zoom).transition()
-            .duration(1500)
-            .call(zoom.transform, endZoomVector);
     }
 
 
     function zoomedEnd() {
-        $log.log('endZoom',endZoomVector);
-        $log.log('active',activeViewVector);
-        $log.log('offser',activeOffsetVector)
-
-
-         
-                if(activeViewVector != undefined && activeOffsetVector != undefined){
-                    if(Math.abs(activeViewVector.k - endZoomVector.k) > 10){
-                        return;
-                    }
-        
-                    if(Math.abs(activeViewVector.x - endZoomVector.x) > 10){
-                        return;
-                    }
-        
-                    if(Math.abs(activeViewVector.x - endZoomVector.x) > 10){
-                        return;
-                    }
-        
-                    $log.log('found');
-                    ctrl = false;
-                    svg.call(zoom).transition()
-                    .duration(1500)
-                    .call(zoom.transform, d3.zoomIdentity
-                        .translate(activeOffsetVector.x,activeOffsetVector.y)
-                        .scale(activeViewVector.k)
-                    )
-        
-                    activeOffsetVector = undefined;
-                
-                } 
 
     }
 
     function zoomed() {
         var t = d3.event.transform;
-
+      
 
         t.k = parseFloat((t.k).toFixed(2));
         t.x = parseFloat((t.x).toFixed(2));
@@ -457,13 +438,14 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', '$state', 'timeSerie
         var xt = t.rescaleX(x);
 
 
-        $log.log('FOR',t)
 
-        if (ctrlDown || isZooming) {
+        $log.log('ZOOMING', isZooming);
+        if (user && (ctrlDown || isZooming)) {
 
             graph.select('.axis--x').call(xAxis.scale(xt));
             graph.selectAll('.line')
                 .attr('d', function (trend) {
+                    $log.log(trend);
                     var yt = t.rescaleY(trend.scaleY);
                     var xt = t.rescaleX(x);
 
@@ -486,22 +468,26 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', '$state', 'timeSerie
             annotationLabelRender(t);
 
             endZoomVector = t;
-        
+            $log.log('VIEW', t)
             var viewVector = JSON.stringify(t);
+            var offsetVector = {
+                x: 0,
+                y: 0
+            }
+            offsetVector = JSON.stringify(offsetVector);
             $state.go('.', {
-                viewVector: viewVector
+                viewVector: viewVector,
+                offsetVector: offsetVector
             })
-
-
-
-
         } else {
             var id = activeRunId.split('!');
             id = '_' + id[0] + id[1]
 
 
-            graph.select('.run-group').select('.' + id + '.' + activeColumn).selectAll('.line')
-                .attr('d', function (trend) {
+            var line = graph.select('.run-group').select('.' + id + '.' + activeColumn).selectAll('.line');
+
+            if (!line.empty()) {
+                line.attr('d', function (trend) {
                     var yt = t.rescaleY(trend.scaleY);
                     var line = d3.line()
                         .x(function (d) { return xt(d.x); })
@@ -510,14 +496,23 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', '$state', 'timeSerie
                     return line(trend.data)
                 });
 
-       
-            var offsetVector = JSON.stringify(t);
+                var xDiffrence = t.x - endZoomVector.x;
+                var yDiffrence = t.y - endZoomVector.y;
 
-            $state.go('.', {
-                offsetVector: offsetVector
-            })
-            annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId), t);
-            annotationLabelRender(t);
+                var offsetVector = {
+                    x: xDiffrence,
+                    y: yDiffrence
+                }
+
+                $log.log('OFFSET', t)
+                $state.go('.', {
+                    offsetVector: JSON.stringify(offsetVector)
+                })
+                annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId), t);
+                annotationLabelRender(t);
+            }
+
+
         }
     }
 
@@ -594,31 +589,18 @@ app.service('timeSeriesGraphService', ['$log', '$mdDialog', '$state', 'timeSerie
     }
 
     function showAnnotation() {
-        /* $mdDialog.show({
-            templateUrl: 'app/components/annotations/annotationPreview.html',
-            parent: angular.element(document.body),
-            clickOutsideToClose: true,
 
-        }).catch(function (annotation) {
-            if (annotation != undefined) {
-                $log.log(annotation);
-                annotationClickEdit(annotation)
-            } else {
+        annotationPreviewService.showAnnotationPreviewPanel(annotationInEdit)
+            .then(function (result) {
+                annotationClickEdit(result);
+            }).catch(function () {
                 annotationInEdit = undefined;
-            }
+                annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId));
+            });
 
-            annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId));
-        }) */
-
-       annotationPreviewService.showAnnotationPreviewPanel(annotationInEdit);
     }
 
-    self.setActiveY = function (yColumnName) {
-        activeY = yColumnName;
-        calculateXdomain(runData);
-        calculateYdomain(runData);
-        zoomed();
-    }
+   
 
     d3.selection.prototype.moveToFront = function () {
         return this.each(function () {

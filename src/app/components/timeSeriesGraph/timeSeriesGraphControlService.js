@@ -43,8 +43,10 @@ app.service('timeSeriesGraphControlService', ['$log', 'timeSeriesGraphService', 
     self.createAnnotation = function (annotationGroupId, annotation) {
         var data = {
             Time: annotation.xcoordinate,
-            description: annotation.description
+            description: annotation.description,
+            groupId: annotationGroupId
         }
+        
         timeSeriesAnnotationService.addAnnotation(annotationGroupId, annotation.id, data, undefined);
     }
 
@@ -65,7 +67,7 @@ app.service('timeSeriesGraphControlService', ['$log', 'timeSeriesGraphService', 
     }
 
     self.addTrend = function(id,columnName){
-        
+       
         var data;
         for(var i=0, n= timeSeriesData.length; i<n;i++){
             if(timeSeriesData[i].id === id){
@@ -73,8 +75,13 @@ app.service('timeSeriesGraphControlService', ['$log', 'timeSeriesGraphService', 
                 break;
             }
         }
-
+        
         timeSeriesGraphService.addTrend(id,columnName,data);
+    }
+
+    self.removeTrend = function(id,columnName){
+        $log.log(columnName);
+        timeSeriesGraphService.removeTrend(id,columnName);
     }
 
     

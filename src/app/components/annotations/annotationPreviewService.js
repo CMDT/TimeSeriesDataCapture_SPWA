@@ -5,7 +5,7 @@ app.service('annotationPreviewService', ['$log', '$mdDialog', function ($log, $m
 
 
     self.showAnnotationPreviewPanel = function (annotation) {
-        return new Promise(function (result, reject) {
+        return new Promise(function (resolve, reject) {
             $mdDialog.show({
                 templateUrl: 'app/components/annotations/annotationPreview.html',
                 parent: angular.element(document.body),
@@ -18,10 +18,9 @@ app.service('annotationPreviewService', ['$log', '$mdDialog', function ($log, $m
             }).catch(function (annotation) {
                 $log.log(annotation)
                 if (annotation != undefined) {
-                    
-                    //resolve();
+                    resolve(annotation);
                 } else {
-                    //reject(annotation);
+                    reject();
                 }
             })
         })
@@ -38,7 +37,7 @@ app.service('annotationPreviewService', ['$log', '$mdDialog', function ($log, $m
         if (savedAnnotation != undefined) {
             $log.log('hit');
             if (savedAnnotation.data.Time != annotation.data.Time) {
-                var updatedannotation = timeSeriesAnnotationService.updateAnnotation(annotation.note.title, annotation.data);
+                var updatedannotation = timeSeriesAnnotationService.updateAnnotation(annotation.data.groupId,annotation.note.title, annotation.data);
                 $log.log(updatedannotation);
             }
         }
@@ -49,13 +48,14 @@ app.service('annotationPreviewService', ['$log', '$mdDialog', function ($log, $m
         }
 
         $scope.confirm = function () {
-            $log.log($scope.annotationDescription);
+            
             var newData = {
                 Time: annotation.data.Time,
                 RTH: annotation.data.RTH,
-                description: $scope.annotationDescription
+                description: $scope.annotationDescription,
+                groupId : annotation.data.groupId
             }
-            var updatedannotation = timeSeriesAnnotationService.updateAnnotation(annotation.note.title, newData);
+            var updatedannotation = timeSeriesAnnotationService.updateAnnotation(annotation.data.groupId,annotation.note.title, newData);
             annotation.data = newData;
             $scope.editMode = false;
         }

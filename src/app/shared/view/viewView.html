@@ -15,13 +15,13 @@
         <md-content class='content'>
             <md-tabs md-selected='activeTabIndex' md-no-select-click='true' md-dynamic-height md-border-bottom>
 
-                <md-tab  ng-repeat='run in tabs' label='{{run.id}}' md-on-select='selectedTab()'>
+                <md-tab  ng-repeat='tab in tabs' label='{{tab.id}}' md-on-select='selectedTab()'>
                     <md-content>
                         <md-list ng-show='isColumns' flex>
-                            <md-list-item ng-repeat="column in run.columns" class="md-2-line" ng-click="selectedColumn(run.id,column)">
+                            <md-list-item ng-repeat="column in tab.columns" class="md-2-line"  ng-class="{'active-column': isActiveColumn(tab.id,column)}" ng-click="selectedColumn(tab.id,column)">
                                 <p>{{column}}</p>
                                 <md-list-item class="md-2-line" ng-click="null">
-                                    <md-checkbox md-no-ink='false' ng-click="selectedToggle(run.id,column)" ng-checked="exists(run.id,column)" aria-label="Checkbox "></md-checkbox>
+                                    <md-checkbox md-no-ink='false' ng-click="selectedToggle(tab.id,column)" ng-checked="exists(tab.id,column)" aria-label="Checkbox "></md-checkbox>
                         </md-list>
                         <md-button ng-show='!isColumns' class='tag-button' ng-click="tagEdit()">
                             <md-icon md-svg-src="../../assets/img/pencil.svg" aria-label="Edit Icon"></md-icon>
@@ -42,4 +42,4 @@
 
 </div>
 
-<md-button ng-click='test1()'>Test</md-button>
+<inp ng-click="myStyle={'background-color':'blue'}">Test</md-button>

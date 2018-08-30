@@ -73,6 +73,17 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', '$
         })
     }
 
+    $scope.isActiveColumn = function(tabId,columnName){
+        activeTab = timeSeriesGraphControlService.getActiveRun();
+        activeColumn = timeSeriesGraphControlService.getActiveColumn();
+
+        if(tabId === activeTab && activeColumn === columnName){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
     this.uiOnParamsChanged = function (params) {
         //active selection
 
