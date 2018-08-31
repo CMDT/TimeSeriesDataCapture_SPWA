@@ -3,22 +3,15 @@ app.service('searchService', ['$log', '$http','$rootScope', 'queryKeywordService
     var self = this;
 
     
-    self.searchRequest = function (queryArray) {
+    self.searchRequest = function (query) {
         var config = {
             params: {},
             responseType: 'json'
         }
 
-        var url = $rootScope.url + '/apis/search?query=gold';
+        var url = $rootScope.url + '/apis/search';
 
-        for(var i=0,n=queryArray.length;i<n;i++){
-            var value = queryArray[i].value;
-            if(value.length > 1){
-                config.params[queryArray[i].name] = self.queryParamArray(value);
-            }else{
-                config.params[queryArray[i].name] = value[0];
-            }
-        }
+        config.params.tags = encodeURI(query);
         
         $log.log(url);
         return $http.get(url, config);

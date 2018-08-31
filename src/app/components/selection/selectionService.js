@@ -65,6 +65,10 @@ app.service('selectionService', ['$log', function ($log) {
 
     }
 
+    self.clearAllSelections = function(){
+        selectionGroups = new Map();
+    }
+
     self.getGroupIds = function(){
         var groups = [];
         selectionGroups.forEach(function(value,id){

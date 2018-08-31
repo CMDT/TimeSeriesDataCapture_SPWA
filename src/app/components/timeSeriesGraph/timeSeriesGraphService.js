@@ -11,6 +11,8 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
     var user = true;
 
 
+    var testId = 33;
+
     // set the dimensions and margins of the graph
     var margin = {
         top: 110,
@@ -35,18 +37,13 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
     var yAxis = d3.axisLeft(y).ticks(20);
 
     var endZoomVector = d3.zoomIdentity.scale(1).translate(0, 0);
+    var currentVector = d3.zoomIdentity.scale(1).translate(0,0);
 
     var ctrlDown = false;
 
-    var zoom = d3.zoom()
-        .on('zoom', zoomed)
-        .on('end', zoomedEnd)
+    var zoom;
 
-    var svg = d3.select('svg')
-        .attr("width", '100%')
-        .attr("height", 'auto')
-        .attr("viewBox", "0 0 1300 600")
-        .attr("preserveAspectRatio", "xMinYMax meet");
+    var svg;
 
     var graph;
 
@@ -85,13 +82,23 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
         return activeColumn;
     }
 
-    self.graphInit = function (result) {
+    function graphInit() {
+
+        svg = d3.select('svg')
+        .attr("width", '100%')
+        .attr("height", 'auto')
+        .attr("viewBox", "0 0 1300 600")
+        .attr("preserveAspectRatio", "xMinYMax meet");
 
         graph = svg
             .append("g")
             .attr('class', 'graph')
             .attr("transform",
                 "translate(" + margin.left + "," + margin.top + ")");
+
+        zoom = d3.zoom()
+            .on('zoom', zoomed)
+            .on('end', zoomedEnd)
 
         svg.call(zoom)
             .on("dblclick.zoom", null);
@@ -145,6 +152,7 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
             .attr('height', '30')
             .on('click', function () {
                 lockToggle(xLock);
+                self.clear();
             });
 
 
@@ -174,18 +182,19 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
             .attr('width', '30')
             .attr('height', '30')
             .on('click', function () {
-                var xt = endZoomVector.rescaleX(x);
-                annotationAddNew('231323', xt.invert(500), '');
+                var xt = currentVector.rescaleX(x);
+                testId = testId + 20;
+                annotationAddNew(testId.toString(), xt.invert(500), '');
             })
-    }
-
-
-    self.drawGraph = function (runsData) {
-
-
-
 
     }
+
+    graphInit();
+
+    self.graphInit = function (result) {
+        graphInit();
+    }
+
 
 
 
@@ -219,8 +228,8 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
 
 
     function annotationBadgeRender(annotations, t) {
-        var xt = endZoomVector.rescaleX(x);
-        var yt = endZoomVector.rescaleY(y);
+        var xt = currentVector.rescaleX(x);
+        var yt = currentVector.rescaleY(y);
 
         if (t != undefined) {
             xt = t.rescaleX(x);
@@ -242,8 +251,8 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
 
 
     function annotationLabelRender(t) {
-        var xt = endZoomVector.rescaleX(x);
-        var yt = endZoomVector.rescaleY(y);
+        var xt = currentVector.rescaleX(x);
+        var yt = currentVector.rescaleY(y);
 
         if (t != undefined) {
             xt = t.rescaleX(x);
@@ -278,7 +287,7 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
         var id = annotationLabelGroup.select('g').attr('id');
         var annotationBadge = timeSeriesAnnotationService.getAnnotation(activeRunId, id);
 
-        var xt = endZoomVector.rescaleX(x);
+        var xt = currentVector.rescaleX(x);
         var Time = xt.invert(d3.event.x);
         annotationBadge.data.Time = Time;
         annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId));
@@ -286,6 +295,10 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
     }
 
     self.addTrend = function (id, columnName, data) {
+
+
+        $log.log(svg);
+
         $log.log('ADDING TREND');
         data = extractColumn(data, 'Time', columnName);
         var trend = timeSeriesTrendService.addTrend(id, d3.scaleLinear(), d3.scaleLinear(), 'Time', columnName, data);
@@ -296,6 +309,7 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
         $log.log(id, 'COMPARE', activeRunId);
         $log.log(columnName, 'COMPARE', activeColumn);
         if (id === activeRunId && columnName === activeColumn) {
+            $log.log('TREND DATA', trend.data);
             circleX = trend.data[0].x;
             circleY = trend.data[0].y;
 
@@ -340,12 +354,13 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
                 return line(trend.data)
             })
 
-        svg.call(zoom).transition()
-            .duration(1500)
+
+
+         svg.call(zoom).transition()
             .call(zoom.transform, d3.zoomIdentity
                 .scale(1)
                 .translate(0, 0)
-            )
+            ) 
     }
 
     self.removeTrend = function (id, columnName) {
@@ -365,38 +380,40 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
         activeViewVector = transitionVector;
         activeOffsetVector = offsetVector;
 
-        if (transitionVector != undefined) {
-            ctrlDown = true;
-            svg.call(zoom).transition()
-                .duration(1500)
-                .call(zoom.transform, d3.zoomIdentity
-                    .translate(transitionVector.x, transitionVector.y)
-                    .scale(transitionVector.k)
-
-                ).on('end', function () {
-                    ctrlDown = false;
-                    user = false;
-                    var xO = activeOffsetVector.x + activeViewVector.x;
-                    var yO = activeOffsetVector.y + activeViewVector.y;
-
-                   
-                    svg.call(zoom).transition()
-                        .duration(1500)
-                        .call(zoom.transform, d3.zoomIdentity
-                            .translate(xO, yO)
-                            .scale(activeViewVector.k)
-                        )
-                        .on('end', function () {
-                            activeOffsetVector = undefined;
-                            user = true;
-                        })
-                })
-        }
+         $log.log(transitionVector, "v", offsetVector);
+         if (transitionVector != undefined) {
+             $log.log('zooming');
+             ctrlDown = true;
+             svg.call(zoom).transition()
+                 .duration(1500)
+                 .call(zoom.transform, d3.zoomIdentity
+                     .translate(transitionVector.x, transitionVector.y)
+                     .scale(transitionVector.k)
+ 
+                 ).on('end', function () {
+                     ctrlDown = false;
+                     user = false;
+                     var xO = activeOffsetVector.x + activeViewVector.x;
+                     var yO = activeOffsetVector.y + activeViewVector.y;
+ 
+ 
+                     svg.call(zoom).transition()
+                         .duration(1500)
+                         .call(zoom.transform, d3.zoomIdentity
+                             .translate(xO, yO)
+                             .scale(activeViewVector.k)
+                         )
+                         .on('end', function () {
+                          
+                             user = true;
+                         })
+                 })
+         } 
     }
 
-    self.setOffsetLine = function(data,columnName){
-        for(var i=0,n=data.length;i<n;i++){
-            if(data[i].id === activeRunId){
+    self.setOffsetLine = function (data, columnName) {
+        for (var i = 0, n = data.length; i < n; i++) {
+            if (data[i].id === activeRunId) {
                 circleY = data[i].values[0][columnName];
             }
         }
@@ -408,8 +425,8 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
     }
 
     function zoomed() {
-        var t = d3.event.transform;
 
+        var t = d3.event.transform;
 
         t.k = parseFloat((t.k).toFixed(2));
         t.x = parseFloat((t.x).toFixed(2));
@@ -424,22 +441,24 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
 
         var xt = t.rescaleX(x);
 
+        annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId), t);
+        annotationLabelRender(t);
 
 
-       
+
         if (user && (ctrlDown || isZooming)) {
 
-            var offsetLineyt;
+            var offsetLineYt;
             graph.select('.axis--x').call(xAxis.scale(xt));
             graph.selectAll('.line')
                 .attr('d', function (trend) {
-                    $log.log(trend);
+                
                     var yt = t.rescaleY(trend.scaleY);
-                    
+
 
                     if (trend.id === activeRunId && trend.yLabel === activeColumn) {
                         graph.select('.axis--y').call(yAxis.scale(yt));
-                        offsetLineyt = t.rescaleY(trend.scaleY);
+                        offsetLineYt = t.rescaleY(trend.scaleY);
                     }
 
                     var line = d3.line()
@@ -453,18 +472,20 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
                 });
 
 
-            annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId), t);
-            annotationLabelRender(t);
 
-            
-            offsetLine.attr('x1', xt(circleX))
-                .attr('y1', offsetLineyt(circleY))
-                .attr('x2', xt(circleX))
-                .attr('y2', offsetLineyt(circleY))
+
+
+            if (offsetLineYt != undefined) {
+                offsetLine.attr('x1', xt(circleX))
+                    .attr('y1', offsetLineYt(circleY))
+                    .attr('x2', xt(circleX))
+                    .attr('y2', offsetLineYt(circleY))
+            }
+
 
 
             endZoomVector = t;
-        
+
             var viewVector = JSON.stringify(t);
             var offsetVector = {
                 x: 0,
@@ -503,17 +524,20 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
                     y: yDiffrence
                 }
 
-                
+
                 $state.go('.', {
                     offsetVector: JSON.stringify(offsetVector)
                 })
-                annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId), t);
-                annotationLabelRender(t);
+
             }
         }
 
-       
-        
+        currentVector = t;
+    }
+
+    self.clear = function () {
+        svg.selectAll('*').remove();
+        $log.log(svg);
     }
 
 
@@ -547,7 +571,7 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
 
         var width = 30;
         var height = 30;
-        var xt = endZoomVector.rescaleX(x);
+        var xt = currentVector.rescaleX(x);
         var xCor = (xt(annotation.data.Time));
         annotationLabelGroup.selectAll('g').remove();
         annotationLabelGroup.append('g')
@@ -580,7 +604,7 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
         var cx = parseFloat(image.attr('x'));
         cx += (parseFloat(image.attr('width'))) / 2;
         $log.log(cx);
-        var xt = endZoomVector.rescaleX(x);
+        var xt = currentVector.rescaleX(x);
         var Time = xt.invert(cx);
         $log.log(Time);
         annotationInEdit.data.Time = Time

@@ -43,6 +43,10 @@ app.service('timeSeriesTrendService', ['$log', function ($log) {
         return trends;
     }
 
+    self.clearTrends = function(){
+        trends = [];
+    }
+
 
 
 }])

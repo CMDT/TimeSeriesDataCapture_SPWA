@@ -1,4 +1,4 @@
-app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', '$location', 'tagEditPanelService', 'columnTabPanelService', 'timeSeriesGraphControlService', function ($scope, $log, $state, $stateParams, $location, tagEditPanelService, columnTabPanelService, timeSeriesGraphControlService) {
+app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', '$transitions', 'tagEditPanelService', 'columnTabPanelService', 'timeSeriesGraphControlService','timeSeriesTrendService', function ($scope, $log, $state, $stateParams, $transitions, tagEditPanelService, columnTabPanelService, timeSeriesGraphControlService, timeSeriesTrendService) {
 
 
     $scope.runs = [];
@@ -13,12 +13,16 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', '$
 
     if ($stateParams.runs != undefined) {
         columnTabPanelService.getRun($stateParams.runs.split('+')).then(function (result) {
+            columnTabPanelService.clearSelection();
+            timeSeriesGraphControlService.clearData();
+            timeSeriesTrendService.clearTrends();
+
 
             $scope.runs = result;
             columnTabPanelService.createRunTabs(result);
             $scope.tabs = columnTabPanelService.getTabs();
             timeSeriesGraphControlService.drawGraph(result);
-
+           
             if ($stateParams.active != undefined) {
                 var active = $stateParams.active.split('+');
                 timeSeriesGraphControlService.setActiveRun(active[0]);
@@ -108,6 +112,8 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', '$
         }
     }
 
+
+ 
 
 
 

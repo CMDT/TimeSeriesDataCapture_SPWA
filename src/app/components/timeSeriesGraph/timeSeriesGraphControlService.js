@@ -17,9 +17,10 @@ app.service('timeSeriesGraphControlService', ['$log', 'timeSeriesGraphService', 
         }
 
         timeSeriesData = runs;
-
         timeSeriesGraphService.graphInit();
-        timeSeriesGraphService.drawGraph(runs)
+
+       
+        
     }
 
     self.parseRunArray = function (runArray) {
@@ -107,6 +108,11 @@ app.service('timeSeriesGraphControlService', ['$log', 'timeSeriesGraphService', 
 
     self.getActiveColumn = function(){
         return timeSeriesGraphService.getActiveColumn();
+    }
+
+    self.clearData = function(){
+        timeSeriesGraphService.clear();
+        timeSeriesData = undefined;
     }
 
     

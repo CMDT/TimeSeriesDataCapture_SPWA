@@ -7,18 +7,13 @@ app.service('searchPageService', ['$log', 'tagPredictionService', 'searchService
     self.search = function (query) {
         return new Promise(function (resolve, reject) {
 
-            $log.log('query' + query);
-            var queryObject = self.searchExtractV2(query);
-            searchService.searchRequest(queryObject).then(function (result) {
-                $log.log('result ' + result);
+           
+
+            searchService.searchRequest(query).then(function(result){
+                $log.log('result',result);
                 resolve(result.data);
             })
-            // self.queryUrlEncode(queryObject).then(function (result) {
-            //     searchService.searchRequest(result).then(function(result){
-            //         resolve(result.data);
-            //     })
 
-            // })
         });
     }
 

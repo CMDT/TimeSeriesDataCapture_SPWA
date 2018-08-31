@@ -66,7 +66,8 @@ app.service('annotationPreviewService', ['$log', '$mdDialog', function ($log, $m
         }
 
         $scope.deleteAnnotation = function () {
-            timeSeriesAnnotationService.removeAnnotation(timeSeriesGraphService.getActiveRunId(), annotation.id);
+            $log.log(annotation);
+            timeSeriesAnnotationService.removeAnnotation(annotation.data.groupId, annotation.id);
             $mdDialog.cancel();
         }
 

@@ -1,4 +1,4 @@
-app.controller('homeController', ['$scope', '$log', '$filter', 'authenticationService', 'oneDriveAuthenticationService', 'searchPageService', 'dtFormatterService', '$state', '$stateParams', 'JSTagsCollection', function ($scope, $log, $filter, authenticationService, oneDriveAuthenticationService, searchPageService, dtFormatterService, $state, $stateParams, JSTagsCollection) {
+app.controller('homeController', ['$scope', '$log', '$filter', 'authenticationService', 'oneDriveAuthenticationService', 'searchPageService', 'dtFormatterService', '$state', '$stateParams', 'JSTagsCollection','selectionService', function ($scope, $log, $filter, authenticationService, oneDriveAuthenticationService, searchPageService, dtFormatterService, $state, $stateParams, JSTagsCollection,selectionService,) {
 
     this.uiOnParamsChanged = function (params) {
         if (params.query != undefined) {
@@ -8,10 +8,8 @@ app.controller('homeController', ['$scope', '$log', '$filter', 'authenticationSe
 
     $scope.search = function (query) {
         $log.log('search query ' + query);
-        searchPageService.search1(query).then(function (result) {
-            for (var i = 0, n = result.length; i < n; i++) {
-                result[i].selected = false;
-            }
+        searchPageService.search(query).then(function (result) {
+            
             $scope.results = result;
             $scope.$apply();
         })
@@ -113,6 +111,47 @@ app.controller('homeController', ['$scope', '$log', '$filter', 'authenticationSe
     $scope.timeDecode = function (time) {
         return dtFormatterService.timeDecode(time);
     }
+
+    $scope.viewRun = function(run){
+       
+        var options = {
+            location: 'replace',
+            inherit: false,
+        }
+
+        $state.transitionTo('view',{
+            runs: run.id,
+            columns : run.id + ':RTH',
+            active: run.id + '+RTH'
+        },options);
+    }
+
+    var selectionId = selectionService.addSelectionGroup('runs1','runsSelection');
+
+    $scope.exists = function(runId){
+        return selectionService.isSelected(selectionService.getSelectionGroup(selectionId),runId);
+    }
+
+    $scope.selectedToggle = function(runId){
+        selectionService.selectedToggle(selectionService.getSelectionGroup(selectionId),runId);
+    }
+
+    $scope.view = function(){
+        var selected = selectionService.selectedToArray(selectionId);
+        
+        var options = {
+            location: 'replace',
+            inherit: false,
+        }
+
+        $state.transitionTo('view',{
+            runs: selected.join('+'),
+            columns : selected[0] + ':RTH',
+            active: selected[0] + '+RTH'
+        },options);
+    }
+
+
 
 
 

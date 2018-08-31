@@ -186,8 +186,11 @@ app.service('columnTabPanelService', ['$log', 'runRequestService', 'selectionSer
         }
     }
 
-    self.clearSelection = function (selectionGroupIds){
-        selectionService.clearSelection(selectionGroupIds);
+    self.clearSelection = function (){
+        selectedTab = undefined;
+        activeColumn = undefined;
+        tabs= new Map();
+        selectionService.clearAllSelections();
     }
 
 

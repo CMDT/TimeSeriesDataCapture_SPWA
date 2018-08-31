@@ -11,14 +11,14 @@
 
 
 <div class='runButtons'>
-    <md-button class='md-raised'>View</md-button>
+    <md-button class='md-raised' ng-click='view()'>View</md-button>
     <md-button class='md-raised'>Export</md-button>
     <md-button class='md-raised'>Delete</md-button>
 </div>
 
 <div class="result">
     <md-list ng-repeat="result in results" flex>
-        <md-list-item class="md-2-line" ng-click="null">
+        <md-list-item class="md-2-line" ng-click="viewRun(result)">
             <p>{{result._id}}</p>
 
             <div class="md-list-item-text" layout="column">
@@ -28,7 +28,7 @@
             <div class="md-list-item-text" ng-repeat="tag in result.tags"layout="row">
                 <h3 layout-padding>{{tag}}</h3>
             </div>
-            <md-checkbox ng-model="result.selected" aria-label="Checkbox ">
+            <md-checkbox ng-click="selectedToggle(result.id)" ng-checked="exists(result.id)" aria-label="Checkbox ">
                 
             </md-checkbox>
     </md-list>

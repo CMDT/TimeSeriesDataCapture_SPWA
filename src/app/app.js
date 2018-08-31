@@ -58,7 +58,7 @@ function config($stateProvider) {
       } 
     },
     templateUrl: 'app/shared/view/viewView.html',
-    controller: 'viewController'
+    controller: 'viewController',
   }
 
   $stateProvider.state(callbackState);

@@ -109,6 +109,10 @@ md-dialog {
     color: blue;
 }
 
+.version {
+    float: right;
+}
+
 
 
 
