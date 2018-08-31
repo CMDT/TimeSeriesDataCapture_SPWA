@@ -152,7 +152,7 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
             .attr('height', '30')
             .on('click', function () {
                 lockToggle(xLock);
-                self.clear();
+                
             });
 
 
