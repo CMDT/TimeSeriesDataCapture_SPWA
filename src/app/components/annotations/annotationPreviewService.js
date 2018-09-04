@@ -1,4 +1,4 @@
-app.service('annotationPreviewService', ['$log', '$mdDialog', function ($log, $mdDialog) {
+app.service('annotationPreviewService', ['$log', '$mdDialog', 'annotationsService', function ($log, $mdDialog, annotationsService) {
 
     var self = this;
 
@@ -11,7 +11,8 @@ app.service('annotationPreviewService', ['$log', '$mdDialog', function ($log, $m
                 parent: angular.element(document.body),
                 clickOutsideToClose: true,
                 locals: {
-                    annotation: annotation
+                    annotation: annotation,
+
                 },
                 controller: annotaionPreviewPanelController
 
@@ -27,53 +28,54 @@ app.service('annotationPreviewService', ['$log', '$mdDialog', function ($log, $m
     }
 
     function annotaionPreviewPanelController($scope, $mdDialog, annotation, timeSeriesAnnotationService) {
-  
-        var savedAnnotation;
+
+
+        var lastAnnotationDesciption;
+
         $scope.annotationTitle = 'Annotation ' + annotation.note.title;
         $scope.annotationDescription = annotation.data.description;
+
         $scope.editMode = false;
 
+
+
+
         $log.log(annotation);
-        if (savedAnnotation != undefined) {
-            $log.log('hit');
-            if (savedAnnotation.data.Time != annotation.data.Time) {
-                var updatedannotation = timeSeriesAnnotationService.updateAnnotation(annotation.data.groupId,annotation.note.title, annotation.data);
-                $log.log(updatedannotation);
-            }
-        }
-
-        $scope.annotationEdit = function () {
+        $scope.annotationDescriptionEdit = function () {
             lastAnnotationDesciption = $scope.annotationDescription;
-            $scope.editMode = !($scope.editMode);
+            $scope.editMode = true;
         }
 
-        $scope.confirm = function () {
-            
-            var newData = {
-                Time: annotation.data.Time,
-                RTH: annotation.data.RTH,
-                description: $scope.annotationDescription,
-                groupId : annotation.data.groupId
-            }
-            var updatedannotation = timeSeriesAnnotationService.updateAnnotation(annotation.data.groupId,annotation.note.title, newData);
-            annotation.data = newData;
+        $scope.confirmAnnotationDescription = function () {
             $scope.editMode = false;
         }
 
-        $scope.cancel = function () {
+        $scope.confirmAnnotation = function () {
+            annotation.data.description = $scope.annotationDescription;
+            var updatedAnnotation = timeSeriesAnnotationService.updateAnnotation(annotation.data.groupId, annotation.id, annotation.data)
+            annotationsService.updateAnnotation(updatedAnnotation.data.groupId,updatedAnnotation.id,{description: updatedAnnotation.data.description, xcoordinate : updatedAnnotation.data.Time});
+            $mdDialog.cancel();
+        }
+
+        $scope.cancelAnnotation = function () {
+           
+            $mdDialog.cancel();
+        }
+
+        $scope.cancelAnnotationDescription = function () {
             $scope.annotationDescription = lastAnnotationDesciption;
             $scope.editMode = false;
         }
 
-        $scope.deleteAnnotation = function () {
+        $scope.annotationDelete = function () {
             $log.log(annotation);
             timeSeriesAnnotationService.removeAnnotation(annotation.data.groupId, annotation.id);
+            annotationsService.deleteAnnotation(annotation.data.groupId, annotation.id)
             $mdDialog.cancel();
         }
 
         $scope.annotationPosEdit = function () {
             $log.log(annotation);
-            savedAnnotation = annotation;
             $mdDialog.cancel(annotation);
         }
     }
