@@ -36,8 +36,8 @@ app.service('authenticationService',['$log',function($log){
                 $log.error('authentication error');
                 return;
             }
-
-        
+            
+            localStorage.setItem('profile',profile.sub);
             localStorage.setItem('accessToken',authResult.idToken);
             console.log(authResult.idToken);
 

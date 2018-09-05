@@ -1,4 +1,4 @@
-app.controller('importPanelControllerV2', ['$scope', '$log', '$mdDialog','$filter', 'getFolderService', 'folderBreadcrumbService','algorithmsService','selectionService', function ($scope, $log, $mdDialog,$filter, getFolderService, folderBreadcrumbService,algorithmsService,selectionService) {
+app.controller('importPanelControllerV2', ['$scope', '$log', '$mdDialog','$filter', 'getFolderService', 'folderBreadcrumbService','algorithmsService','selectionService','fileStorageAuthenticationDataService', function ($scope, $log, $mdDialog,$filter, getFolderService, folderBreadcrumbService,algorithmsService,selectionService,fileStorageAuthenticationDataService) {
 
     var self = this;
     var selectedMap = new Map();
@@ -98,6 +98,10 @@ app.controller('importPanelControllerV2', ['$scope', '$log', '$mdDialog','$filte
     $scope.confirm = function () {
         getFolderService.importRuns(selectionService.selectedToArray(selectionId));
         $scope.cancel();
+    }
+
+    $scope.logout = function(){
+        fileStorageAuthenticationDataService.deleteAuthentication();
     }
 
     var root = {

@@ -5,7 +5,7 @@ app.service('annotationsService', ['$rootScope','$log','$http', function ($rootS
 
 
     self.updateAnnotation = function (componentId,annotationId,annotation) {
-        return new Promise(function (resolve, reject) {
+      
             var config = {
                 headers: {},
                 responseType: 'json'
@@ -18,14 +18,13 @@ app.service('annotationsService', ['$rootScope','$log','$http', function ($rootS
             $log.log(url);
             $log.log(annotation);
 
-            $http.put(url,annotation, config).then(function (result) {
-                resolve(result);
-            });
-        })
+           return $http.put(url,annotation, config)
+           
+    
     }
 
     self.addAnnotations = function (componentId,annotations){
-        return new Promise(function (resolve, reject) {
+       
             var config = {
                 headers: {},
                 responseType: 'json'
@@ -35,14 +34,12 @@ app.service('annotationsService', ['$rootScope','$log','$http', function ($rootS
             var url =  $rootScope.url+'/apis/components/'+componentId+'/annotations'
             $log.log(url);
 
-            $http.post(url,annotations, config).then(function (result) {
-                resolve(result);
-            });
-        })
+            return $http.post(url,annotations, config);
+              
     }
 
     self.deleteAnnotation = function (componentId,annotationId){
-        return new Promise(function (resolve, reject) {
+      
             var config = {
                 headers: {},
                 responseType: 'json'
@@ -52,10 +49,7 @@ app.service('annotationsService', ['$rootScope','$log','$http', function ($rootS
             var url =   $rootScope.url+'/apis/components/'+componentId+'/annotations/'+annotationId;
             $log.log(url);
 
-            $http.delete(url, config).then(function (result) {
-                resolve(result);
-            });
-        })
+            return $http.delete(url, config)
     }
 
     

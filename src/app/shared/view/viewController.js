@@ -22,6 +22,7 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', '$
             timeSeriesTrendService.clearTrends();
 
             tagsCollection = (extractTags(result));
+         
            
 
             $scope.runs = result;
@@ -54,7 +55,7 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', '$
             }
             timeSeriesGraphControlService.graphTransition(viewVector, offsetVector);
 
-            
+            $scope.selectedTab();
             $scope.$apply();
 
 
@@ -74,8 +75,9 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', '$
     }
 
     $scope.tagEdit = function () {
-       
-        tagEditPanelService.showTagEditPanel(undefined,timeSeriesGraphControlService.getActiveRun(),$scope.tags);
+        var runId = ($scope.tabs[$scope.activeTabIndex]).id;
+        $log.log(runId)
+        tagEditPanelService.showTagEditPanel(undefined,runId,$scope.tags);
     }
 
     $scope.exists = function (id, columnName) {
