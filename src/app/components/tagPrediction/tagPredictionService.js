@@ -1,23 +1,26 @@
-app.service('tagPredictionService', ['$log', '$http', function ($log, $http) {
+app.service('tagPredictionService', ['$rootScope','$log', '$http', function ($rootScope,$log, $http,) {
 
+    var self = this;
   
-    this.getTagId = function(tag){
+    self.getTag = function(tag){
         var config = {
-            params  : {
-                tags:tag
-            },
-            responseType: 'json'
+            responseType: 'json',
+            params : {}
         }
 
-        var url= 'http://10.182.45.87:8000/apis/tags';
+        var url= $rootScope.url + '/apis/tags';
 
-
+        if(tag != undefined){
+            config.params =  {
+                tags:tag 
+            }
+        }
         return $http.get(url,config);
     }
 
-    this.getTagIds = function(tagArray){
+    self.getTags = function(tagArray){
         return new Promise(function(resolve,reject){
-            const tagIdPromises = tagArray.map(self.getTagID);
+            const tagIdPromises = tagArray.map(self.getTag);
             Promise.all(tagIdPromises).then(function (result) {
                 var parsedResult = [];
                 for (var i = 0, n = result.length; i < n; i++) {
@@ -28,5 +31,46 @@ app.service('tagPredictionService', ['$log', '$http', function ($log, $http) {
         });
     }
 
+    self.addTags = function(componentId,tagArray){
+        var config = {
+            headers: {},
+            responseType: 'json'
+        }
+        config.headers.Authorization = 'Bearer ' + localStorage.getItem('accessToken');
+
+        var url = $rootScope.url + '/apis/components/' +componentId + '/tags/';
+        $log.log(url);
+
+        return $http.put(url,tagArray,config);
+        
+    }
+
+     self.deleteTagById = function(componentId,tagId){
+        var config = {
+            headers: {},
+            responseType: 'json'
+        }
+        config.headers.Authorization = 'Bearer ' + localStorage.getItem('accessToken');
+
+        var url = $rootScope.url + '/apis/components/' +componentId + '/tags/' + tagId;
+        $log.log(url);
+
+        return $http.delete(url,config);
+    }
+    
+
+    self.deleteTag = function (tag){
+        var componentId = this.componentId;
+        return new Promise(function(resolve,reject){
+            self.getTag(tag).then(function(result){
+                if(result.data.length > 0){
+                    self.deleteTagById(componentId,result.data[0]._id);
+                    resolve(result.data[0]._id + ' deleted');
+                }else{
+                    reject('tag not found');
+                }
+            });
+        })
+    }
 
 }])

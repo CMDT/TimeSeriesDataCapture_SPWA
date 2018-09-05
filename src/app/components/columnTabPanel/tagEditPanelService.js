@@ -1,26 +1,28 @@
-app.service('tagEditPanelService', ['$log', '$mdDialog', function ($log, $mdDialog) {
+app.service('tagEditPanelService', ['$log', '$mdDialog','$filter', 'tagPredictionService', function ($log, $mdDialog,$filter, tagPredictionService) {
 
     var self = this;
 
-    self.showTagEditPanel = function (ev, tags) {
+    self.showTagEditPanel = function (ev, componentId, tags) {
         $mdDialog.show({
             templateUrl: 'app/components/columnTabPanel/tagEditPanel.html',
             parent: angular.element(document.body),
             targetEvent: ev,
             clickOutsideToClose: false,
             locals: {
+                componentId: componentId,
                 tags: tags
             },
             controller: tagEditPanelController
-        }).catch(function(result){
-            if(result != undefined){
-                
+        }).catch(function (result) {
+            if (result != undefined) {
+
             }
         })
     }
 
-    function tagEditPanelController($scope, $mdDialog, JSTagsCollection, tags) {
-        $scope.tags = new JSTagsCollection(tags);
+    function tagEditPanelController($scope, $mdDialog, JSTagsCollection, componentId, tags) {
+        var intialTags = $filter('tagFilter')(tags);
+        $scope.tags = new JSTagsCollection(intialTags);
         // Export jsTags options, inlcuding our own tags object
         $scope.jsTagOptions = {
             'tags': $scope.tags,
@@ -29,7 +31,7 @@ app.service('tagEditPanelService', ['$log', '$mdDialog', function ($log, $mdDial
             }
         };
 
-        
+
 
         // Build suggestions array
         var suggestions = ['gold', 'silver', 'golden'];
@@ -64,11 +66,22 @@ app.service('tagEditPanelService', ['$log', '$mdDialog', function ($log, $mdDial
             highlight: true
         };
 
-        $scope.confirm = function(){
+        $scope.confirm = function () {
+         
+            var difference = arrayDiff(intialTags, $scope.extractTags());
+            $log.log(difference);
+            if (difference[0].length > 0) {
+                tagPredictionService.addTags(componentId, difference[0]);
+            }
+
+             if (difference[1].length > 0) {
+                const deletePromises = difference[1].map(tagPredictionService.deleteTag, { componentId: componentId });
+                Promise.all(deletePromises);
+            } 
             $mdDialog.cancel($scope.extractTags());
         }
 
-        $scope.cancel = function(){
+        $scope.cancel = function () {
             $mdDialog.cancel();
         }
 
@@ -81,7 +94,50 @@ app.service('tagEditPanelService', ['$log', '$mdDialog', function ($log, $mdDial
             return query;
         }
 
-   
+        function arrayDiff(oldAr, newAr) {
+            var removed = [];
+            var added = [];
+
+            var pointer = 0;
+
+            for (var i = 0, n = newAr.length; i < n; i++) {
+
+                var found = false;
+
+                for (var o = pointer, m = oldAr.length; o < m; o++) {
+                    if (newAr[i] === oldAr[o]) {
+                        swap(oldAr, pointer, o);
+                        pointer++;
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found) {
+                    added.push(newAr[i]);
+                }
+            }
+
+            removed = oldAr.slice(pointer);
+            return [added, removed];
+        }
+
+        function swap(array, indexA, indexB) {
+            var temp = array[indexA];
+            array[indexA] = indexB;
+            array[indexB] = temp;
+        }
+
+        function extractTagObjects(tagObjectArray) {
+            var tagArray = [];
+
+            for (var i = 0, n = tagObjectArray.length; i < n; i++) {
+                tagArray.push(tagObjectArray[i].tag);
+            }
+            return tagArray;
+        }
+
+
 
 
     }

@@ -24,8 +24,8 @@ app.service('oneDriveAuthenticationService',['$log','odauthService','$window',fu
     this.login = function login() {
   
         $log.log('logging into OneDrive');
-        odauthService.provideAppInfo(appInfo);
-        odauthService.challengeForAuth();
+        //odauthService.provideAppInfo(appInfo);
+        //odauthService.challengeForAuth();
       
         return false;
     }

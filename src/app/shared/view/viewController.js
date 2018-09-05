@@ -1,4 +1,4 @@
-app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', '$transitions', 'tagEditPanelService', 'columnTabPanelService', 'timeSeriesGraphControlService','timeSeriesTrendService', function ($scope, $log, $state, $stateParams, $transitions, tagEditPanelService, columnTabPanelService, timeSeriesGraphControlService, timeSeriesTrendService) {
+app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', '$transitions', 'tagEditPanelService', 'columnTabPanelService', 'timeSeriesGraphControlService','timeSeriesTrendService','tagPredictionService', function ($scope, $log, $state, $stateParams, $transitions, tagEditPanelService, columnTabPanelService, timeSeriesGraphControlService, timeSeriesTrendService,tagPredictionService) {
 
 
     $scope.runs = [];
@@ -8,7 +8,11 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', '$
 
     $scope.isColumns = true;
 
-    $scope.tags = ['tag1', 'tag2', 'tag3'];
+    $scope.tags = [];
+
+    var tagsCollection = {
+
+    }
 
 
     if ($stateParams.runs != undefined) {
@@ -17,6 +21,8 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', '$
             timeSeriesGraphControlService.clearData();
             timeSeriesTrendService.clearTrends();
 
+            tagsCollection = (extractTags(result));
+           
 
             $scope.runs = result;
             columnTabPanelService.createRunTabs(result);
@@ -47,6 +53,8 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', '$
                 viewVector = JSON.parse($stateParams.viewVector);
             }
             timeSeriesGraphControlService.graphTransition(viewVector, offsetVector);
+
+            
             $scope.$apply();
 
 
@@ -66,7 +74,8 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', '$
     }
 
     $scope.tagEdit = function () {
-        tagEditPanelService.showTagEditPanel(undefined, $scope.tags);
+       
+        tagEditPanelService.showTagEditPanel(undefined,timeSeriesGraphControlService.getActiveRun(),$scope.tags);
     }
 
     $scope.exists = function (id, columnName) {
@@ -78,6 +87,12 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', '$
         $state.go('.', {
             active: tabId + '+' + columnName
         })
+    }
+
+    $scope.selectedTab = function(){
+        var runId = ($scope.tabs[$scope.activeTabIndex]).id;
+        $log.log(tagsCollection);
+        $scope.tags = tagsCollection[runId];
     }
 
     $scope.isActiveColumn = function(tabId,columnName){
@@ -98,6 +113,8 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', '$
             var active = params.active.split('+');
             timeSeriesGraphControlService.setActiveRun(active[0]);
             timeSeriesGraphControlService.setActiveColumn(active[1]);
+         
+            $scope.tags = tagsCollection[active[0]];
         }
 
 
@@ -110,6 +127,31 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', '$
                 columnTabPanelService.selectColumns([]);
             }
         }
+    }
+
+    
+
+    function extractTags(runArray){
+        var tagsCollection = {};
+       for(var i=0, n= runArray.length;i<n;i++){
+           tagsCollection[runArray[i].id] = parseTags(runArray[i].tags);
+       }
+
+       return tagsCollection;
+    }
+
+    function parseTags(tagObject){
+        var tags = [];
+        var tagIds = Object.keys(tagObject);
+
+        for(var i=0,n=tagIds.length;i<n;i++){
+            tags.push({
+                id : tagIds[i],
+                tag : tagObject[tagIds[i]]
+            })
+        }
+
+        return tags;
     }
 
 
