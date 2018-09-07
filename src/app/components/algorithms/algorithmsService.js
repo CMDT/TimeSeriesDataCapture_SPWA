@@ -3,7 +3,7 @@ app.service('algorithmsService', ['$rootScope','$log','$http', function ($rootSc
     var self = this;
 
     self.getAllAlgorithms = function () {
-        return new Promise(function (resolve, reject) {
+       
             var config = {
                 headers: {},
                 responseType: 'json'
@@ -13,10 +13,7 @@ app.service('algorithmsService', ['$rootScope','$log','$http', function ($rootSc
             var url = $rootScope.url + '/apis/algorithms';
             $log.log(url);
 
-            $http.get(url, config).then(function (result) {
-                resolve(result);
-            });
-        })
+            return $http.get(url, config)
     }
 
 }])

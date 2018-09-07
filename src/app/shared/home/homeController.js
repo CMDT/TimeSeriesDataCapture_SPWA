@@ -1,4 +1,4 @@
-app.controller('homeController', ['$scope', '$log', '$filter', 'authenticationService', 'oneDriveAuthenticationService', 'searchPageService', 'dtFormatterService', '$state', '$stateParams', 'JSTagsCollection','selectionService', function ($scope, $log, $filter, authenticationService, oneDriveAuthenticationService, searchPageService, dtFormatterService, $state, $stateParams, JSTagsCollection,selectionService,) {
+app.controller('homeController', ['$scope', '$log','$mdDialog', 'authenticationService', 'oneDriveAuthenticationService', 'searchPageService', 'dtFormatterService', '$state', '$stateParams', 'JSTagsCollection','selectionService', function ($scope, $log,$mdDialog, authenticationService, oneDriveAuthenticationService, searchPageService, dtFormatterService, $state, $stateParams, JSTagsCollection,selectionService,) {
 
     this.uiOnParamsChanged = function (params) {
         if (params.query != undefined) {
@@ -76,13 +76,23 @@ app.controller('homeController', ['$scope', '$log', '$filter', 'authenticationSe
 
     $scope.login = function () {
         authenticationService.login();
+    
     }
 
 
     $scope.results = [];
 
-    $scope.loginOneDrive = function () {
-        oneDriveAuthenticationService.login();
+   
+
+    $scope.import = function (ev) {
+        $mdDialog.show({
+
+            templateUrl: 'app/shared/import/importPanel.html',
+            parent: angular.element(document.body),
+            targetEvent: ev,
+            clickOutsideToClose: false,
+
+        })
     }
 
 
@@ -149,6 +159,10 @@ app.controller('homeController', ['$scope', '$log', '$filter', 'authenticationSe
             columns : selected[0] + ':RTH',
             active: selected[0] + '+RTH'
         },options);
+    }
+
+    $scope.isAuthenticated = function(){
+        return authenticationService.isAuthenticated();
     }
 
 

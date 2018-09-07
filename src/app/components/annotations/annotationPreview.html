@@ -1,13 +1,13 @@
 <md-dialog class='annotation-preview'>
     <md-toolbar>
         <div class="md-toolbar-tools">
-            <md-button class='md-small' aria-label="annotation position edit button" ng-click="annotationDelete()">
+            <md-button  ng-if='!editMode && isAuthenticated()' class='md-small' aria-label="annotation position edit button" ng-click="annotationDelete()">
                X
             </md-button>
             <h4>Annotation</h4>
 
             <span flex></span>
-            <div ng-if='!editMode'>
+            <div ng-if='!editMode && isAuthenticated()'>
                 <md-button class='md-small' aria-label="annotation position edit button" ng-click="annotationPosEdit()">
                     <md-icon md-svg-src="../../assets/img/arrow_down.svg"></md-icon>
                 </md-button>
@@ -39,7 +39,7 @@
             Confirm
         </md-button>
     </md-dialog-actions>
-    <md-dialog-actions ng-if='!editMode' layout="row">
+    <md-dialog-actions ng-if='!editMode && isAuthenticated()' layout="row">
         <md-button ng-click="cancelAnnotation()">
             Cancel
         </md-button>

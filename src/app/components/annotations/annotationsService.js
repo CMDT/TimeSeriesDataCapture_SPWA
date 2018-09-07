@@ -19,8 +19,6 @@ app.service('annotationsService', ['$rootScope','$log','$http', function ($rootS
             $log.log(annotation);
 
            return $http.put(url,annotation, config)
-           
-    
     }
 
     self.addAnnotations = function (componentId,annotations){

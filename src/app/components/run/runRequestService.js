@@ -1,4 +1,4 @@
-app.service('runRequestService', ['$rootScope','$log', '$http', function ($rootScope,$log, $http) {
+app.service('runRequestService', ['$rootScope', '$log', '$http', function ($rootScope, $log, $http) {
 
     var self = this;
 
@@ -27,8 +27,11 @@ app.service('runRequestService', ['$rootScope','$log', '$http', function ($rootS
                 responseType: 'json'
             }
 
-            config.headers.Authorization = 'Bearer ' + localStorage.getItem('accessToken');
-        
+            var accessToken = localStorage.getItem('accessToken');
+            if (accessToken.length > 0) {
+                config.headers.Authorization = 'Bearer ' + localStorage.getItem('accessToken');
+            }
+
             var url = $rootScope.url + '/apis/components/' + componentId;
             $log.log(url);
 

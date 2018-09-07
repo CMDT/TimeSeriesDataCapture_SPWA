@@ -20,16 +20,7 @@ app.service('componentIdsService', ['$rootScope','$log','$http','authenticationS
             $http.get(url, config).then(function (result) {
                 resolve(result);
             }).catch(function(error){
-                if(error.status === 401){
-
-                    if(error.data != null){
-                        if(error.data.message === 'Authorization failed: Un-authorized'){
-                           reject('fileStorageUnAuthenticated')
-                        }
-                    }else{
-                        $log.log('login to Auth0');
-                    }
-                }
+                reject(error);
             });
         })
     }

@@ -7,6 +7,7 @@ border: 3px solid #d4d4d4;
 
 md-dialog {
     width: 80%;
+   
 }
 
 .search js-tag .jt-editor{
@@ -113,6 +114,27 @@ md-dialog {
     float: right;
 }
 
+.import-panel .login{
+    padding: 5%;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+}
+
+.algorithm-panel{
+    width: 50%;
+    margin-left: 25%;
+    border-radius: 22px 22px 22px 22px;
+    -moz-border-radius: 22px 22px 22px 22px;
+    -webkit-border-radius: 22px 22px 22px 22px;
+    border: 5px solid #198f0e;
+    margin-top: 5%;
+}
+
+.material-icons.md-18 { font-size: 18px; }
+.material-icons.md-24 { font-size: 24px; }
+.material-icons.md-36 { font-size: 36px; }
+.material-icons.md-100 { font-size: 100px; }
 
 
 

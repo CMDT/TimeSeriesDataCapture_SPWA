@@ -36,9 +36,7 @@ app.service('getFolderService', ['$log', 'folderBrowserService', 'runRequestServ
                 $log.log(newFolder);
                 return resolve(newFolder);
             }).catch(function(error){
-                if(error === 'fileStorageUnAuthenticated'){
-                    oneDriveAuthenticationService.login();
-                }
+                return reject(error)
             })
         })
     }
@@ -82,7 +80,14 @@ app.service('getFolderService', ['$log', 'folderBrowserService', 'runRequestServ
     }
 
     self.importRuns = function(runs){
-        componentIdsService.postComponentIds(runs).then(function(result){
+        var runsArray = [];
+
+        for(var i=0,n=runs.length;i<n;i++){
+            runsArray.push({
+                id: runs[i]
+            })
+        }
+        componentIdsService.postComponentIds(runsArray).then(function(result){
             $log.log(result);
         })
     }

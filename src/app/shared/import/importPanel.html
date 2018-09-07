@@ -1,4 +1,15 @@
-<div ng-controller="importPanelControllerV2">
+<style>
+    .run-group {
+        fill: none;
+        stroke: steelblue;
+        stroke-width: 2px;
+        clip-path: url(#clip);
+    }
+</style>
+
+
+
+<div class='import-panel' ng-controller="importPanelControllerV2">
     <md-toolbar>
         <div class="md-toolbar-tools">
             <h4>Import</h4>
@@ -7,77 +18,82 @@
             <md-button class="md-button" aria-label="logout" ng-click="logout()">
                 Logout
             </md-button>
-            <md-button class="md-icon-button" aria-label='close import panel'ng-click="cancel()">
+            <md-button class="md-icon-button" aria-label='close import panel' ng-click="cancel()">
                 X
             </md-button>
         </div>
     </md-toolbar>
-    <div ng-show='!preview'>
-        <div class='breadcrumb'>
-            <div ng-repeat='element in breadcrumb'>
-                <md-button ng-click='folderClick(element)' ng-show='$first' ng-disabled="$last">
-                    <md-icon md-svg-src="../../assets/img/homeIcon.svg" aria-label="Run Icon"></md-icon>
-                </md-button>
-                <md-button ng-click='folderClick(element)' ng-show='!$first' ng-disabled="$last">
-                    {{element.name}}
-                </md-button>
-                <md-icon ng-hide='$last'>></md-icon>
-            </div>
-            <md-checkbox md-no-ink='false' ng-checked="selectedAllIsChecked()" ng-click="selectedAllToggle()" aria-label='select all checkbox' ></md-checkbox>
-        </div>
-
-        <md-list flex>
-            <md-list-item class="md-2-line" ng-click="folderClick(result)" ng-repeat='result in activePage.data'>
-                <md-icon ng-if='result.type == "run"' md-svg-src="../../assets/img/runIcon.svg" aria-label="Run Icon"></md-icon>
-                <md-icon ng-if='result.type == "folder"' md-svg-src="../../assets/img/folderIcon.svg" aria-label="Run Icon"></md-icon>
-                <div class="md-list-item-text">
-                    <h4>{{result.name}}</h4>
-                </div>
-                <div ng-if='result.type == "run"'>
-                    <md-button ng-click="previewToggle(result)">
-                        <md-icon md-svg-src="../../assets/img/previewIcon.svg" aria-label="Preview Icon"></md-icon>
+    <div ng-hide='unauthorized'>
+        <div ng-show='!preview'>
+            <div class='breadcrumb'>
+                <div ng-repeat='element in breadcrumb'>
+                    <md-button ng-click='folderClick(element)' ng-show='$first' ng-disabled="$last">
+                        <md-icon md-svg-src="../../assets/img/homeIcon.svg" aria-label="Run Icon"></md-icon>
                     </md-button>
-                    <md-checkbox md-no-ink='false' ng-click="selectedToggle(result.id)" ng-checked="exists(result.id)" aria-label="Checkbox ">
-                    </md-checkbox>
-
+                    <md-button ng-click='folderClick(element)' ng-show='!$first' ng-disabled="$last">
+                        {{element.name}}
+                    </md-button>
+                    <md-icon ng-hide='$last'>></md-icon>
                 </div>
-            </md-list-item>
-        </md-list>
-        <md-dialog-actions layout="row">
+                <md-checkbox md-no-ink='false' ng-checked="selectedAllIsChecked()" ng-click="selectedAllToggle()" aria-label='select all checkbox'></md-checkbox>
+            </div>
+
+            <md-list flex>
+                <md-list-item class="md-2-line" ng-click="folderClick(result)" ng-repeat='result in activePage.data'>
+                    <md-icon ng-if='result.type == "run"' md-svg-src="../../assets/img/runIcon.svg" aria-label="Run Icon"></md-icon>
+                    <md-icon ng-if='result.type == "folder"' md-svg-src="../../assets/img/folderIcon.svg" aria-label="Run Icon"></md-icon>
+                    <div class="md-list-item-text">
+                        <h4>{{result.name}}</h4>
+                    </div>
+                    <div ng-if='result.type == "run"'>
+                        <md-button ng-click="previewToggle(result)">
+                            <md-icon md-svg-src="../../assets/img/previewIcon.svg" aria-label="Preview Icon"></md-icon>
+                        </md-button>
+                        <md-checkbox md-no-ink='false' ng-click="selectedToggle(result.id)" ng-checked="exists(result.id)" aria-label="Checkbox ">
+                        </md-checkbox>
+
+                    </div>
+                </md-list-item>
+            </md-list>
+            <md-dialog-actions layout="row">
 
 
-            <md-button ng-click="cancel()">
-                Cancel
-            </md-button>
-            <md-button ng-click="confirm()">
-                Confirm
-            </md-button>
-        </md-dialog-actions>
-    </div>
-
-    <div ng-show='preview'>
-        <h1>GRAPH</h1>
-        <div class='data'>
-            <md-list>
-                <h4>Time</h4>
-                <md-list-item ng-repeat="point in activePage.data.Time">{{point}}</md-list-item>
-            </md-list>
-            <md-list>
-                <h4>T(Environment)</h4>
-                <md-list-item ng-repeat="point in activePage.data.Environment">{{point}}</md-list-item>
-            </md-list>
-            <md-list>
-                <h4>T(Copper)</h4>
-                <md-list-item ng-repeat="point in activePage.data.Copper">{{point}}</md-list-item>
-            </md-list>
-
-            <md-list>
-                <md-list-item ng-repeat='algorithm in activePage.algorithms'>{{algorithm.name}}</md-list-item>
-            </md-list>
+                <md-button ng-click="cancel()">
+                    Cancel
+                </md-button>
+                <md-button ng-click="confirm()">
+                    Confirm
+                </md-button>
+            </md-dialog-actions>
         </div>
-        
-        <md-button ng-click="previewToggle()">
-            Back
-        </md-button>
+
+        <div ng-show='preview'>
+            <div class='data'>
+                <svg class="graph-container"></svg>
+            </div>
+
+            <div class='algorithm-panel'>
+                    <md-list>
+                            <md-list-item class="md-2-line" ng-click=algorithmSelect() ng-repeat='algorithm in activePage'>
+                                <div class="md-list-item-text">
+                                    <h2>{{algorithm.name}}</h2>
+            
+                                </div>
+                                <div class="md-list-item-text">
+                                    <h3>{{algorithm.algorithm}}</h3>
+                                </div>
+                            </md-list-item>
+                        </md-list>
+            </div>
+           
+
+            <md-button ng-click="previewToggle()">
+                Back
+            </md-button>
+        </div>
+    </div>
+    <div ng-show="unauthorized" class="login">
+        <i class="material-icons md-100">lock</i>
+        <md-button ng-click="login()">Login</md-button>
     </div>
 </div>

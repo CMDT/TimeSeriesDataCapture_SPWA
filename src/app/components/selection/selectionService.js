@@ -44,7 +44,7 @@ app.service('selectionService', ['$log', function ($log) {
         return true;
     }
 
-    self.addSelected = function(selection,id){
+    self.addSelected = function(selection,id,value){
         selection.set(id);
     }
 

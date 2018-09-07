@@ -5,6 +5,8 @@
 
     <link rel="stylesheet" href="./assets/css/typeahead.css">
 
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
     <!--jquery-->
     <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
         crossorigin="anonymous"></script>
@@ -43,9 +45,7 @@
 
     <!--controllers-->
     <script src="./app/shared/home/homeController.js"></script>
-    <script src='./app/shared/import/importController.js'></script>
     <script src="./app/shared/import/importPanelControllerV2.js"></script>
-    <script src="./app/shared/import/importPanelController.js"></script>
     <script src='./app/shared/view/viewController.js'></script>
 
 
@@ -74,6 +74,7 @@
     <script src='./app/components/annotations/annotationPreviewService.js'></script>
     <script src='./app/components/annotations/annotationsService.js'></script>
     <script src='./app/components/authentication/fileStorageAuthenticationDataService.js'></script>
+    <script src='./app/components/authentication/authenticationNotifyService.js'></script>
 
     <!--filters-->
     <script src='./app/components/componentFilters/runFilter.js'></script>
@@ -95,12 +96,9 @@
 
 <body ng-app="app" ng-cloak="">
     <header class='version'>
-        <p>v0.1.2</p>
+        <p>v0.1.4</p>
     </header>
-    <a ui-sref="home">SEARCH PAGE</a>
-  <!-- <a ui-sref='import'>Import</a>
-    <a ui-sref='view'>View</a> -->
-
+  
 
     <ui-view></ui-view>
 

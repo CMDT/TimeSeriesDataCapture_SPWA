@@ -1,4 +1,4 @@
-app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesAnnotationService', 'timeSeriesTrendService', 'annotationPreviewService','annotationsService', function ($log, $state, $filter, timeSeriesAnnotationService,timeSeriesTrendService, annotationPreviewService, annotationsService) {
+app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesAnnotationService', 'timeSeriesTrendService', 'annotationPreviewService', 'annotationsService', function ($log, $state, $filter, timeSeriesAnnotationService, timeSeriesTrendService, annotationPreviewService, annotationsService) {
 
     var self = this;
     var annotationInEdit;
@@ -11,14 +11,11 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
     var user = true;
 
     // set the dimensions and margins of the graph
-    var margin = {
-        top: 110,
-        right: 170,
-        bottom: 70,
-        left: 160
-    }
-    var width = 1300 - margin.left - margin.right;
-    var height = 600 - margin.top - margin.bottom;
+    var margin;
+    var width;
+    var height;
+
+    var graphOptions;
 
     var trendLineColors = ['#8cc2d0', '#152e34']
 
@@ -54,12 +51,14 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
 
     var offsetLine;
 
+    var keepState;
+
     function annotationAddNew(id, time, description) {
-     
+
         $log.log('adding annotation');
-        
+
         var newAnnotation = timeSeriesAnnotationService.addAnnotation(activeRunId, id, { Time: time, description: description, groupId: activeRunId }, undefined);
-        annotationsService.addAnnotations(activeRunId,[{id: newAnnotation.id,description : newAnnotation.data.description, xcoordinate : newAnnotation.data.Time}]);
+        annotationsService.addAnnotations(activeRunId, [{ id: newAnnotation.id, description: newAnnotation.data.description, xcoordinate: newAnnotation.data.Time }]);
         annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId));
         annotationClick(newAnnotation);
     }
@@ -75,6 +74,7 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
     }
 
     self.setActiveColumn = function (column) {
+        svg.select('.y-label').text(column);
         activeColumn = column;
     }
 
@@ -82,7 +82,24 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
         return activeColumn;
     }
 
-    function graphInit() {
+    function graphInit(options) {
+        $log.log(options);
+        graphOptions = options
+
+        keepState = options.hasOwnProperty('state') ? options.state : false;
+        var w = options.hasOwnProperty('width') ? options.width : 1300;
+        var h = options.hasOwnProperty('height') ? options.height : 600;
+
+        margin = options.hasOwnProperty('margin') ? options.margin : {
+            top: 110,
+            right: 170,
+            bottom: 70,
+            left: 160
+        };
+
+        width = w - margin.left - margin.right;
+        height = h - margin.top - margin.bottom;
+
         ctrlDown = false;
         user = true;
 
@@ -97,17 +114,35 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
         endZoomVector = d3.zoomIdentity.scale(1).translate(0, 0);
         currentVector = d3.zoomIdentity.scale(1).translate(0, 0);
 
-        svg = d3.select('svg')
-            .attr("width", '100%')
-            .attr("height", 'auto')
-            .attr("viewBox", "0 0 1300 600")
+        svg = d3.select('.graph-container')
+            .attr("width", w)
+            .attr("height", h)
+            .attr("viewBox", "0 0 " + w + ' ' + h)
             .attr("preserveAspectRatio", "xMinYMax meet");
+
+
 
         graph = svg
             .append("g")
             .attr('class', 'graph')
             .attr("transform",
                 "translate(" + margin.left + "," + margin.top + ")");
+
+        svg.append("text")
+            .attr("class", "x-label")
+            .attr("text-anchor", "end")
+            .attr("x", (width / 2) + margin.left + 100)
+            .attr("y", (h - margin.bottom) + 40)
+            .text("Time (Seconds)");
+
+        svg.append("text")
+            .attr("class", "y-label")
+            .attr("text-anchor", "end")
+            .attr("y", margin.left-100)
+            .attr("x", -height / 2)
+            .attr("dy", ".75em")
+            .attr("transform", "rotate(-90)")
+            .text("");
 
         zoom = d3.zoom()
             .on('zoom', zoomed)
@@ -141,32 +176,51 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
         annotationLabelGroup = graph.append('g').attr('class', 'annotationLabel-group');
         annotationGroup = graph.append('g').attr('class', 'annotation-group');
 
-        yLock = svg.append('g')
-            .attr('transform', 'translate(' + (margin.left * 0.85) + ',' + (margin.top * 0.6) + ')')
-            .attr('class', 'y-lock')
-            .attr('locked', 0)
+        if (options.hasOwnProperty('lock') && options.lock) {
+            yLock = svg.append('g')
+                .attr('transform', 'translate(' + (margin.left * 0.85) + ',' + (margin.top * 0.6) + ')')
+                .attr('class', 'y-lock')
+                .attr('locked', 0)
 
-        yLock.append('svg:image')
-            .attr('xlink:href', './assets/img/lock_unlocked.svg')
-            .attr('width', '30')
-            .attr('height', '30')
-            .on('click', function () {
-                lockToggle(yLock);
-            });
+            yLock.append('svg:image')
+                .attr('xlink:href', './assets/img/lock_unlocked.svg')
+                .attr('width', '30')
+                .attr('height', '30')
+                .on('click', function () {
+                    lockToggle(yLock);
+                });
 
-        xLock = svg.append('g')
-            .attr('transform', 'translate(' + (width + margin.left * 1.2) + ',' + (height + margin.top * 0.8) + ')')
-            .attr('class', 'x-lock')
-            .attr('locked', 0)
+            xLock = svg.append('g')
+                .attr('transform', 'translate(' + (width + margin.left * 1.2) + ',' + (height + margin.top * 0.8) + ')')
+                .attr('class', 'x-lock')
+                .attr('locked', 0)
 
-        xLock.append('svg:image')
-            .attr('xlink:href', './assets/img/lock_unlocked.svg')
-            .attr('width', '30')
-            .attr('height', '30')
-            .on('click', function () {
-                lockToggle(xLock);
+            xLock.append('svg:image')
+                .attr('xlink:href', './assets/img/lock_unlocked.svg')
+                .attr('width', '30')
+                .attr('height', '30')
+                .on('click', function () {
+                    lockToggle(xLock);
 
-            });
+                });
+        }
+
+        if (options.hasOwnProperty('annotation') && options.annotation) {
+
+            annotationAdd = svg.append('g')
+                .attr('transform', 'translate(' + (width + margin.left * 1.2) + ',' + (margin.top * 0.8) + ')')
+                .attr('class', 'annotation-add')
+
+            annotationAdd.append('svg:image')
+                .attr('xlink:href', './assets/img/add.svg')
+                .attr('width', '30')
+                .attr('height', '30')
+                .on('click', function () {
+                    var xt = currentVector.rescaleX(x);
+                    annotationAddNew(undefined, xt.invert(500), '');
+                })
+        }
+
 
 
 
@@ -190,21 +244,13 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
             .attr('transform', 'translate(' + (width + margin.left * 1.2) + ',' + (margin.top * 0.8) + ')')
             .attr('class', 'annotation-add')
 
-        annotationAdd.append('svg:image')
-            .attr('xlink:href', './assets/img/add.svg')
-            .attr('width', '30')
-            .attr('height', '30')
-            .on('click', function () {
-                var xt = currentVector.rescaleX(x);
-                annotationAddNew(undefined, xt.invert(500), '');
-            })
 
     }
 
-    graphInit();
 
-    self.graphInit = function (result) {
-        graphInit();
+
+    self.graphInit = function (options) {
+        graphInit(options);
     }
 
 
@@ -269,7 +315,7 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
 
         if (t != undefined) {
             xt = t.rescaleX(x);
-            yt = t.rescaleY(y); 
+            yt = t.rescaleY(y);
         }
 
 
@@ -299,7 +345,7 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
             })
 
 
-       
+
 
         var xt = currentVector.rescaleX(x);
         var Time = xt.invert(d3.event.x);
@@ -326,7 +372,7 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
             $log.log('TREND DATA', trend.data);
             circleX = trend.data[0].x;
             circleY = trend.data[0].y;
-
+            svg.select('.y-label').text(columnName);
             offsetLine.attr('x1', x(trend.data[0].x))
                 .attr('y1', y(trend.data[0].y))
                 .attr('x2', x(trend.data[0].x))
@@ -379,6 +425,15 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
 
     self.removeTrend = function (id, columnName) {
         $log.log(columnName);
+        if (id == activeRunId && columnName == activeColumn) {
+            circleX = 0;
+            circleY = 0;
+
+            offsetLine.attr('x1', 0)
+                .attr('y1', 0)
+                .attr('x2', 0)
+                .attr('y2', 0)
+        }
         var id = $filter('componentIdClassFilter')(id);
         columnName = $filter('componentIdClassFilter')(columnName);
         graph.select('.run-group').select('.' + id + '.' + columnName).remove();
@@ -446,20 +501,24 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
         t.y = parseFloat((t.y).toFixed(2));
 
         var isZooming = endZoomVector.k != t.k;
-        var xIsLocked = (xLock.attr('locked') == 1);
-        var yIsLocked = (yLock.attr('locked') == 1);
 
-        t.x = xIsLocked && !isZooming ? endZoomVector.x : t.x;
-        t.y = yIsLocked && !isZooming ? endZoomVector.y : t.y;
+        if (graphOptions.hasOwnProperty('lock') && graphOptions.lock) {
+            var xIsLocked = (xLock.attr('locked') == 1);
+            var yIsLocked = (yLock.attr('locked') == 1);
+
+            t.x = xIsLocked && !isZooming ? endZoomVector.x : t.x;
+            t.y = yIsLocked && !isZooming ? endZoomVector.y : t.y;
+        }
+
 
         var xt = t.rescaleX(x);
 
-        if(annotationInEdit != undefined){
+        if (annotationInEdit != undefined) {
             annotationBadgeRender([annotationInEdit]);
-        }else{
+        } else {
             annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId), t);
         }
-        
+
         annotationLabelRender(t);
 
         $log.log('DOWN', ctrlDown, user)
@@ -492,15 +551,18 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
                 }
 
 
-                $state.go('.', {
-                    offsetVector: JSON.stringify(offsetVector)
-                })
+                if (keepState) {
+                    $state.go('.', {
+                        offsetVector: JSON.stringify(offsetVector)
+                    })
+                }
+
 
             }
 
-            
 
-            
+
+
 
         } else {
             var offsetLineYt;
@@ -541,19 +603,22 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
                 y: 0
             }
             offsetVector = JSON.stringify(offsetVector);
-            $state.go('.', {
-                viewVector: viewVector,
-                offsetVector: offsetVector
-            })
+
+            if (keepState) {
+                $state.go('.', {
+                    viewVector: viewVector,
+                    offsetVector: offsetVector
+                })
+            }
+
         }
 
         currentVector = t;
- 
+
     }
 
     self.clear = function () {
-        svg.selectAll('*').remove();
-        $log.log(svg);
+
     }
 
 
@@ -617,7 +682,7 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
     }
 
     function annotationPosEditConfirm(d) {
-      
+
         var image = annotationLabelGroup.select('g').select('image');
         var cx = parseFloat(image.attr('x'));
         cx += (parseFloat(image.attr('width'))) / 2;
@@ -638,7 +703,7 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
                 annotationBadgeRender([annotationInEdit]);
             }).catch(function () {
                 annotationInEdit = undefined;
-               
+
                 annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId));
             });
 

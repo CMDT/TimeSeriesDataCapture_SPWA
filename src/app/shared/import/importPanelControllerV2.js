@@ -1,36 +1,74 @@
-app.controller('importPanelControllerV2', ['$scope', '$log', '$mdDialog','$filter', 'getFolderService', 'folderBreadcrumbService','algorithmsService','selectionService','fileStorageAuthenticationDataService', function ($scope, $log, $mdDialog,$filter, getFolderService, folderBreadcrumbService,algorithmsService,selectionService,fileStorageAuthenticationDataService) {
+app.controller('importPanelControllerV2', ['$scope', '$log', '$mdDialog','$filter', 'getFolderService', 'folderBreadcrumbService','algorithmsService','selectionService','fileStorageAuthenticationDataService','oneDriveAuthenticationService','authenticationNotifyService','timeSeriesGraphControlService','timeSeriesTrendService', function ($scope, $log, $mdDialog,$filter, getFolderService, folderBreadcrumbService,algorithmsService,selectionService,fileStorageAuthenticationDataService, oneDriveAuthenticationService,authenticationNotifyService,timeSeriesGraphControlService, timeSeriesTrendService) {
 
     var self = this;
-    var selectedMap = new Map();
+    
+    var algorithmMap = new Map();
 
     $scope.activePage = [];
     $scope.breadcrumb = [];
     $scope.preview = false;
+    $scope.unauthorized = true;
 
    var selectionId = selectionService.addSelectionGroup('1','importSelection');
+  
     var pathChange = function (component) {
         folderBreadcrumbService.navigate(component);
         $scope.breadcrumb = folderBreadcrumbService.getPath();
         getComponent();
     }
 
+   
+
     var getComponent = function () {
         var component = $scope.breadcrumb[$scope.breadcrumb.length - 1];
         getFolderService.getComponent(component).then(function (result) {
-
+            
             if (component.type === 'run') {
-                var r = result.data
-                r['Time'] = r['Time'].slice(0, 10);
-                r['Setpoint'] = r['T(Setpoint)'].slice(0, 10);
-                r['Copper'] = r['T(Copper)'].slice(0, 10);
-                r['Cell1'] = r['T(Cell1)'].slice(0, 10);
-                r['Environment'] = r['T(Environment)'].slice(0, 10);
-                r['DAC'] = r['DAC'].slice(0, 10);
-                result.data = r;
+                timeSeriesGraphControlService.clearData();
+                timeSeriesTrendService.clearTrends();
+                var data = {
+                    id : result.id,
+                    runData : result.data,
+                    annotations : []
+                }
+
+                var options = {
+                    width: 1300,
+                    height: 500,
+                    state: false,
+                    lock : false,
+                    annotations: false,
+                    margin:  {
+                        top: 10,
+                        right: 80,
+                        bottom: 30,
+                        left: 80
+                    }
+                }
+
+                algorithmsService.getAllAlgorithms().then(function(result){
+                    $log.log('ALGORITHMS')
+                    $log.log(result);
+                    $scope.activePage = result.data;
+                    $log.log($scope.activePage)
+                    $scope.$apply();
+                })
+
+                timeSeriesGraphControlService.drawGraph([data],options)
+                timeSeriesGraphControlService.setActiveRun(result.id);
+                timeSeriesGraphControlService.setActiveColumn('T(Copper)');
+                timeSeriesGraphControlService.addTrend(result.id,'T(Copper)');
+
             }
+            $log.log(result);
             $scope.activePage = result;
+            $scope.unauthorized = false;
             $scope.$apply();
-        });
+        }).catch(function(error){
+            $scope.logout();
+            $log.log(error);
+            
+        })
     }
 
     $scope.folderClick = function (component) {
@@ -46,11 +84,6 @@ app.controller('importPanelControllerV2', ['$scope', '$log', '$mdDialog','$filte
         } else {
             $scope.preview = true;
             pathChange(component);
-            
-            algorithmsService.getAllAlgorithms().then(function(result){
-                $scope.activePage.algorithms = result.data;
-                $scope.$apply();
-            })
         }
     }
 
@@ -100,9 +133,24 @@ app.controller('importPanelControllerV2', ['$scope', '$log', '$mdDialog','$filte
         $scope.cancel();
     }
 
+    $scope.login = function () {
+        authenticationNotifyService.subscribe(callback);
+        oneDriveAuthenticationService.login();
+        
+    }
+
+    function callback(){
+        init();
+    }
+
     $scope.logout = function(){
+        folderBreadcrumbService.home();
+        getFolderService.clearCache();
+        $scope.unauthorized = true;
         fileStorageAuthenticationDataService.deleteAuthentication();
     }
+
+  
 
     var root = {
         id: '-1',
@@ -110,17 +158,23 @@ app.controller('importPanelControllerV2', ['$scope', '$log', '$mdDialog','$filte
         type: 'folder'
     }
 
-
-    var path = localStorage.getItem('path');
-    getFolderService.setRootFolder(root.id);
-    path = (path) ? JSON.parse(path) : [];
-    $log.log(path);
-    if (path != null && path.length > 0) {
-        for (var i = 0, n = path.length; i < n; i++) {
-            $log.log(path[i]);
-            pathChange(path[i]);
+    function init(){
+        var path = localStorage.getItem('path');
+        getFolderService.setRootFolder(root.id);
+        path = (path) ? JSON.parse(path) : [];
+        $log.log(path);
+        if (path != null && path.length > 0) {
+            for (var i = 0, n = path.length; i < n; i++) {
+                $log.log(path[i]);
+                pathChange(path[i]);
+            }
+        } else {
+            pathChange(root);
         }
-    } else {
-        pathChange(root);
     }
+
+    init();
+
+
+   
 }])

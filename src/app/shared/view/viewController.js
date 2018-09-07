@@ -1,4 +1,4 @@
-app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', '$transitions', 'tagEditPanelService', 'columnTabPanelService', 'timeSeriesGraphControlService','timeSeriesTrendService','tagPredictionService', function ($scope, $log, $state, $stateParams, $transitions, tagEditPanelService, columnTabPanelService, timeSeriesGraphControlService, timeSeriesTrendService,tagPredictionService) {
+app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', 'tagEditPanelService', 'columnTabPanelService', 'timeSeriesGraphControlService','timeSeriesTrendService','authenticationService', function ($scope, $log, $state, $stateParams, tagEditPanelService, columnTabPanelService, timeSeriesGraphControlService, timeSeriesTrendService,authenticationService) {
 
 
     $scope.runs = [];
@@ -28,7 +28,17 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', '$
             $scope.runs = result;
             columnTabPanelService.createRunTabs(result);
             $scope.tabs = columnTabPanelService.getTabs();
-            timeSeriesGraphControlService.drawGraph(result);
+
+            var options = {
+                state : true,
+                width: 1300,
+                height : 600,
+                lock: true,
+                annotation:true,
+                
+            }
+
+            timeSeriesGraphControlService.drawGraph(result,options);
            
             if ($stateParams.active != undefined) {
                 var active = $stateParams.active.split('+');
@@ -106,6 +116,11 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', '$
         }else{
             return false;
         }
+    }
+
+    $scope.isAuthenticated = function(){
+        $log.log(authenticationService.isAuthenticated());
+        return authenticationService.isAuthenticated();
     }
 
     this.uiOnParamsChanged = function (params) {

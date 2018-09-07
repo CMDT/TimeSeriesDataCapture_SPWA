@@ -1,5 +1,5 @@
 
-app.service('oneDriveAuthenticationService', ['$rootScope', '$log', '$http', '$window', 'odauthService','fileStorageAuthenticationDataService', function ($rootScope, $log, $http, $window, odauthService, fileStorageAuthenticationDataService) {
+app.service('oneDriveAuthenticationService', ['$rootScope', '$log', '$http', '$window', 'odauthService', 'fileStorageAuthenticationDataService', 'authenticationNotifyService', function ($rootScope, $log, $http, $window, odauthService, fileStorageAuthenticationDataService, authenticationNotifyService) {
 
     var self = this;
 
@@ -10,7 +10,11 @@ app.service('oneDriveAuthenticationService', ['$rootScope', '$log', '$http', '$w
         "authServiceUri": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
     }
 
+    var logged = false;
+
+
     $window.onAuthenticated = function (token, authWindow) {
+
         if (token) {
             if (authWindow) {
                 removeLoginButton();
@@ -19,24 +23,21 @@ app.service('oneDriveAuthenticationService', ['$rootScope', '$log', '$http', '$w
 
             $log.log(token);
             var profileId = (localStorage.getItem('profile'));
-            fileStorageAuthenticationDataService.postAuthentication({ profileID: profileId, storageToken: token})
+            fileStorageAuthenticationDataService.postAuthentication({ profileID: profileId, storageToken: token }).then(function(result){
+                authenticationNotifyService.publish();
+            })
            
         }
     }
 
     self.login = function login() {
-
-        $log.log('logging into OneDrive');
         odauthService.provideAppInfo(appInfo);
         odauthService.challengeForAuth();
-
-       
-
-
         return false;
     }
 
-    
+
+
 
 
 

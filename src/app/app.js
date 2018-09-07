@@ -70,12 +70,14 @@ function config($stateProvider) {
 app.run(run);
 
 run.$inject = [
-  '$rootScope','$transitions'
+  '$rootScope','authenticationService'
 ]
 
-function run($rootScope){
-  $rootScope.url = 'https://timeseriesdatacapture-browse.herokuapp.com';
-  //$rootScope.url = 'http://localhost:8000';
+function run($rootScope,authenticationService){
+  //$rootScope.url = 'https://timeseriesdatacapture-browse.herokuapp.com';
+  $rootScope.url = 'http://localhost:8000';
+  $rootScope.isAuthenticated = authenticationService.isAuthenticated();
+  console.log($rootScope.isAuthenticated);
 }
 
 

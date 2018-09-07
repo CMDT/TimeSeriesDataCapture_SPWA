@@ -27,7 +27,7 @@ app.service('annotationPreviewService', ['$log', '$mdDialog', 'annotationsServic
         })
     }
 
-    function annotaionPreviewPanelController($scope, $mdDialog, annotation, timeSeriesAnnotationService) {
+    function annotaionPreviewPanelController($scope, $mdDialog, annotation, timeSeriesAnnotationService, authenticationService) {
 
 
         var lastAnnotationDesciption;
@@ -77,6 +77,10 @@ app.service('annotationPreviewService', ['$log', '$mdDialog', 'annotationsServic
         $scope.annotationPosEdit = function () {
             $log.log(annotation);
             $mdDialog.cancel(annotation);
+        }
+        $scope.isAuthenticated = function(){
+            $log.log('IS AUTH',authenticationService.isAuthenticated());
+            return authenticationService.isAuthenticated();
         }
     }
 

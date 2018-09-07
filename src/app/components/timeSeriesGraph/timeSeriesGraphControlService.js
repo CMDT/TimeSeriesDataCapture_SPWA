@@ -3,7 +3,7 @@ app.service('timeSeriesGraphControlService', ['$log', 'timeSeriesGraphService', 
     var self = this;
     var timeSeriesData;
 
-    self.drawGraph = function (runArray) {
+    self.drawGraph = function (runArray, options) {
         $log.log('drawing graph');
         var runs = [];
     
@@ -17,10 +17,7 @@ app.service('timeSeriesGraphControlService', ['$log', 'timeSeriesGraphService', 
         }
 
         timeSeriesData = runs;
-        timeSeriesGraphService.graphInit();
-
-       
-        
+        timeSeriesGraphService.graphInit(options); 
     }
 
     self.parseRunArray = function (runArray) {

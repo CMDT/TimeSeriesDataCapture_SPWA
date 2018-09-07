@@ -5,12 +5,11 @@
         stroke: steelblue;
         stroke-width: 2px;
         clip-path: url(#clip);
-
     }
 </style>
 
 <div class='view'>
-    <svg></svg>
+    <svg class="graph-container"></svg>
     <div class='column-panel' ng-cloak>
         <md-content class='content'>
             <md-tabs md-selected='activeTabIndex' md-no-select-click='true' md-dynamic-height md-border-bottom>
@@ -23,7 +22,7 @@
                                 <md-list-item class="md-2-line" ng-click="null">
                                     <md-checkbox md-no-ink='false' ng-click="selectedToggle(tab.id,column)" ng-checked="exists(tab.id,column)" aria-label="Checkbox "></md-checkbox>
                         </md-list>
-                        <md-button ng-show='!isColumns' class='tag-button' ng-click="tagEdit()">
+                        <md-button ng-disabled = '!isAuthenticated()' ng-show='!isColumns' class='tag-button' ng-click="tagEdit()">
                             <md-icon md-svg-src="../../assets/img/pencil.svg" aria-label="Edit Icon"></md-icon>
                         </md-button>
                         <md-list ng-show="!isColumns" flex>
