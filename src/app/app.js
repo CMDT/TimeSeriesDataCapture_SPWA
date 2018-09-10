@@ -39,7 +39,7 @@ function config($stateProvider,$urlRouterProvider) {
 
   var viewState = {
     name: 'view',
-    url: '/view?runs&columns&viewVector&offsetVector&active&panelView',
+    url: '/view?runs&columns&viewVector&offsetVector&active&panelView&palette',
     params : {
       runs :{
         dynamic: false
@@ -58,7 +58,10 @@ function config($stateProvider,$urlRouterProvider) {
       },
       panelView: {
         dynamic: true
-      } 
+      } ,
+      palette: {
+        dynamic: true
+      }
     },
     templateUrl: 'app/shared/view/viewView.html',
     controller: 'viewController',

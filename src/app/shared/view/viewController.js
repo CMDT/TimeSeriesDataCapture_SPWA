@@ -1,4 +1,4 @@
-app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', 'tagEditPanelService', 'columnTabPanelService', 'timeSeriesGraphControlService','timeSeriesTrendService','authenticationService', function ($scope, $log, $state, $stateParams, tagEditPanelService, columnTabPanelService, timeSeriesGraphControlService, timeSeriesTrendService,authenticationService) {
+app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', 'tagEditPanelService', 'columnTabPanelService', 'timeSeriesGraphControlService', 'timeSeriesTrendService', 'authenticationService', 'paletteDataService', function ($scope, $log, $state, $stateParams, tagEditPanelService, columnTabPanelService, timeSeriesGraphControlService, timeSeriesTrendService, authenticationService, paletteDataService) {
 
 
     $scope.runs = [];
@@ -22,54 +22,56 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', 't
             timeSeriesTrendService.clearTrends();
 
             tagsCollection = (extractTags(result));
-         
-           
 
             $scope.runs = result;
             columnTabPanelService.createRunTabs(result);
             $scope.tabs = columnTabPanelService.getTabs();
 
-            var options = {
-                state : true,
-                width: 1300,
-                height : 600,
-                lock: true,
-                annotation:true,
-                
-            }
+            var palette = $stateParams.palette != undefined ? $stateParams.palette : 'defualt';
+            paletteDataService.getPalette(palette).then(function (result) {
+                var options = {
+                    state: true,
+                    width: 1300,
+                    height: 600,
+                    lock: true,
+                    annotation: true,
+                }
 
-            timeSeriesGraphControlService.drawGraph(result,options);
-           
-            if ($stateParams.active != undefined) {
-                var active = $stateParams.active.split('+');
-                timeSeriesGraphControlService.setActiveRun(active[0]);
-                timeSeriesGraphControlService.setActiveColumn(active[1]);
-            }
+                timeSeriesGraphControlService.drawGraph(result, options);
 
-
-            if ($stateParams.columns != undefined) {
-                var columns = columnTabPanelService.parseUrlColumns($stateParams.columns);
-                columnTabPanelService.selectColumns(columns);
-            }
-
-            
-
-            var offsetVector;
-            var viewVector;
-            if ($stateParams.offsetVector != undefined) {
-                offsetVector = JSON.parse($stateParams.offsetVector);
-            }
-
-            if ($stateParams.viewVector != undefined) {
-                viewVector = JSON.parse($stateParams.viewVector);
-            }
-            timeSeriesGraphControlService.graphTransition(viewVector, offsetVector);
-
-            $scope.selectedTab();
-            $scope.$apply();
+                if ($stateParams.active != undefined) {
+                    var active = $stateParams.active.split('+');
+                    timeSeriesGraphControlService.setActiveRun(active[0]);
+                    timeSeriesGraphControlService.setActiveColumn(active[1]);
+                }
 
 
-        }).catch(function(error){
+                if ($stateParams.columns != undefined) {
+                    var columns = columnTabPanelService.parseUrlColumns($stateParams.columns);
+                    columnTabPanelService.selectColumns(columns);
+                }
+
+
+
+                var offsetVector;
+                var viewVector;
+                if ($stateParams.offsetVector != undefined) {
+                    offsetVector = JSON.parse($stateParams.offsetVector);
+                }
+
+                if ($stateParams.viewVector != undefined) {
+                    viewVector = JSON.parse($stateParams.viewVector);
+                }
+                timeSeriesGraphControlService.graphTransition(viewVector, offsetVector);
+
+                $scope.selectedTab();
+                $scope.$apply();
+            });
+
+
+
+
+        }).catch(function (error) {
             $log.log(error);
         })
     }
@@ -87,7 +89,7 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', 't
     $scope.tagEdit = function () {
         var runId = ($scope.tabs[$scope.activeTabIndex]).id;
         $log.log(runId)
-        tagEditPanelService.showTagEditPanel(undefined,runId,$scope.tags);
+        tagEditPanelService.showTagEditPanel(undefined, runId, $scope.tags);
     }
 
     $scope.exists = function (id, columnName) {
@@ -101,24 +103,24 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', 't
         })
     }
 
-    $scope.selectedTab = function(){
+    $scope.selectedTab = function () {
         var runId = ($scope.tabs[$scope.activeTabIndex]).id;
         $log.log(tagsCollection);
         $scope.tags = tagsCollection[runId];
     }
 
-    $scope.isActiveColumn = function(tabId,columnName){
+    $scope.isActiveColumn = function (tabId, columnName) {
         activeTab = timeSeriesGraphControlService.getActiveRun();
         activeColumn = timeSeriesGraphControlService.getActiveColumn();
 
-        if(tabId === activeTab && activeColumn === columnName){
+        if (tabId === activeTab && activeColumn === columnName) {
             return true;
-        }else{
+        } else {
             return false;
         }
     }
 
-    $scope.isAuthenticated = function(){
+    $scope.isAuthenticated = function () {
         $log.log(authenticationService.isAuthenticated());
         return authenticationService.isAuthenticated();
     }
@@ -130,7 +132,7 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', 't
             var active = params.active.split('+');
             timeSeriesGraphControlService.setActiveRun(active[0]);
             timeSeriesGraphControlService.setActiveColumn(active[1]);
-         
+
             $scope.tags = tagsCollection[active[0]];
         }
 
@@ -146,25 +148,25 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', 't
         }
     }
 
-    
 
-    function extractTags(runArray){
+
+    function extractTags(runArray) {
         var tagsCollection = {};
-       for(var i=0, n= runArray.length;i<n;i++){
-           tagsCollection[runArray[i].id] = parseTags(runArray[i].tags);
-       }
+        for (var i = 0, n = runArray.length; i < n; i++) {
+            tagsCollection[runArray[i].id] = parseTags(runArray[i].tags);
+        }
 
-       return tagsCollection;
+        return tagsCollection;
     }
 
-    function parseTags(tagObject){
+    function parseTags(tagObject) {
         var tags = [];
         var tagIds = Object.keys(tagObject);
 
-        for(var i=0,n=tagIds.length;i<n;i++){
+        for (var i = 0, n = tagIds.length; i < n; i++) {
             tags.push({
-                id : tagIds[i],
-                tag : tagObject[tagIds[i]]
+                id: tagIds[i],
+                tag: tagObject[tagIds[i]]
             })
         }
 
@@ -172,7 +174,7 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', 't
     }
 
 
- 
+
 
 
 

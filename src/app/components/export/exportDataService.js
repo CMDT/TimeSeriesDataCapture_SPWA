@@ -48,8 +48,6 @@ app.service('exportDataService', ['$rootScope', '$log', '$http', function ($root
                 responseType: 'json'
             }
           
-           
-
             var url = $rootScope.url + '/apis/reserveExport';
             $log.log(url);
 

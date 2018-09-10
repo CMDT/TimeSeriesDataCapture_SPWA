@@ -90,6 +90,8 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
         var w = options.hasOwnProperty('width') ? options.width : 1300;
         var h = options.hasOwnProperty('height') ? options.height : 600;
 
+        trendLineColors = options.hasOwnProperty('trendLineColours') ? options.trendLineColors : ['#8cc2d0', '#152e34'];
+
         margin = options.hasOwnProperty('margin') ? options.margin : {
             top: 110,
             right: 170,
@@ -401,6 +403,8 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
                 return 'run ' + id + ' ' + columnName;
             })
 
+        var trendLength = timeSeriesTrendService.getTrends().length;
+        var trendColour = trendLineColors[trendLength] % trendLineColors.length;
         run.append('path')
             .attr('class', 'line')
             .attr('column', function (trend) {
@@ -413,7 +417,7 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
 
                 return line(trend.data)
             })
-
+            .style("stroke",trendColour)
 
 
         svg.call(zoom).transition()
