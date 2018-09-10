@@ -1,4 +1,4 @@
-app.controller('homeController', ['$scope', '$log','$mdDialog', 'authenticationService', 'oneDriveAuthenticationService', 'searchPageService', 'dtFormatterService', '$state', '$stateParams', 'JSTagsCollection','selectionService', function ($scope, $log,$mdDialog, authenticationService, oneDriveAuthenticationService, searchPageService, dtFormatterService, $state, $stateParams, JSTagsCollection,selectionService,) {
+app.controller('homeController', ['$scope', '$log','$mdDialog', 'authenticationService', 'searchPageService', 'dtFormatterService', '$state', '$stateParams', 'JSTagsCollection','selectionService','exportDataService', function ($scope, $log,$mdDialog, authenticationService, searchPageService, dtFormatterService, $state, $stateParams, JSTagsCollection,selectionService,exportDataService) {
 
     this.uiOnParamsChanged = function (params) {
         if (params.query != undefined) {
@@ -163,6 +163,13 @@ app.controller('homeController', ['$scope', '$log','$mdDialog', 'authenticationS
 
     $scope.isAuthenticated = function(){
         return authenticationService.isAuthenticated();
+    }
+
+    $scope.export = function(){
+        var selected = selectionService.selectedToArray(selectionId);
+        exportDataService.getExport(selected).then(function(result){
+            $log.log(result);
+        })
     }
 
 

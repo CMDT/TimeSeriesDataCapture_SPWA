@@ -28,7 +28,7 @@ app.service('runRequestService', ['$rootScope', '$log', '$http', function ($root
             }
 
             var accessToken = localStorage.getItem('accessToken');
-            if (accessToken.length > 0) {
+            if (accessToken != null) {
                 config.headers.Authorization = 'Bearer ' + localStorage.getItem('accessToken');
             }
 

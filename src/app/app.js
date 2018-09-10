@@ -4,11 +4,14 @@ var app = angular.module('app', ['ui.router', 'ngMaterial', 'jsTag', 'siyfion.sf
 app.config(config);
 
 config.$inject = [
-  '$stateProvider'
+  '$stateProvider',
+  '$urlRouterProvider'
 ]
 
-function config($stateProvider) {
+function config($stateProvider,$urlRouterProvider) {
 
+
+ 
   var homeState = {
     name: 'home',
     url: '/home/?query',
@@ -65,6 +68,9 @@ function config($stateProvider) {
   $stateProvider.state(homeState);
   $stateProvider.state(importState);
   $stateProvider.state(viewState);
+  
+  $urlRouterProvider.otherwise('/home/');
+
 }
 
 app.run(run);
@@ -74,8 +80,8 @@ run.$inject = [
 ]
 
 function run($rootScope,authenticationService){
-  $rootScope.url = 'https://timeseriesdatacapture-browse.herokuapp.com';
-  //$rootScope.url = 'http://localhost:8000';
+  //$rootScope.url = 'https://timeseriesdatacapture-browse.herokuapp.com';
+  $rootScope.url = 'http://localhost:8000';
   $rootScope.isAuthenticated = authenticationService.isAuthenticated();
   console.log($rootScope.isAuthenticated);
 }
