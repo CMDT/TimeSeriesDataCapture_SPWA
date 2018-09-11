@@ -5,8 +5,9 @@ app.service('timeSeriesTrendService', ['$log', function ($log) {
 
     var trends = [];
 
-    function trendLine(id, scaleX, scaleY,xLabel,yLabel, data = []) {
+    function trendLine(id, columnName, scaleX, scaleY, xLabel, yLabel, data = []) {
         this.id = id,
+            this.columnName = columnName,
             this.scaleX = scaleX,
             this.scaleY = scaleY,
             this.xLabel = xLabel,
@@ -17,23 +18,23 @@ app.service('timeSeriesTrendService', ['$log', function ($log) {
 
 
 
-    self.addTrend = function (id, scaleX, scaleY,xLabel,yLabel, data) {
-        var newTrend = new trendLine(id, scaleX, scaleY,xLabel,yLabel,data);
+    self.addTrend = function (id, columnName,scaleX, scaleY, xLabel, yLabel, data) {
+        var newTrend = new trendLine(id,columnName,scaleX, scaleY, xLabel, yLabel, data);
         trends.push(newTrend);
         return newTrend;
     }
 
-    self.removeTrend = function (id) {
+    self.removeTrend = function (id, columnName) {
         for (var i = 0, n = trends.length; i < n; i++) {
-            if (trends.id === id) {
+            if (trends[i].id === id && trends[i].columnName === columnName) {
                 trends.splice(i, 1);
             }
         }
     }
 
-    self.getTrend = function(id){
-        for(var i=0,n=trends.length;i<n;i++){
-            if(trends[i].id === id){
+    self.getTrend = function (id, columnName) {
+        for (var i = 0, n = trends.length; i < n; i++) {
+            if (trends[i].id === id && trends[i].columnName === columnName) {
                 return trends[i];
             }
         }
@@ -43,7 +44,7 @@ app.service('timeSeriesTrendService', ['$log', function ($log) {
         return trends;
     }
 
-    self.clearTrends = function(){
+    self.clearTrends = function () {
         trends = [];
     }
 }])

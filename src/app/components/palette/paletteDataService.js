@@ -3,7 +3,7 @@ app.service('paletteDataService', ['$rootScope', '$log', '$http', function ($roo
     var self = this;
 
     self.getPalette = function (palette) {
-        return new Promise(function (resolve, reject) {
+        
             var config = {
                 headers: {},
                 responseType: 'json'
@@ -13,7 +13,7 @@ app.service('paletteDataService', ['$rootScope', '$log', '$http', function ($roo
             $log.log(url);
 
             return $http.get(url, config);
-        })
+    
     }
 
     

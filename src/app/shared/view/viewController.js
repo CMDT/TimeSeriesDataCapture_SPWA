@@ -27,15 +27,18 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', 't
             columnTabPanelService.createRunTabs(result);
             $scope.tabs = columnTabPanelService.getTabs();
 
-            var palette = $stateParams.palette != undefined ? $stateParams.palette : 'defualt';
-            paletteDataService.getPalette(palette).then(function (result) {
+            var palette = $stateParams.palette != undefined ? $stateParams.palette : 'default';
+            paletteDataService.getPalette(palette).then(function (paletteResult) {
+                $log.log(paletteResult.data.palette);
                 var options = {
                     state: true,
                     width: 1300,
                     height: 600,
                     lock: true,
                     annotation: true,
+                    palette: paletteResult.data.palette
                 }
+
 
                 timeSeriesGraphControlService.drawGraph(result, options);
 

@@ -90,7 +90,7 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
         var w = options.hasOwnProperty('width') ? options.width : 1300;
         var h = options.hasOwnProperty('height') ? options.height : 600;
 
-        trendLineColors = options.hasOwnProperty('trendLineColours') ? options.trendLineColors : ['#8cc2d0', '#152e34'];
+        trendLineColors = options.hasOwnProperty('palette') ? options.palette : ['#8cc2d0', '#152e34'];
 
         margin = options.hasOwnProperty('margin') ? options.margin : {
             top: 110,
@@ -358,20 +358,15 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
 
     self.addTrend = function (id, columnName, data) {
 
-
-        $log.log(svg);
-
-        $log.log('ADDING TREND');
         data = extractColumn(data, 'Time', columnName);
-        var trend = timeSeriesTrendService.addTrend(id, d3.scaleLinear(), d3.scaleLinear(), 'Time', columnName, data);
+        var trend = timeSeriesTrendService.addTrend(id,columnName, d3.scaleLinear(), d3.scaleLinear(), 'Time', columnName, data);
         trend.scaleY.range([height, 0]);
         calculateYDomain(trend.scaleY, trend.data, 'Y');
         calculateXDomain(x, trend.data)
 
-        $log.log(id, 'COMPARE', activeRunId);
-        $log.log(columnName, 'COMPARE', activeColumn);
+      
         if (id === activeRunId && columnName === activeColumn) {
-            $log.log('TREND DATA', trend.data);
+
             circleX = trend.data[0].x;
             circleY = trend.data[0].y;
             svg.select('.y-label').text(columnName);
@@ -403,8 +398,9 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
                 return 'run ' + id + ' ' + columnName;
             })
 
-        var trendLength = timeSeriesTrendService.getTrends().length;
-        var trendColour = trendLineColors[trendLength] % trendLineColors.length;
+        var trendLength = (timeSeriesTrendService.getTrends().length-1) % trendLineColors.length;
+        var trendColour = trendLineColors[trendLength];
+        $log.log('TREND COLOUR ' + trendColour)
         run.append('path')
             .attr('class', 'line')
             .attr('column', function (trend) {
@@ -429,6 +425,7 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
 
     self.removeTrend = function (id, columnName) {
         $log.log(columnName);
+        timeSeriesTrendService.removeTrend(id,columnName);
         if (id == activeRunId && columnName == activeColumn) {
             circleX = 0;
             circleY = 0;

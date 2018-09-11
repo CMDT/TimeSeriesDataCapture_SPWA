@@ -1,4 +1,4 @@
-app.service('authenticationService', ['$log', function ($log) {
+app.service('authenticationService', ['$log','authenticationNotifyService', function ($log,authenticationNotifyService) {
     var self = this;
     var lock = null;
     var options = {
@@ -38,6 +38,10 @@ app.service('authenticationService', ['$log', function ($log) {
         lock.show();
     }
 
+    self.logout = function(){
+        localStorage.setItem('expiresAt',0);
+    }
+
     lock.on('authenticated', function (authResult) {
         lock.getUserInfo(authResult.accessToken, function (error, profile) {
             if (error) {
@@ -45,8 +49,11 @@ app.service('authenticationService', ['$log', function ($log) {
                 return;
             }
 
+          
+
             localStorage.setItem('profile', profile.sub);
             self.setSession(authResult);
+            authenticationNotifyService.publish('auth0')
             console.log(authResult.idToken);
         })
     })

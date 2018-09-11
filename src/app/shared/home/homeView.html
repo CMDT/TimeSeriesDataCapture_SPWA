@@ -1,35 +1,40 @@
-<h2>Home Page</h2>
+<div ng-if='!isAuthenticated()'>
+    <md-button class="md-raised" ng-click='login()'>Login</md-button>
+</div>
 
-<md-button class="md-raised" ng-if='!isAuthenticated()' ng-click='login()'>Login</md-button>
-    <md-button class="md-raised" ng-if='isAuthenticated()' ng-click="import()">Import</md-button>
-        <div class='search'>
-            <!-- <input type="text" ng-change="inputChange(search)" ng-model="search" ng-model-options="{debounce: 800}"></input> -->
+<div ng-if='isAuthenticated()'>
+    <md-button class="md-raised" ng-click="logout()">Logout</md-button>
+    <md-button class="md-raised" ng-click="import()">Import</md-button>
+</div>
 
-            <js-tag js-tag-mode="typeahead" js-tag-options="jsTagOptions"></js-tag>
-            <md-button class="md-raised" ng-click='searchClick()'>Search</md-button>
-        </div>
+<div class="search-content">
+    <div class='search'>
+        <js-tag js-tag-mode="typeahead" js-tag-options="jsTagOptions"></js-tag>
+        <md-button class="md-raised" ng-click='searchClick()'>Search</md-button>
+    </div>
 
 
-        <div class='runButtons'>
-            <md-button class='md-raised' ng-click='view()'>View</md-button>
-            <md-button class='md-raised' ng-click='export()'>Export</md-button>
-            <md-button ng-disabled='!isAuthenticated()' class='md-raised'>Delete</md-button>
-        </div>
+    <div class='run-buttons'>
+        <md-button class='md-primary' ng-click='view()'>View</md-button>
+        <md-button class='md-confirm' ng-click='export()'>Export</md-button>
+        <md-button class='md-warn' ng-disabled='!isAuthenticated()'>Delete</md-button>
+    </div>
 
-        <div class="result">
-            <md-list ng-repeat="result in results" flex>
-                <md-list-item class="md-2-line" ng-click="viewRun(result)">
-                    <p>{{result._id}}</p>
+    <div class="result">
+        <md-list ng-repeat="run in results" flex>
+            <md-list-item class="md-2-line" ng-click="viewRun(run)">
+                <p>{{run.id}}</p>
 
-                    <div class="md-list-item-text" layout="column">
-                        <h3 layout-padding>{{dateDecode(result.date)}}</h3>
-                        <h3 layout-padding>{{timeDecode(result.time)}}</h3>
-                    </div>
-                    <div class="md-list-item-text" ng-repeat="tag in result.tags" layout="row">
-                        <h3 layout-padding>{{tag}}</h3>
-                    </div>
-                    <md-checkbox ng-click="selectedToggle(result.id)" ng-checked="exists(result.id)" aria-label="Checkbox ">
+                <div class="md-list-item-text" layout="column">
+                    <h3 layout-padding>{{run.date | dateFilter}}</h3>
+                    <h3 layout-padding>{{run.time | timeFilter}}</h3>
+                </div>
+                <div class="md-list-item-text" ng-repeat="tag in run.tags" layout="row">
+                    <h3 layout-padding>{{tag}}</h3>
+                </div>
+                <md-checkbox ng-click="selectedToggle(run.id)" ng-checked="exists(run.id)" aria-label="Checkbox ">
 
-                    </md-checkbox>
-            </md-list>
-        </div>
+                </md-checkbox>
+        </md-list>
+    </div>
+</div>

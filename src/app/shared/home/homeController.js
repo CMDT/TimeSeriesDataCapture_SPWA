@@ -1,4 +1,4 @@
-app.controller('homeController', ['$scope', '$log','$mdDialog', 'authenticationService', 'searchPageService', 'dtFormatterService', '$state', '$stateParams', 'JSTagsCollection','selectionService','exportDataService', function ($scope, $log,$mdDialog, authenticationService, searchPageService, dtFormatterService, $state, $stateParams, JSTagsCollection,selectionService,exportDataService) {
+app.controller('homeController', ['$scope', '$log','$mdDialog', 'authenticationService', 'searchPageService', '$state', '$stateParams', 'JSTagsCollection','selectionService','exportDataService','authenticationNotifyService', function ($scope, $log,$mdDialog, authenticationService, searchPageService, $state, $stateParams, JSTagsCollection,selectionService,exportDataService,authenticationNotifyService) {
 
     this.uiOnParamsChanged = function (params) {
         if (params.query != undefined) {
@@ -29,7 +29,6 @@ app.controller('homeController', ['$scope', '$log','$mdDialog', 'authenticationS
         $scope.addTagsInput($stateParams.query);
     } else {
         $scope.tags = new JSTagsCollection();
-        
     }
 
 
@@ -75,23 +74,27 @@ app.controller('homeController', ['$scope', '$log','$mdDialog', 'authenticationS
     };
 
     $scope.login = function () {
+        authenticationNotifyService.subscribe('auth0',callback);
         authenticationService.login();
-    
     }
 
+    function callback(){
+        $log.log($scope.isAuthenticated());
+        $scope.$apply();
+    }
+
+    $scope.logout = function(){
+        authenticationService.logout();
+    }
 
     $scope.results = [];
 
-   
-
     $scope.import = function (ev) {
         $mdDialog.show({
-
             templateUrl: 'app/shared/import/importPanel.html',
             parent: angular.element(document.body),
             targetEvent: ev,
             clickOutsideToClose: false,
-
         })
     }
 
@@ -101,7 +104,6 @@ app.controller('homeController', ['$scope', '$log','$mdDialog', 'authenticationS
         $state.go('.', {
             query: encodeURI($scope.extractTags())
         });
-
     }
 
 
@@ -114,16 +116,8 @@ app.controller('homeController', ['$scope', '$log','$mdDialog', 'authenticationS
         return query;
     }
 
-    $scope.dateDecode = function (date) {
-        return dtFormatterService.dateDecode(date);
-    }
-
-    $scope.timeDecode = function (time) {
-        return dtFormatterService.timeDecode(time);
-    }
 
     $scope.viewRun = function(run){
-       
         var options = {
             location: 'replace',
             inherit: false,
@@ -136,7 +130,7 @@ app.controller('homeController', ['$scope', '$log','$mdDialog', 'authenticationS
         },options);
     }
 
-    var selectionId = selectionService.addSelectionGroup('runs1','runsSelection');
+    var selectionId = selectionService.addSelectionGroup('runs','runsSelection');
 
     $scope.exists = function(runId){
         return selectionService.isSelected(selectionService.getSelectionGroup(selectionId),runId);
