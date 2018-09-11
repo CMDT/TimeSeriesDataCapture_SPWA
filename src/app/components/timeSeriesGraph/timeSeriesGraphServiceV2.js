@@ -22,7 +22,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
     var svg, graph;
 
-    var annotation, annotationControl
+    var annotations, annotationControls
 
     var xLock, yLock;
 
@@ -101,7 +101,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
             axisLockInitialize();
         }
 
-        if(options.annotation){
+        if (options.annotation) {
             annotationInitialize();
         }
 
@@ -136,6 +136,10 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
     }
 
     function annotationInitialize() {
+
+        annotations = graph.append('g').attr('class','annotation-group');
+        annotationControls = graph.append('g').attr('class','annoation-control-group');
+
         annotationAdd = svg.append('g')
             .attr('transform', 'translate(' + (width + margin.left * 1.2) + ',' + (margin.top * 0.8) + ')')
             .attr('class', 'annotation-add');
@@ -150,33 +154,80 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
             });
     }
 
-    function calculateXDomain(scale,data){
+    function calculateXDomain(scale, data) {
         scale.domain([
-            d3.min(data, function(d){ return d.x; }),
-            d3.max(data, function(d){ return d.x; })
+            d3.min(data, function (d) {
+                return d.x;
+            }),
+            d3.max(data, function (d) {
+                return d.x;
+            })
         ])
     }
 
     function calculateYDomain(scale, data) {
         scale.domain([
-            d3.min(data, function (d) { return d.y; }),
-            d3.max(data, function (d) { return d.y; })
+            d3.min(data, function (d) {
+                return d.y;
+            }),
+            d3.max(data, function (d) {
+                return d.y;
+            })
         ])
     }
 
-    function annotationRender(t){
+    //renders all annotations 
+    function annotationRender(annotations, t) {
         var xt = currentVector.rescaleX(x);
-        var yt = currentVector.rescaleY(y);
 
-        var id = annotationControl.select('g').attr('id');
-        annotationControl.selectAll('g')
+        var makeAnnotations = d3.annotation()
+            .notePadding(15)
+            .type(d3.annotationBadge)
+            .accessors({
+                x: d => xt(d.Time),
+                y: d => -10
+
+            })
+            .annotations(annotations)
+            .on('subjectclick', annotationClick)
+        annotations.call(makeAnnotations);
+    }
+
+    //renders annotation edit controls
+    function annotationControlsRender(t){
+        var xt = currentVector.rescaleX(x);
+
+        var annotationInEditId = annotationControls.select('g').attr('id');
+        annotationControls.selectAll('g')
             .each(function(d){
                 var image = d3.select(this).select('image');
                 var imageWidth = image.attr('width');
-                var annotationBadge
+                //TAKE A LOOK CAN I USE ANNOTATION IN EDIT INSTEAD
+                var annotationInEdit = timeSeriesAnnotationService.getAnnotation(activeRunId,annotationInEditId);
+                var x = xt(annotationBadge.data.Time);
+                image.attr('x',(x-(imageWidth/2)));
             })
     }
 
+    //drags annotation in edit
+    function annotationInEditDrag(){
+        annotationControls.selectAll('g')
+            .each(function(d){
+                var image = d3.select(this).select('image');
+                var imageWidth = image.attr('width');
+                image.att('x',(d3.event.x - (imageWidth/2)));
+            })
+        
+        var xt = currentVector.rescaleX(x);
+        var time = xt.invert(d3.event.x);
+        annotationInEdit.data.Time = time;
+        annotationBadgeRender([annotationInEdit]);
+    }
+
+    //extract trend line data
+    function extractTrendLineData(columnX,columnY)
+
+    //add trend line
 
 
 
