@@ -79,6 +79,12 @@ app.service('selectionService', ['$log', function ($log) {
     }
 
 
+    self.selectedLength = function(selectionGroupId){
+        var selection = selectionGroups.get(selectionGroupId);
+        return selection.selected.size;
+    }
+
+
 
     self.selectedToArray = function(selectionGroupId){
         var selection = selectionGroups.get(selectionGroupId);

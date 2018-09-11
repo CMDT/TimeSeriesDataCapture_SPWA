@@ -8,11 +8,9 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', 't
 
     $scope.isColumns = true;
 
-    $scope.tags = [];
+    var tagsArray = [];
 
-    var tagsCollection = {
-
-    }
+    var tagsCollection = {};
 
 
     if ($stateParams.runs != undefined) {
@@ -42,10 +40,13 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', 't
 
                 timeSeriesGraphControlService.drawGraph(result, options);
 
-                if ($stateParams.active != undefined) {
-                    var active = $stateParams.active.split('+');
-                    timeSeriesGraphControlService.setActiveRun(active[0]);
-                    timeSeriesGraphControlService.setActiveColumn(active[1]);
+                if ($stateParams.activeColumn != undefined) {
+                    $log.log('ACTIVE COLUMN',$stateParams.activeColumn);
+                    timeSeriesGraphControlService.setActiveColumn($stateParams.activeColumn);
+                }
+
+                if($stateParams.activeRun != undefined){
+                    timeSeriesGraphControlService.setActiveRun($stateParams.activeRun);
                 }
 
 
@@ -92,7 +93,7 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', 't
     $scope.tagEdit = function () {
         var runId = ($scope.tabs[$scope.activeTabIndex]).id;
         $log.log(runId)
-        tagEditPanelService.showTagEditPanel(undefined, runId, $scope.tags);
+        tagEditPanelService.showTagEditPanel(undefined, runId, tagsArray);
     }
 
     $scope.exists = function (id, columnName) {
@@ -102,21 +103,31 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', 't
     $scope.selectedColumn = function (tabId, columnName) {
 
         $state.go('.', {
-            active: tabId + '+' + columnName
+            activeColumn: tabId + '+' + columnName
         })
     }
 
     $scope.selectedTab = function () {
         var runId = ($scope.tabs[$scope.activeTabIndex]).id;
-        $log.log(tagsCollection);
-        $scope.tags = tagsCollection[runId];
+        $log.log(runId);
+        $state.go('.', {
+            activeRun: runId 
+        })
+        
     }
 
     $scope.isActiveColumn = function (tabId, columnName) {
-        activeTab = timeSeriesGraphControlService.getActiveRun();
-        activeColumn = timeSeriesGraphControlService.getActiveColumn();
+       
+        var activeColumn = timeSeriesGraphControlService.getActiveColumn()
 
-        if (tabId === activeTab && activeColumn === columnName) {
+        if(activeColumn == undefined){
+            return false;
+        }
+
+        activeColumn = activeColumn.split('+');
+
+        if (tabId === activeColumn[0] && columnName === activeColumn[1]) {
+        
             return true;
         } else {
             return false;
@@ -124,19 +135,18 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', 't
     }
 
     $scope.isAuthenticated = function () {
-        $log.log(authenticationService.isAuthenticated());
         return authenticationService.isAuthenticated();
+    }
+
+    $scope.tags = function(){
+        return tagsArray;
     }
 
     this.uiOnParamsChanged = function (params) {
         //active selection
 
-        if (params.hasOwnProperty('active')) {
-            var active = params.active.split('+');
-            timeSeriesGraphControlService.setActiveRun(active[0]);
-            timeSeriesGraphControlService.setActiveColumn(active[1]);
-
-            $scope.tags = tagsCollection[active[0]];
+        if (params.hasOwnProperty('activeColumn')) {
+            timeSeriesGraphControlService.setActiveColumn(params.activeColumn);
         }
 
 
@@ -148,6 +158,12 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', 't
             } else {
                 columnTabPanelService.selectColumns([]);
             }
+        }
+
+        if(params.hasOwnProperty('activeRun')){
+            timeSeriesGraphControlService.setActiveRun(params.activeRun);
+            tagsArray = tagsCollection[params.activeRun];
+           
         }
     }
 

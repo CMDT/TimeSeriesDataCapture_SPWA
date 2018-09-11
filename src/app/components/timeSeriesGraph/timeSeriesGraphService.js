@@ -89,6 +89,7 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
         keepState = options.hasOwnProperty('state') ? options.state : false;
         var w = options.hasOwnProperty('width') ? options.width : 1300;
         var h = options.hasOwnProperty('height') ? options.height : 600;
+        var auto = options.hasOwnProperty('autoSize') ? options.autoSize : true;
 
         trendLineColors = options.hasOwnProperty('palette') ? options.palette : ['#8cc2d0', '#152e34'];
 
@@ -116,11 +117,20 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
         endZoomVector = d3.zoomIdentity.scale(1).translate(0, 0);
         currentVector = d3.zoomIdentity.scale(1).translate(0, 0);
 
-        svg = d3.select('.graph-container')
+        if(auto){
+            svg = d3.select('.graph-container')
+            .attr("width",'100%')
+            .attr("height",'auto')
+            .attr("viewBox", "0 0 " + w + ' ' + h)
+            .attr("preserveAspectRatio", "xMinYMax meet");
+        }else{
+            svg = d3.select('.graph-container')
             .attr("width", w)
             .attr("height", h)
             .attr("viewBox", "0 0 " + w + ' ' + h)
             .attr("preserveAspectRatio", "xMinYMax meet");
+        }
+        
 
 
 
@@ -364,9 +374,10 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
         calculateYDomain(trend.scaleY, trend.data, 'Y');
         calculateXDomain(x, trend.data)
 
+        var activeTrend = activeColumn.split('+');
       
-        if (id === activeRunId && columnName === activeColumn) {
-
+        if (id === activeTrend[0] && columnName === activeTrend[1]) {
+            
             circleX = trend.data[0].x;
             circleY = trend.data[0].y;
             svg.select('.y-label').text(columnName);
@@ -426,7 +437,8 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
     self.removeTrend = function (id, columnName) {
         $log.log(columnName);
         timeSeriesTrendService.removeTrend(id,columnName);
-        if (id == activeRunId && columnName == activeColumn) {
+        var activeTrend = activeColumn.split('+');
+        if (id == activeTrend[0] && columnName == activeTrend[1]) {
             circleX = 0;
             circleY = 0;
 
@@ -522,15 +534,18 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
 
         annotationLabelRender(t);
 
-        $log.log('DOWN', ctrlDown, user)
+       
         if (ctrlDown || !user) {
-            var id = $filter('componentIdClassFilter')(activeRunId);
-            var columnName = $filter('componentIdClassFilter')(activeColumn);
+            var activeTrend = activeColumn.split('+');
+            var id = $filter('componentIdClassFilter')(activeTrend[0]);
+            var columnName = $filter('componentIdClassFilter')(activeTrend[1]);
 
+           
 
             var line = graph.select('.run-group').select('.' + id + '.' + columnName).selectAll('.line');
             var yt;
             if (!line.empty()) {
+            
                 line.attr('d', function (trend) {
                     yt = t.rescaleY(trend.scaleY);
                     var line = d3.line()
@@ -573,8 +588,8 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
 
                     var yt = t.rescaleY(trend.scaleY);
 
-
-                    if (trend.id === activeRunId && trend.yLabel === activeColumn) {
+                    var activeTrend = activeColumn.split('+');
+                    if (trend.id === activeTrend[0] && trend.yLabel === activeTrend[1]) {
                         graph.select('.axis--y').call(yAxis.scale(yt));
                         offsetLineYt = t.rescaleY(trend.scaleY);
                     }

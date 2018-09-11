@@ -23,7 +23,7 @@
             </md-button>
         </div>
     </md-toolbar>
-    <div ng-hide='unauthorized'>
+    <div ng-show='isAuthenticated()'>
         <div ng-show='!preview'>
             <div class='breadcrumb'>
                 <div ng-repeat='element in breadcrumb'>
@@ -37,6 +37,7 @@
                 </div>
                 <md-checkbox md-no-ink='false' ng-checked="selectedAllIsChecked()" ng-click="selectedAllToggle()" aria-label='select all checkbox'></md-checkbox>
             </div>
+
 
             <md-list flex>
                 <md-list-item class="md-2-line" ng-click="folderClick(result)" ng-repeat='result in activePage.data'>
@@ -67,32 +68,40 @@
             </md-dialog-actions>
         </div>
 
-        <div ng-show='preview'>
-            <div class='data'>
-                <svg class="graph-container"></svg>
+
+        <div ng-if='loading' class="spinner">
+            <div class="rect1"></div>
+            <div class="rect2"></div>
+            <div class="rect3"></div>
+            <div class="rect4"></div>
+            <div class="rect5"></div>
+        </div>
+
+        <div ng-show='preview && !loading'>
+            <div class='preview-data'>
+                <div class='data'>
+                    <svg class="graph-container"></svg>
+                </div>
+
+                <div class='algorithm-panel'>
+                    <md-list>
+                        <md-list-item class="md-2-line" ng-click=algorithmSelect() ng-repeat='algorithm in activePage'>
+                            <div class="md-list-item-text">
+                                <h3>{{algorithm.name}}</h3>
+                            </div>
+                        </md-list-item>
+                    </md-list>
+                </div>
             </div>
 
-            <div class='algorithm-panel'>
-                    <md-list>
-                            <md-list-item class="md-2-line" ng-click=algorithmSelect() ng-repeat='algorithm in activePage'>
-                                <div class="md-list-item-text">
-                                    <h2>{{algorithm.name}}</h2>
-            
-                                </div>
-                                <div class="md-list-item-text">
-                                    <h3>{{algorithm.algorithm}}</h3>
-                                </div>
-                            </md-list-item>
-                        </md-list>
-            </div>
-           
+
 
             <md-button ng-click="previewToggle()">
                 Back
             </md-button>
         </div>
     </div>
-    <div ng-show="unauthorized" class="login">
+    <div ng-hide="isAuthenticated()" class="login">
         <i class="material-icons md-100">lock</i>
         <md-button ng-click="login()">Login</md-button>
     </div>

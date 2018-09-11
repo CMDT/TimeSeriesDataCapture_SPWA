@@ -1,5 +1,7 @@
 app.controller('homeController', ['$scope', '$log','$mdDialog', 'authenticationService', 'searchPageService', '$state', '$stateParams', 'JSTagsCollection','selectionService','exportDataService','authenticationNotifyService', function ($scope, $log,$mdDialog, authenticationService, searchPageService, $state, $stateParams, JSTagsCollection,selectionService,exportDataService,authenticationNotifyService) {
 
+    $scope.loading = false;
+    
     this.uiOnParamsChanged = function (params) {
         if (params.query != undefined) {
             $scope.search(params.query);
@@ -8,9 +10,10 @@ app.controller('homeController', ['$scope', '$log','$mdDialog', 'authenticationS
 
     $scope.search = function (query) {
         $log.log('search query ' + query);
+        $scope.loading = true;
         searchPageService.search(query).then(function (result) {
-            
             $scope.results = result;
+            $scope.loading = false;
             $scope.$apply();
         })
     }
@@ -126,7 +129,8 @@ app.controller('homeController', ['$scope', '$log','$mdDialog', 'authenticationS
         $state.transitionTo('view',{
             runs: run.id,
             columns : run.id + ':RTH',
-            active: run.id + '+RTH'
+            activeColumn: run.id + '+RTH',
+            activeRun: run.id
         },options);
     }
 
@@ -151,7 +155,8 @@ app.controller('homeController', ['$scope', '$log','$mdDialog', 'authenticationS
         $state.transitionTo('view',{
             runs: selected.join('+'),
             columns : selected[0] + ':RTH',
-            active: selected[0] + '+RTH'
+            activeColumn: selected[0] + '+RTH',
+            activeRun: selected[0]
         },options);
     }
 
@@ -165,6 +170,13 @@ app.controller('homeController', ['$scope', '$log','$mdDialog', 'authenticationS
             $log.log(result);
         })
     }
+
+    $scope.enabled = function(){
+        var test = selectionService.selectedLength(selectionId);
+        return selectionService.selectedLength(selectionId) > 0;
+    }
+
+    
 
 
 

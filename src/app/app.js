@@ -39,7 +39,7 @@ function config($stateProvider,$urlRouterProvider) {
 
   var viewState = {
     name: 'view',
-    url: '/view?runs&columns&viewVector&offsetVector&active&panelView&palette',
+    url: '/view?runs&columns&viewVector&offsetVector&activeColumn&activeRun&panelView&palette',
     params : {
       runs :{
         dynamic: false
@@ -53,7 +53,10 @@ function config($stateProvider,$urlRouterProvider) {
       offsetVector: {
         dynamic: true
       },
-      active: {
+      activeColumn: {
+        dynamic: true
+      },
+      activeRun:{
         dynamic: true
       },
       panelView: {
@@ -83,8 +86,8 @@ run.$inject = [
 ]
 
 function run($rootScope,authenticationService){
-  //$rootScope.url = 'https://timeseriesdatacapture-browse.herokuapp.com';
-  $rootScope.url = 'http://localhost:8000';
+  $rootScope.url = 'https://timeseriesdatacapture-browse.herokuapp.com';
+  //$rootScope.url = 'http://localhost:8000';
   $rootScope.isAuthenticated = authenticationService.isAuthenticated();
   console.log($rootScope.isAuthenticated);
 }
