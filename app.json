@@ -1,0 +1,6 @@
+{
+  "name": "TimeSeriesDataCapture_SPWA",
+  "description": "The single page web application for the time series data capture project",
+  "repository": "https://github.com/CMDT/TimeSeriesDataCapture_SPWA",
+  "keywords": ["node", "angularjs", "SPA"]
+}
