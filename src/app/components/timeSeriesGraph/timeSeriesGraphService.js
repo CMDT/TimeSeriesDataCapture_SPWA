@@ -64,8 +64,8 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
     }
 
     self.setActiveRun = function (id) {
-        $log.log(id);
         activeRunId = id;
+        annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId));
     }
 
     self.getActiveRun = function () {
@@ -74,7 +74,8 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
     }
 
     self.setActiveColumn = function (column) {
-        svg.select('.y-label').text(column);
+        var activeTrend = column.split('+');
+        svg.select('.y-label').text(activeTrend[1]);
         activeColumn = column;
     }
 
@@ -506,7 +507,7 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
     }
 
     function zoomed() {
-
+        $log.log(activeRunId);
         var t = d3.event.transform;
 
         t.k = parseFloat((t.k).toFixed(2));

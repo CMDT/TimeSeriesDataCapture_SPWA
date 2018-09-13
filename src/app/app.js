@@ -24,19 +24,6 @@ function config($stateProvider,$urlRouterProvider) {
     controller: 'homeController'
   }
 
-  var callbackState = {
-    name: 'callback',
-    url: '/callback',
-    templateUrl: 'app/shared/callback/callbackView.html',
-  }
-
-  var importState = {
-    name: 'import',
-    url: '/import',
-    templateUrl: 'app/shared/import/importView.html',
-    controller: 'importController'
-  }
-
   var viewState = {
     name: 'view',
     url: '/view?runs&columns&viewVector&offsetVector&activeColumn&activeRun&panelView&palette',
@@ -70,9 +57,7 @@ function config($stateProvider,$urlRouterProvider) {
     controller: 'viewController',
   }
 
-  $stateProvider.state(callbackState);
   $stateProvider.state(homeState);
-  $stateProvider.state(importState);
   $stateProvider.state(viewState);
   
   $urlRouterProvider.otherwise('/home/');
@@ -86,9 +71,10 @@ run.$inject = [
 ]
 
 function run($rootScope,authenticationService){
-  $rootScope.url = 'https://timeseriesdatacapture-browse.herokuapp.com';
-  //$rootScope.url = 'http://localhost:8000';
+  //$rootScope.url = 'https://timeseriesdatacapture-browse.herokuapp.com';
+  $rootScope.url = 'http://localhost:8000';
   $rootScope.isAuthenticated = authenticationService.isAuthenticated();
+  $rootScope.query = '';
   console.log($rootScope.isAuthenticated);
 }
 

@@ -1,10 +1,11 @@
-app.controller('homeController', ['$scope', '$log','$mdDialog', 'authenticationService', 'searchPageService', '$state', '$stateParams', 'JSTagsCollection','selectionService','exportDataService','authenticationNotifyService', function ($scope, $log,$mdDialog, authenticationService, searchPageService, $state, $stateParams, JSTagsCollection,selectionService,exportDataService,authenticationNotifyService) {
+app.controller('homeController', ['$scope','$rootScope', '$log','$mdDialog', 'authenticationService', 'searchPageService', '$state', '$stateParams', 'JSTagsCollection','selectionService','exportDataService','authenticationNotifyService', function ($scope,$rootScope, $log,$mdDialog, authenticationService, searchPageService, $state, $stateParams, JSTagsCollection,selectionService,exportDataService,authenticationNotifyService) {
 
     $scope.loading = false;
     
     this.uiOnParamsChanged = function (params) {
         if (params.query != undefined) {
             $scope.search(params.query);
+            $rootScope.query = params.query;
         }
     }
 

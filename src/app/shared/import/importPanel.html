@@ -24,7 +24,7 @@
         </div>
     </md-toolbar>
     <div ng-show='isAuthenticated()'>
-        <div ng-show='!preview'>
+        <md-dialog-content ng-show='!preview'>
             <div class='breadcrumb'>
                 <div ng-repeat='element in breadcrumb'>
                     <md-button ng-click='folderClick(element)' ng-show='$first' ng-disabled="$last">
@@ -66,7 +66,7 @@
                     Confirm
                 </md-button>
             </md-dialog-actions>
-        </div>
+        </md-dialog-content>
 
 
         <div ng-if='loading' class="spinner">

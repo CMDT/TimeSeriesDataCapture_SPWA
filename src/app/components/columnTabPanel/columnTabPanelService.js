@@ -162,6 +162,7 @@ app.service('columnTabPanelService', ['$log', 'runRequestService', 'selectionSer
             })
         }
 
+        
 
         for (var i = 0, n = columns.length; i < n; i++) {
             var selection = selectionService.selectedToArray(columns[i].selectionGroup);

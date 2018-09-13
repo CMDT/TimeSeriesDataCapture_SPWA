@@ -1,4 +1,4 @@
-app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', 'tagEditPanelService', 'columnTabPanelService', 'timeSeriesGraphControlService', 'timeSeriesTrendService', 'authenticationService', 'paletteDataService', function ($scope, $log, $state, $stateParams, tagEditPanelService, columnTabPanelService, timeSeriesGraphControlService, timeSeriesTrendService, authenticationService, paletteDataService) {
+app.controller('viewController', ['$scope','$rootScope', '$log', '$state', '$stateParams', 'tagEditPanelService', 'columnTabPanelService', 'timeSeriesGraphControlService', 'timeSeriesTrendService', 'authenticationService', 'paletteDataService', function ($scope,$rootScope, $log, $state, $stateParams, tagEditPanelService, columnTabPanelService, timeSeriesGraphControlService, timeSeriesTrendService, authenticationService, paletteDataService) {
 
 
     $scope.runs = [];
@@ -47,6 +47,7 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', 't
 
                 if($stateParams.activeRun != undefined){
                     timeSeriesGraphControlService.setActiveRun($stateParams.activeRun);
+                    tagsArray = tagsCollection[$stateParams.activeRun];
                 }
 
 
@@ -69,7 +70,7 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', 't
                 timeSeriesGraphControlService.graphTransition(viewVector, offsetVector);
 
                 $scope.selectedTab();
-                $scope.$apply();
+                //$scope.$apply();
             });
 
 
@@ -80,6 +81,16 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', 't
         })
     }
 
+    $scope.back = function(){
+        var options = {
+            location: 'replace',
+            inherit: false,
+        }
+
+        $state.transitionTo('home',{
+            query:$rootScope.query
+        },options);
+    }
 
     $scope.selectedToggle = function (id, columnName) {
         var selectedColumns = columnTabPanelService.getSelectedColumns(id, columnName);
@@ -142,6 +153,9 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', 't
         return tagsArray;
     }
 
+   
+    
+
     this.uiOnParamsChanged = function (params) {
         //active selection
 
@@ -162,6 +176,7 @@ app.controller('viewController', ['$scope', '$log', '$state', '$stateParams', 't
 
         if(params.hasOwnProperty('activeRun')){
             timeSeriesGraphControlService.setActiveRun(params.activeRun);
+            $log.log('TAGS ARRAY')
             tagsArray = tagsCollection[params.activeRun];
            
         }

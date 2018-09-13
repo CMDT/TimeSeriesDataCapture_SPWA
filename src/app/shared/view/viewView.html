@@ -1,4 +1,3 @@
-<h1>View</h1>
 <style>
     .run-group {
         fill: none;
@@ -8,26 +7,30 @@
     }
 </style>
 
+<md-button class=" md-light"  ng-click="back()">
+    <md-icon md-svg-src="../../assets/img/back.svg" aria-label="Edit Icon"></md-icon>
+</md-button>
 <div class='view'>
     <svg class="graph-container"></svg>
     <div class='column-panel' ng-cloak>
         <md-content class='content'>
             <md-tabs md-selected='activeTabIndex' md-no-select-click='true' md-dynamic-height md-border-bottom>
 
-                <md-tab  ng-repeat='tab in tabs' label='{{tab.id}}' md-on-select='selectedTab()'>
+                <md-tab ng-repeat='tab in tabs' label='{{tab.id}}' md-on-select='selectedTab()'>
                     <md-content>
                         <md-list ng-show='isColumns' flex>
-                            <md-list-item ng-repeat="column in tab.columns" class="md-2-line"  ng-class="{'active-column': isActiveColumn(tab.id,column)}" ng-click="selectedColumn(tab.id,column)">
+                            <md-list-item ng-repeat="column in tab.columns" class="md-2-line" ng-class="{'active-column': isActiveColumn(tab.id,column)}"
+                                ng-click="selectedColumn(tab.id,column)">
                                 <p>{{column}}</p>
                                 <md-list-item class="md-2-line" ng-click="null">
                                     <md-checkbox md-no-ink='false' ng-click="selectedToggle(tab.id,column)" ng-checked="exists(tab.id,column)" aria-label="Checkbox "></md-checkbox>
                         </md-list>
-                        <md-button ng-disabled = '!isAuthenticated()' ng-show='!isColumns' class='tag-button' ng-click="tagEdit()">
+                        <md-button ng-disabled='!isAuthenticated()' ng-show='!isColumns' class='tag-button' ng-click="tagEdit()">
                             <md-icon md-svg-src="../../assets/img/pencil.svg" aria-label="Edit Icon"></md-icon>
                         </md-button>
                         <md-list ng-show="!isColumns" flex>
                             <md-list-item class="md-2-line" ng-repeat="tag in tags()" ng-click="null">
-                                <p>{{tag}}</p>
+                                <p>{{tag.tag}}</p>
                             </md-list-item>
                         </md-list>
                     </md-content>
@@ -35,9 +38,8 @@
             </md-tabs>
         </md-content>
         <md-switch class='column-switch' ng-model='isColumns' aria-label="Column Tab Switch">
-            Columns
+            {{isColumns ? 'Columns' : 'Tags'}}
         </md-switch>
     </div>
 
 </div>
-
