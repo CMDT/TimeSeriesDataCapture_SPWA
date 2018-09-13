@@ -13,6 +13,7 @@ To build single page web application locally on a specified port:
 ```
 node server.js <port-number>
 ```
+*note don't use ports 8000 or 8001, both are reserved for the APIs*
 
 ---
 
