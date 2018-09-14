@@ -12,7 +12,7 @@ app.service('searchService', ['$log', '$http','$rootScope', 'queryKeywordService
 
         var url = $rootScope.url + '/apis/search';
         config.headers.Authorization = 'Bearer ' + localStorage.getItem('accessToken');
-        config.params.tags = encodeURI(query);
+        config.params.query = encodeURI(query);
         
         $log.log(url);
         return $http.get(url, config);
