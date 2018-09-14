@@ -10,6 +10,7 @@
 
 
 <div class='import-panel' ng-controller="importPanelControllerV2">
+        <a href="https://github.com/CMDT/TimeSeriesDataCapture/blob/master/Documents/help/importing.md">help</a>
     <md-toolbar>
         <div class="md-toolbar-tools">
             <h4>Import</h4>
@@ -101,8 +102,8 @@
             </md-button>
         </div>
     </div>
-    <div ng-hide="isAuthenticated()" class="login">
+    <div ng-click="login()" ng-hide="isAuthenticated()" class="login">
         <i class="material-icons md-100">lock</i>
-        <md-button ng-click="login()">Login</md-button>
+        <md-button class="md-light" ng-click="login()">Login</md-button>
     </div>
 </div>

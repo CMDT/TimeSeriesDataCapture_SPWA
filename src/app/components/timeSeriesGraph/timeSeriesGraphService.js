@@ -1,4 +1,4 @@
-app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesAnnotationService', 'timeSeriesTrendService', 'annotationPreviewService', 'annotationsService', function ($log, $state, $filter, timeSeriesAnnotationService, timeSeriesTrendService, annotationPreviewService, annotationsService) {
+app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesAnnotationService', 'timeSeriesTrendService', 'annotationPreviewService', 'annotationsService','authenticationService', function ($log, $state, $filter, timeSeriesAnnotationService, timeSeriesTrendService, annotationPreviewService, annotationsService, authenticationService) {
 
     var self = this;
     var annotationInEdit;
@@ -193,7 +193,9 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
             yLock = svg.append('g')
                 .attr('transform', 'translate(' + (margin.left * 0.85) + ',' + (margin.top * 0.6) + ')')
                 .attr('class', 'y-lock')
+                .attr('class','md-light')
                 .attr('locked', 0)
+            
 
             yLock.append('svg:image')
                 .attr('xlink:href', './assets/img/lock_unlocked.svg')
@@ -218,7 +220,7 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
                 });
         }
 
-        if (options.hasOwnProperty('annotation') && options.annotation) {
+        if (options.hasOwnProperty('annotation') && options.annotation && authenticationService.isAuthenticated()) {
 
             annotationAdd = svg.append('g')
                 .attr('transform', 'translate(' + (width + margin.left * 1.2) + ',' + (margin.top * 0.8) + ')')

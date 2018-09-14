@@ -12,6 +12,8 @@ app.controller('viewController', ['$scope','$rootScope', '$log', '$state', '$sta
 
     var tagsCollection = {};
 
+    $scope.query = $rootScope.query;
+
 
     if ($stateParams.runs != undefined) {
         columnTabPanelService.getRun($stateParams.runs.split('+')).then(function (result) {

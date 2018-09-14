@@ -1,4 +1,4 @@
-app.controller('homeController', ['$scope','$rootScope', '$log','$mdDialog', 'authenticationService', 'searchPageService', '$state', '$stateParams', 'JSTagsCollection','selectionService','exportDataService','authenticationNotifyService', function ($scope,$rootScope, $log,$mdDialog, authenticationService, searchPageService, $state, $stateParams, JSTagsCollection,selectionService,exportDataService,authenticationNotifyService) {
+app.controller('homeController', ['$scope','$rootScope', '$log','$mdDialog', 'authenticationService', 'searchPageService', '$state', '$stateParams', 'JSTagsCollection','selectionService','exportDataService','authenticationNotifyService','tagPredictionService', function ($scope,$rootScope, $log,$mdDialog, authenticationService, searchPageService, $state, $stateParams, JSTagsCollection,selectionService,exportDataService,authenticationNotifyService,tagPredicitionService) {
 
     $scope.loading = false;
     
@@ -43,6 +43,8 @@ app.controller('homeController', ['$scope','$rootScope', '$log','$mdDialog', 'au
             'inputPlaceHolder': 'Search'
         }
     };
+
+
 
     // Build suggestions array
     var suggestions = ['gold', 'silver', 'golden'];

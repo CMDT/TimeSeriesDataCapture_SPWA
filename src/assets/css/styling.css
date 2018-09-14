@@ -32,7 +32,6 @@ md-dialog {
 
 
 
-
 .search js-tag .jt-editor{
     width: 50%;
     display: inline-block !important;
@@ -45,6 +44,7 @@ md-dialog {
     border: 1px solid #d4d4d4;
     padding: 0% 1% 4% 1%;
     font-size: 20px;
+    font-size: 1.0vw;
 }
 
 .search-content{
@@ -71,6 +71,15 @@ md-dialog {
 .md-light{
     background-color: rgba(220,224,251,1);
     color: #000000;
+    border: 3px solid rgba(199,199,199,0.33);
+    border-radius: 5px;
+}
+
+
+.md-clear{
+    color: #000000;
+    border: 3px solid rgba(255, 255, 255, 0.92);
+    border-radius: 5px;
 }
 
 .breadcrumb{

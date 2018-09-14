@@ -1,17 +1,17 @@
 <md-dialog class='annotation-preview'>
     <md-toolbar>
         <div class="md-toolbar-tools">
-            <md-button  ng-if='!editMode && isAuthenticated()' class='md-small' aria-label="annotation position edit button" ng-click="annotationDelete()">
+            <md-button  ng-if='!editMode && isAuthenticated()' class='md-small md-clear'  aria-label="annotation position edit button" ng-click="annotationDelete()">
                X
             </md-button>
             <h4>Annotation</h4>
 
             <span flex></span>
             <div ng-if='!editMode && isAuthenticated()'>
-                <md-button class='md-small' aria-label="annotation position edit button" ng-click="annotationPosEdit()">
+                <md-button class='md-small md-clear' aria-label="annotation position edit button" ng-click="annotationPosEdit()">
                     <md-icon md-svg-src="../../assets/img/arrow_down.svg"></md-icon>
                 </md-button>
-                <md-button class='md-small' aria-label="annotation desciption edit button" ng-click="annotationDescriptionEdit()">
+                <md-button class='md-small md-clear' aria-label="annotation desciption edit button" ng-click="annotationDescriptionEdit()">
                     <md-icon md-svg-src="../../assets/img/pencil.svg"></md-icon>
                 </md-button>
 
@@ -26,7 +26,7 @@
         <p ng-hide='editMode'>
             {{annotationDescription}}
         </p>
-        <textarea ng-show='editMode' class='annotation-edit-box' ng-model='annotationDescription'>
+        <textarea placeholder="Annotation desciption" ng-show='editMode' class='annotation-edit-box' ng-model='annotationDescription'>
 
             </textarea>
     </div>
