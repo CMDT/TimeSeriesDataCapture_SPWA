@@ -6,7 +6,7 @@
     "node": "10.5.0"
   },
   "scripts": {
-    "start": "node src/server.js"
+    "start": "node src/server.js 443"
   },
   "dependencies": {
     "angular-typeahead": "^1.0.2",
