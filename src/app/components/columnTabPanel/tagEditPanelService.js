@@ -66,6 +66,17 @@ app.service('tagEditPanelService', ['$log', '$mdDialog','$filter', 'tagPredictio
             highlight: true
         };
 
+        tagPredictionService.getTag('').then(function(result){
+            var tags = ($filter('tagFilter')(result.data));
+            tags = tags.map(function (item) {
+                return {
+                    "suggestion": item
+                }
+            });
+    
+            suggestions.add(tags);
+        });
+
         $scope.confirm = function () {
          
             var difference = arrayDiff(intialTags, $scope.extractTags());
