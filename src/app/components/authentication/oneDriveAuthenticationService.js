@@ -4,8 +4,8 @@ app.service('oneDriveAuthenticationService', ['$rootScope', '$log', '$http', '$w
     var self = this;
 
     var appInfo = {
-        "clientId": '1a67f6f4-db2a-4298-8cf8-72946ac50669',
-        "redirectUri": "http://localhost:8080/callback.html",
+        "clientId": 'c8c45e30-d16e-4ccd-8abd-8e9589d6a6d2',
+        "redirectUri": "https://timeseriesdatacapture-spwa.herokuapp.com/callback.html",
         "scopes": "sites.read.all",
         "authServiceUri": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
     }
