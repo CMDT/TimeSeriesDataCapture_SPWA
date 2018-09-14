@@ -381,18 +381,20 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         var id = $filter('componentIdClassFilter')(activeTrend[0]);
         var columnName = $filter('componentIdClassFilter')(activeTrend[1]);
 
-        var line = graph.select('.run-group').select('.' + ud + '.' + columnName).selectAll('.line');
+        var line = graph.select('.run-group').select('.' + id + '.' + columnName).selectAll('.line');
         var yt;
 
         if(!line.empty()){
             line.attr('d',function(trend){
                 yt = t.rescaleY(trend.scaleY);
+                var line =d3.line()
+                    .x(function(d){return xt(d.x)})
+                    .y(function(d){return yt(d.y)})
 
-                var activeTrend = activeColumn.split('+');
-                if(trend.id === activeTrend[0] && trend.yLabel === activeTrend[1]){
-                    
-                }
+                return line(trend.data);
             })
+
+            
         }
     }
 

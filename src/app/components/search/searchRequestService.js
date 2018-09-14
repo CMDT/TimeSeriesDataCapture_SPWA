@@ -6,11 +6,12 @@ app.service('searchService', ['$log', '$http','$rootScope', 'queryKeywordService
     self.searchRequest = function (query) {
         var config = {
             params: {},
-            responseType: 'json'
+            responseType: 'json',
+            headers: {}
         }
 
         var url = $rootScope.url + '/apis/search';
-
+        config.headers.Authorization = 'Bearer ' + localStorage.getItem('accessToken');
         config.params.tags = encodeURI(query);
         
         $log.log(url);

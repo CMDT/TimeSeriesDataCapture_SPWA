@@ -41,6 +41,7 @@ app.service('authenticationService', ['$log','authenticationNotifyService', func
 
     self.logout = function(){
         localStorage.setItem('expiresAt',0);
+        localStorage.setItem('accessToken','na');
     }
 
     lock.on('authenticated', function (authResult) {

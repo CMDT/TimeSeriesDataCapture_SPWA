@@ -1,4 +1,4 @@
-app.controller('homeController', ['$scope','$rootScope', '$log','$mdDialog', 'authenticationService', 'searchPageService', '$state', '$stateParams', 'JSTagsCollection','selectionService','exportDataService','authenticationNotifyService','tagPredictionService', function ($scope,$rootScope, $log,$mdDialog, authenticationService, searchPageService, $state, $stateParams, JSTagsCollection,selectionService,exportDataService,authenticationNotifyService,tagPredicitionService) {
+app.controller('homeController', ['$scope','$rootScope','$filter', '$log','$mdDialog', 'authenticationService', 'searchPageService', '$state', '$stateParams', 'JSTagsCollection','selectionService','exportDataService','authenticationNotifyService','tagPredictionService', function ($scope,$rootScope, $filter,$log,$mdDialog, authenticationService, searchPageService, $state, $stateParams, JSTagsCollection,selectionService,exportDataService,authenticationNotifyService,tagPredicitionService) {
 
     $scope.loading = false;
     
@@ -47,7 +47,7 @@ app.controller('homeController', ['$scope','$rootScope', '$log','$mdDialog', 'au
 
 
     // Build suggestions array
-    var suggestions = ['gold', 'silver', 'golden'];
+    var suggestions = [];
     suggestions = suggestions.map(function (item) {
         return {
             "suggestion": item
@@ -78,6 +78,17 @@ app.controller('homeController', ['$scope','$rootScope', '$log','$mdDialog', 'au
         hint: false,
         highlight: true
     };
+
+    tagPredicitionService.getTag('').then(function(result){
+        var tags = ($filter('tagFilter')(result.data));
+        tags = tags.map(function (item) {
+            return {
+                "suggestion": item
+            }
+        });
+
+        suggestions.add(tags);
+    });
 
     $scope.login = function () {
         authenticationNotifyService.subscribe('auth0',callback);
