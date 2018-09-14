@@ -10,6 +10,15 @@ md-dialog {
     width: auto;
 }
 
+body {
+    
+}
+
+.help {
+    position: absolute;
+    right: 5%;
+}
+
 .md-button[disabled] {
     background-color: #e3e3e3;
     color: rgb(173, 173, 173) !important;
