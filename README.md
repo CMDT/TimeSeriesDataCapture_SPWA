@@ -13,10 +13,11 @@ To build single page web application locally on a specified port:
 ```
 node server.js <port-number>
 ```
+*note don't use ports 8000 or 8001, both are reserved for the APIs*
 
 ---
 
-This project was funded via the Marloes Peeters Research Group and mentored by DigitalLabs@MMU as a DigitalLabs Summer Project. It is the work of Yusof Bandar.
+This project was funded via the [Marloes Peeters Research Group](https://www.marloespeeters.nl/) and mentored by [DigitalLabs@MMU](https://digitallabs.mmu.ac.uk/) as a [DigitalLabs Summer Project](https://digitallabs.mmu.ac.uk/what-we-do/teaching/). It is the work of [Yusof Bandar](https://github.com/YusofBandar).
 
 
 <p align="center">
