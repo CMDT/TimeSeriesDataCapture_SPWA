@@ -8,6 +8,8 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
     var activeRunId, activeColumn;
 
+    var activeTrend;
+
     var margin, width, height;
 
     var offsetLine;
@@ -42,8 +44,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         options = graphOptions;
 
         console.log(options);
-        activeRunId = '2B497C4DAFF48A9C!178';
-        activeColumn = 'RTH';
+        
 
         options.width = options.hasOwnProperty('width') ? options.width : 1300;
         options.height = options.hasOwnProperty('height') ? options.height : 600;
@@ -301,8 +302,14 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         calculateXDomain(x, trend.data);
 
 
-        if (runId == activeRunId && columnY == activeColumn) {
-            resetOffsetLine();
+        var activeTrendArray = activeTrend.split('+');
+
+        if (runId == $filter('componentIdClassFilter')(activeTrendArray[0]) && columnY == $filter('componentIdClassFilter')(activeTrendArray[1])) {
+            //resetOffsetLine();
+
+            offsetLineCoordinates.x1 = trend.data[0].x;
+            offsetLineCoordinates.y1 = trend.data[0].y;
+
             renderOffsetLine();
         }
 
@@ -393,7 +400,8 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
     //when graph zooms
     function zoomed() {
 
-        /*var t = d3.event.transform;
+        
+        var t = d3.event.transform;
 
         t.k = parseFloat((t.k).toFixed(2));
         t.x = parseFloat((t.x).toFixed(2));
@@ -422,25 +430,23 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
             offsetting(t);
         } else {
             panning(t);
-        }*/
+        }
+
+        renderOffsetLine();
     }
 
 
     function panning(t) {
-        var offsetLineYt;
         var xt = t.rescaleX(x);
         graph.select('.axis--x').call(xAxis.scale(xt));
+       
         graph.selectAll('.line')
             .attr('d', function (trend) {
 
                 var yt = t.rescaleY(trend.scaleY);
 
-
-                if (trend.id === activeRunId && trend.yLabel === activeColumn) {
-                    graph.select('.axis--y').call(yAxis.scale(yt));
-                    offsetLineYt = t.rescaleY(trend.scaleY);
-                }
-
+                graph.select('.axis--y').call(yAxis.scale(yt));
+                
                 var line = d3.line()
                     .x(function (d) { return xt(d.x); })
                     .y(function (d) { return yt(d.y); })
@@ -451,11 +457,11 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
             });
 
-        if (offsetLineYt != undefined) {
-            renderOffsetLine();
-        }
+       
 
         currentVector = t;
+
+        resetOffsetLine();
 
         $state.go('.', {
             viewVector: JSON.stringify(t),
@@ -466,13 +472,16 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
     //offsetting trend
     function offsetting(t) {
+       
         var xt = t.rescaleX(x);
         
+        var activeTrendArray = activeTrend.split('+');
 
-        var line = graph.select('.run-group').select('.' + activeRunId + '.' + activeColumn).selectAll('.line');
+        var line = graph.select('.run-group').select('.' + $filter('componentIdClassFilter')(activeTrendArray[0]) + '.' + $filter('componentIdClassFilter')(activeTrendArray[1])).selectAll('.line');
         var yt;
 
         if (!line.empty()) {
+            
             line.attr('d', function (trend) {
                 yt = t.rescaleY(trend.scaleY);
                 var line = d3.line()
@@ -508,14 +517,19 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
     //render offsetLine
     function renderOffsetLine() {
-        offsetLine.attr('x1', offsetLineCoordinates.x1)
-            .attr('y1', offsetLineCoordinates.y1)
-            .attr('x2', offsetLineCoordinates.x2)
-            .attr('y2', offsetLineCoordinates.y2)
+
+        console.log(offsetLineCoordinates);
+        offsetLine.attr('x1', offsetLineCoordinates.x)
+            .attr('y1', offsetLineCoordinates.y)
+            .attr('x2', 10)
+            .attr('y2', 10)
             .style('stroke', 'rgb(255,0,0)')
             .style('stroke-width', '2')
     }
 
+
+
+    //needs looking at ASAP
 
     self.getActiveColumn = function () {
         return activeColumn;
@@ -525,12 +539,13 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         return activeRunId;
     }
 
-    self.setActiveColumn = function () {
-
+    self.setActiveColumn = function (column) {
+        activeTrend = column;
     }
 
-    self.setActiveRun = function () {
-
+    self.setActiveRun = function (runId) {
+        //activeRunId = runId;
+       
     }
 
 
