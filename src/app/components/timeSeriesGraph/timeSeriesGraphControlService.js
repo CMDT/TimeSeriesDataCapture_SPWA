@@ -1,4 +1,4 @@
-app.service('timeSeriesGraphControlService', ['$log', 'timeSeriesGraphService', 'timeSeriesAnnotationService', function ($log, timeSeriesGraphService, timeSeriesAnnotationService) {
+app.service('timeSeriesGraphControlService', ['$log', 'timeSeriesGraphServiceV2', 'timeSeriesAnnotationService', function ($log, timeSeriesGraphService, timeSeriesAnnotationService) {
 
     var self = this;
     var timeSeriesData;
@@ -17,7 +17,7 @@ app.service('timeSeriesGraphControlService', ['$log', 'timeSeriesGraphService', 
         }
 
         timeSeriesData = runs;
-        timeSeriesGraphService.graphInit(options); 
+        timeSeriesGraphService.graphInit(timeSeriesData,options); 
     }
 
     self.parseRunArray = function (runArray) {
@@ -96,7 +96,7 @@ app.service('timeSeriesGraphControlService', ['$log', 'timeSeriesGraphService', 
 
     self.setActiveColumn = function(columnName){
         timeSeriesGraphService.setActiveColumn(columnName);
-        timeSeriesGraphService.setOffsetLine(timeSeriesData,columnName);
+        //timeSeriesGraphService.setOffsetLine(timeSeriesData,columnName);
     }
 
     self.getActiveRun = function(){
@@ -108,7 +108,7 @@ app.service('timeSeriesGraphControlService', ['$log', 'timeSeriesGraphService', 
     }
 
     self.clearData = function(){
-        timeSeriesGraphService.clear();
+        //timeSeriesGraphService.clear();
         timeSeriesData = undefined;
     }
 

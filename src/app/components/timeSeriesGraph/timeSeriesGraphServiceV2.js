@@ -28,17 +28,22 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
     var xLock, yLock;
 
-    var trendLineColours;
+    var trendLineColours = ['#8cc2d0', '#152e34'];
 
     var options;
 
     var user;
 
-    self.graphInitialize = function (graphData, options) {
+    self.graphInit = function (graphData, graphOptions) {
+        console.log(graphData)
         ctrlDown = false;
         user = true;
         data = graphData;
-        options = options;
+        options = graphOptions;
+
+        console.log(options);
+        activeRunId = '2B497C4DAFF48A9C!178';
+        activeColumn = 'RTH';
 
         options.width = options.hasOwnProperty('width') ? options.width : 1300;
         options.height = options.hasOwnProperty('height') ? options.height : 600;
@@ -54,7 +59,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         }
 
         width = options.width - margin.left - margin.right;
-        height = options.height = margin.top - margin.bottom;
+        height = options.height - margin.top - margin.bottom;
 
         x = d3.scaleLinear().range([0, width]);
         y = d3.scaleLinear().range([height, 0]);
@@ -66,9 +71,9 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         currentVector = d3.zoomIdentity.scale(1).translate(0, 0);
 
         svg = d3.select('.graph-container')
-            .attr("width", w)
-            .attr("height", h)
-            .attr("viewBox", "0 0 " + w + ' ' + h)
+            .attr("width", options.width)
+            .attr("height", options.height)
+            .attr("viewBox", "0 0 " + options.width + ' ' + options.height)
             .attr("preserveAspectRatio", "xMinYMax meet");
 
         graph = svg
@@ -115,6 +120,18 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
             y2: 0
         }
 
+        graph.append("g")
+        .attr("class", "axis axis--x")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis);
+
+    graph.append("g")
+        .attr("class", "axis axis--y")
+        .call(yAxis)
+
+    graph.append('g')
+        .attr('class', 'run-group')
+
 
         if (options.axisLock) {
             axisLockInitialize();
@@ -123,6 +140,8 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         if (options.annotation) {
             annotationInitialize();
         }
+
+
     }
 
     function axisLockInitialize() {
@@ -195,7 +214,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
     //renders all annotations 
     function annotationRender(annotations, t) {
-        var xt = currentVector.rescaleX(x);
+        /*var xt = currentVector.rescaleX(x);
 
         var makeAnnotations = d3.annotation()
             .notePadding(15)
@@ -207,7 +226,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
             })
             .annotations(annotations)
             .on('subjectclick', annotationClick)
-        annotations.call(makeAnnotations);
+        annotations.call(makeAnnotations);*/
     }
 
     //renders annotation edit controls
@@ -238,28 +257,51 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         var xt = currentVector.rescaleX(x);
         var time = xt.invert(d3.event.x);
         annotationInEdit.data.Time = time;
-        annotationRender([annotationInEdit],currentVector);
+        annotationRender([annotationInEdit], currentVector);
     }
 
     //extract trend line data
-    function extractTrendLineData(runId, columnX, columnY) {
-        var runData = data.runId;
+    function extractTrendLineData(runId,columnY) {
+
+
+        var runData = [];
+
+        for (var i = 0; i < data.length; i++) {
+            if (data[i].id === runId) {
+                
+               runData = (data[i].values);
+            }
+        }
+
+        for(var i=0;i<runData.length;i++){
+            runData[i] = {
+                x: runData[i]['Time'],
+                y: runData[i][columnY]
+            }
+        }
+
+
+        console.log(runData);
+        return runData;
+
+       
 
         //NEED TO LOOK AT
     }
 
     //add trend line
-    self.addTrend = function (runId, columnX, columnY) {
-        var trendData = extractTrendLineData(runId, columnX, columnY);
-
-        var trend = timeSeriesTrendService.addTrend(id, columnY, d3.scaleLinear(), d3.scaleLinear(), 'Time', columnName, trendData);
-        trend.scaleY(range[height, 0]);
+    self.addTrend = function (runId, columnY) {
+        
+        var trendData = extractTrendLineData(runId, columnY);
+        console.log(trendData);
+        var trend = timeSeriesTrendService.addTrend(runId, columnY, d3.scaleLinear(), d3.scaleLinear(), 'Time', columnY, trendData);
+       
+        trend.scaleY.range([height, 0]);
         calculateYDomain(trend.scaleY, trend.data);
         calculateXDomain(x, trend.data);
 
-        var activeTrend = activeColumn.split('+');
 
-        if (runId == activeTrend[0] && columnY == activeTrend[1]) {
+        if (runId == activeRunId && columnY == activeColumn) {
             resetOffsetLine();
             renderOffsetLine();
         }
@@ -303,12 +345,12 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
     }
 
     //remove trend
-    self.removeTrend = function(id,columnName){
-        timeSeriesTrendService.removeTrend(id,columnName);
+    self.removeTrend = function (id, columnName) {
+        timeSeriesTrendService.removeTrend(id, columnName);
 
         var activeTrend = activeColumn.split('+');
 
-        if(id ==activeTrend[0] && columnName == activeTrend[1]){
+        if (id == activeTrend[0] && columnName == activeTrend[1]) {
             resetOffsetLine();
             renderOffsetLine();
         }
@@ -321,40 +363,45 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
     }
 
     //transition graph
-    self.transition = function (transitionVector,offsetVector){
-        svg.call(zoom).transition()
-            .duration(1500)
-            .call(zoom.transform,d3.zoomIdentity
-                .translate(transitionVector.x, transitionVector.y)
-                .scale(transitionVector.k)
-            ).on('end',function(){
-                user = false;
+    self.transition = function (transitionVector, offsetVector) {
 
-                var xO = transitionVector.x + offsetVector.x;
-                var yO = transitionVector.y + offsetVector.y;
+        if (transitionVector != undefined) {
+            svg.call(zoom).transition()
+                .duration(1500)
+                .call(zoom.transform, d3.zoomIdentity
+                    .translate(transitionVector.x, transitionVector.y)
+                    .scale(transitionVector.k)
+                ).on('end', function () {
+                    user = false;
 
-                svg.call(zoom).transition()
-                    .duration(1500)
-                    .call(zoom.transform,d3.zoomIdentity
-                        .translate(xO,yO)
-                        .scale(transitionVector.k)
-                ).on('end',function(){
-                    user = true;
-                })
-            });
+                    var xO = transitionVector.x + offsetVector.x;
+                    var yO = transitionVector.y + offsetVector.y;
+
+                    svg.call(zoom).transition()
+                        .duration(1500)
+                        .call(zoom.transform, d3.zoomIdentity
+                            .translate(xO, yO)
+                            .scale(transitionVector.k)
+                        ).on('end', function () {
+                            user = true;
+                        })
+                });
+        }
+
     }
 
     //when graph zooms
-    function zoomed(){
-        var t= d3.event.transform;
+    function zoomed() {
 
-        t.k= parseFloat((t.k).toFixed(2));
+        /*var t = d3.event.transform;
+
+        t.k = parseFloat((t.k).toFixed(2));
         t.x = parseFloat((t.x).toFixed(2));
         t.y = parseFloat((t.y).toFixed(2));
 
         var isZooming = currentVector.k != t.k;
 
-        if(options.lock){
+        if (options.axisLock) {
             var xIsLocked = (xLock.attr('locked') == 1);
             var yIsLocked = (yLock.attr('locked') == 1);
 
@@ -362,57 +409,92 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
             t.y = yIsLocked && !isZooming ? currentVector.y : t.y;
         }
 
-  
 
-        if(annotationInEdit != undefined){
-            annotationRender([annotationInEdit],t);
+
+        if (annotationInEdit != undefined) {
+            annotationRender([annotationInEdit], t);
             annotationControlsRender(t);
-        }else{
-            annotationRender(timeSeriesAnnotationService.getAnnotations(activeRunId),t);
+        } else {
+            annotationRender(timeSeriesAnnotationService.getAnnotations(activeRunId), t);
         }
 
-        if(ctrlDown || !user){
+        if (ctrlDown || !user) {
             offsetting(t);
-        }else{
-
-        }
+        } else {
+            panning(t);
+        }*/
     }
 
 
+    function panning(t) {
+        var offsetLineYt;
+        var xt = t.rescaleX(x);
+        graph.select('.axis--x').call(xAxis.scale(xt));
+        graph.selectAll('.line')
+            .attr('d', function (trend) {
+
+                var yt = t.rescaleY(trend.scaleY);
+
+
+                if (trend.id === activeRunId && trend.yLabel === activeColumn) {
+                    graph.select('.axis--y').call(yAxis.scale(yt));
+                    offsetLineYt = t.rescaleY(trend.scaleY);
+                }
+
+                var line = d3.line()
+                    .x(function (d) { return xt(d.x); })
+                    .y(function (d) { return yt(d.y); })
+
+
+                return line(trend.data)
+
+
+            });
+
+        if (offsetLineYt != undefined) {
+            renderOffsetLine();
+        }
+
+        currentVector = t;
+
+        $state.go('.', {
+            viewVector: JSON.stringify(t),
+            offsetVector: JSON.stringify({ x: 0, y: 0 })
+        })
+
+    }
 
     //offsetting trend
-    function offsetting(t){
+    function offsetting(t) {
         var xt = t.rescaleX(x);
-        var activeTrend = activeColumn.split('+');
-        var id = $filter('componentIdClassFilter')(activeTrend[0]);
-        var columnName = $filter('componentIdClassFilter')(activeTrend[1]);
+        
 
-        var line = graph.select('.run-group').select('.' + id + '.' + columnName).selectAll('.line');
+        var line = graph.select('.run-group').select('.' + activeRunId + '.' + activeColumn).selectAll('.line');
         var yt;
 
-        if(!line.empty()){
-            line.attr('d',function(trend){
+        if (!line.empty()) {
+            line.attr('d', function (trend) {
                 yt = t.rescaleY(trend.scaleY);
-                var line =d3.line()
-                    .x(function(d){return xt(d.x)})
-                    .y(function(d){return yt(d.y)})
+                var line = d3.line()
+                    .x(function (d) { return xt(d.x) })
+                    .y(function (d) { return yt(d.y) })
 
                 return line(trend.data);
             })
 
+            offsetLineCoordinates.x2 = xt(offsetLineCoordinates.x2);
+            offsetLineCoordinates.y2 = yt(offsetLineCoordinates.y2);
+
             var xDiffrence = t.x - currentVector.x;
             var yDiffrence = t.y - currentVector.y;
 
-            var offsetVector = {
-                x : xDiffrence,
-                y : yDiffrence
-            }
+            offsetVector = t;
 
-            $state.go('.',{
-                offsetVector: JSON.stringify(offsetVector)
+            $state.go('.', {
+                offsetVector: JSON.stringify({ x: xDiffrence, y: yDiffrence })
             })
 
-            
+
         }
     }
 
@@ -432,6 +514,23 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
             .attr('y2', offsetLineCoordinates.y2)
             .style('stroke', 'rgb(255,0,0)')
             .style('stroke-width', '2')
+    }
+
+
+    self.getActiveColumn = function () {
+        return activeColumn;
+    }
+
+    self.getActiveRun = function () {
+        return activeRunId;
+    }
+
+    self.setActiveColumn = function () {
+
+    }
+
+    self.setActiveRun = function () {
+
     }
 
 
