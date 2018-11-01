@@ -548,5 +548,19 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
        
     }
 
+    function offsetLine(point1 = [0,0],point2=[0,0],scaleX,scaleY){
+        this.point1 = point1;
+        this.point2 = point2;
+        this.scaleX = scaleX;
+        this.scaleY = scaleY;
+        this.render = function(node){
+            node.attr('x1',this.point1[0])
+            .attr('y1',this.point1[1])
+            .attr('x2',this.point2[0])
+            .attr('y2',this.point2[1])
+            .style('stroke','rgb(255,0,0)')
+        }
+    }
+
 
 }])
