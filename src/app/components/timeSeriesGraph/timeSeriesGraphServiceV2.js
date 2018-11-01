@@ -302,6 +302,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
             )
     }
 
+    //remove trend
     self.removeTrend = function(id,columnName){
         timeSeriesTrendService.removeTrend(id,columnName);
 
@@ -319,6 +320,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         //transition removed
     }
 
+    //transition graph
     self.transition = function (transitionVector,offsetVector){
         svg.call(zoom).transition()
             .duration(1500)
@@ -342,6 +344,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
             });
     }
 
+    //when graph zooms
     function zoomed(){
         var t= d3.event.transform;
 
@@ -369,12 +372,15 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         }
 
         if(ctrlDown || !user){
-
+            offsetting(t);
         }else{
 
         }
     }
 
+
+
+    //offsetting trend
     function offsetting(t){
         var xt = t.rescaleX(x);
         var activeTrend = activeColumn.split('+');
@@ -394,10 +400,23 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
                 return line(trend.data);
             })
 
+            var xDiffrence = t.x - currentVector.x;
+            var yDiffrence = t.y - currentVector.y;
+
+            var offsetVector = {
+                x : xDiffrence,
+                y : yDiffrence
+            }
+
+            $state.go('.',{
+                offsetVector: JSON.stringify(offsetVector)
+            })
+
             
         }
     }
 
+    //reset offsetLine (think about a class)
     function resetOffsetLine() {
         offsetLineCoordinates.x1 = 0;
         offsetLineCoordinates.x2 = 0;
@@ -405,6 +424,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         offsetLineCoordinates.y2 = 0;
     }
 
+    //render offsetLine
     function renderOffsetLine() {
         offsetLine.attr('x1', offsetLineCoordinates.x1)
             .attr('y1', offsetLineCoordinates.y1)
