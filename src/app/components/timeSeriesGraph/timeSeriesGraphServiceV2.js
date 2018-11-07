@@ -538,7 +538,27 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
                 .attr('x2', xScaler(this.xcoor))
                 .attr('y2', yScaler(this.ycoor))
                 .style('stroke', 'rgb('+this.colour+')')
-                .style('stroke-width',this.width )
+                .style('stroke-width',this.width)
+        }
+    }
+
+    function AnnotationGroup(parentNode){
+        this.group = parentNode.append('g').attr('class','annotation-group');
+        this.controls = parentNode.append('g').attr('class','annotation-control-group');
+        this.annotationRender = function(annotations,xScaler){
+            var makeAnnotations = d3.annoation()
+                .notePadding(15)
+                .type(d3.annoationBadge)
+                .accessors({
+                    x: d=> xScaler(d.Time),
+                    y: d=> -10
+                })
+                .annotations(annoations)
+            
+            this.group.call(makeAnnotations);
+        }
+        this.annotationClick = function(annotation){
+            
         }
     }
 
