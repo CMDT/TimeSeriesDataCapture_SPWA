@@ -538,7 +538,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
                 .attr('x2', xScaler(this.xcoor))
                 .attr('y2', yScaler(this.ycoor))
                 .style('stroke', 'rgb('+this.colour+')')
-                .style('stroke-width',this.width)
+                .style('stroke-width',this.width )
         }
     }
 
