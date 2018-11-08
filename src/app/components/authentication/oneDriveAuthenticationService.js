@@ -10,9 +10,6 @@ app.service('oneDriveAuthenticationService', ['$rootScope', '$log', '$http', '$w
         "authServiceUri": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
     }
 
-    var logged = false;
-
-
     $window.onAuthenticated = function (token, authWindow) {
         if (token) {
             if (authWindow) {
