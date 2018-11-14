@@ -41,10 +41,12 @@ app.service('timeSeriesGraphControlService', ['$log', 'timeSeriesGraphServiceV2'
 
     self.createAnnotation = function (annotationGroupId, annotation) {
         var data = {
-            Time: annotation.xcoordinate,
+            Time: annotation.position,
             description: annotation.description,
             groupId: annotationGroupId
         }
+
+        
         
         timeSeriesAnnotationService.addAnnotation(annotationGroupId, annotation.id, data, undefined);
     }
