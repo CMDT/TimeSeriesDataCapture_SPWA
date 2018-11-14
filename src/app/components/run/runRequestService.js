@@ -41,5 +41,24 @@ app.service('runRequestService', ['$rootScope', '$log', '$http', function ($root
         })
     }
 
+    self.deleteRun = function (components) {
+        return new Promise(function (resolve, reject) {
+            var config = {
+                headers: {},
+            }
+
+            config.headers.Authorization = 'Bearer ' + localStorage.getItem('accessToken');
+
+
+            var url = $rootScope.url + '/apis/components/' + components[0];
+            $log.log(url);
+
+            $http.delete(url, config).then(function (result) {
+                resolve(result);
+            });
+        })
+
+    }
+
 
 }])
