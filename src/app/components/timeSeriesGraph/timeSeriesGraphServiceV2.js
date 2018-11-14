@@ -141,36 +141,8 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
     }
 
     function axisLockInitialize() {
-        /*yLock = svg.append('g')
-            .attr('transform', 'translate(' + (margin.left * 0.85) + ',' + (margin.top * 0.6) + ')')
-            .attr('class', 'y-lock')
-            .attr('locked', 0)
-
-        yLock.append('svg:image')
-            .attr('xlink:href', './assets/img/lock_unlocked.svg')
-            .attr('width', '30')
-            .attr('height', '30')
-            .on('click', function () {
-                lockToggle(yLock);
-            });
-
-        xLock = svg.append('g')
-            .attr('transform', 'translate(' + (width + margin.left * 1.2) + ',' + (height + margin.top * 0.8) + ')')
-            .attr('class', 'x-lock')
-            .attr('locked', 0)
-
-        xLock.append('svg:image')
-            .attr('xlink:href', './assets/img/lock_unlocked.svg')
-            .attr('width', '30')
-            .attr('height', '30')
-            .on('click', function () {
-                lockToggle(xLock);
-            });*/
-
-
         yLock = new Lock('y-lock', svg, 30, 30, (margin.left * 0.85), (margin.top * 0.6));
         xLock = new Lock('x-lock', svg, 30, 30, (width + margin.left * 1.2), (height + margin.top * 0.8));
-
     }
 
     function annotationInitialize() {
@@ -362,14 +334,12 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         var id = $filter('componentIdClassFilter')(id);
         var columnName = $filter('componentIdClassFilter')(columnName);
         graph.select('.run-group').select('.' + id + '.' + columnName).remove();
-
-        //transition removed
     }
 
     //transition graph
     self.transition = function (transitionVector, offsetVector) {
 
-        if (transitionVector != undefined) {
+        if (transitionVector) {
             svg.call(zoom).transition()
                 .duration(1500)
                 .call(zoom.transform, d3.zoomIdentity
@@ -387,6 +357,8 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
                             .translate(xO, yO)
                             .scale(transitionVector.k)
                         ).on('end', function () {
+                            user = true;
+                        }).on('interrupt',function(){
                             user = true;
                         })
                 });
@@ -406,13 +378,10 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
         var isZooming = currentVector.k != t.k;
 
-        /*if (options.axisLock) {
-            var xIsLocked = (xLock.attr('locked') == 1);
-            var yIsLocked = (yLock.attr('locked') == 1);
-
-            t.x = xIsLocked && !isZooming ? currentVector.x : t.x;
-            t.y = yIsLocked && !isZooming ? currentVector.y : t.y;
-        }*/
+        if (options.axisLock) {
+            t.x = xLock.locked() && !isZooming ? currentVector.x : t.x;
+            t.y = yLock.locked() && !isZooming ? currentVector.y : t.y;
+        }
 
 
 
@@ -457,15 +426,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
 
             });
-
-
-
-
-
-
         currentVector = t;
-
-
 
         $state.go('.', {
             viewVector: JSON.stringify(t),
@@ -494,8 +455,6 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
                 return line(trend.data);
             })
 
-
-
             var xDiffrence = t.x - currentVector.x;
             var yDiffrence = t.y - currentVector.y;
 
@@ -505,8 +464,6 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
                 offsetVector: JSON.stringify({ x: xDiffrence, y: yDiffrence })
             })
             offsetLine.renderWhenOffsetting(xt, yt);
-
-
         }
     }
 
@@ -589,24 +546,26 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         this.transY = transY;
         this.axisLabel = axisLabel;
         this.lockToggle = function () {
-            console.log(axisLabel);
-            var lock = (parentNode.select('.' + axisLabel));
+            console.log(this.locked);
+            var lock = parentNode.select('.' + axisLabel);
             var image = lock.select('image');
-
-            if (this.locked) {
-                this.locked = false;
-                image.attr('xlink:href', './assets/img/lock_locked.svg');
-            } else {
-                this.locked = true;
-                image.attr('xlink:href', './assets/img/lock_unlocked.svg')
-            }
+            var locked = (lock.attr('locked') == 1)
+            locked ? image.attr('xlink:href', './assets/img/lock_unlocked.svg') : image.attr('xlink:href', './assets/img/lock_locked.svg')
+            locked ? locked = 0 : locked = 1;
+            lock.attr('locked', locked);
         }
         this.node = parentNode.append('g').attr('transform', 'translate(' + transX + ',' + transY + ')').attr('class', axisLabel).append('svg:image')
             .attr('xlink:href', './assets/img/lock_unlocked.svg')
             .attr('width', lockWidth)
             .attr('height', lockHeight)
+            .attr('locked',0)
             .on('click', this.lockToggle)
-        this.locked = false;
+        this.locked = function(){
+            var lock = parentNode.select('.' + axisLabel);
+            var locked = (lock.attr('locked') == 1);
+            return locked;
+        }
+       
     }
 
     function AnnotationGroup(parentNode) {
@@ -620,7 +579,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
                     x: d => xScaler(d.Time),
                     y: d => -10
                 })
-                .annotations(annoations)
+                .annotations(annotations)
 
             this.group.call(makeAnnotations);
         }
