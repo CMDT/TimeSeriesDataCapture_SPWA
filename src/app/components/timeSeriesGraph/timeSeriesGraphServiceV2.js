@@ -34,7 +34,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
     var user;
 
-    
+
 
     self.graphInit = function (graphData, graphOptions) {
         console.log(graphData)
@@ -49,7 +49,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         options.width = options.hasOwnProperty('width') ? options.width : 1300;
         options.height = options.hasOwnProperty('height') ? options.height : 600;
         options.urlState = options.hasOwnProperty('urlState') ? options.urlState : false;
-        options.axisLock = options.hasOwnProperty('axisLock') ? options.axisLock : false;
+        options.axisLock = options.hasOwnProperty('axisLock') ? options.axisLock : true;
         options.annotation = options.hasOwnProperty('annotation') ? options.annotation : false;
 
         margin = options.hasOwnProperty('margin') ? options.margin : {
@@ -110,9 +110,9 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
             .attr("width", width)
             .attr("height", height);
 
-   
 
-        offsetLine = new OffsetLine(graph,0,0);
+
+        offsetLine = new OffsetLine(graph, 0, 0, 420, 970);
 
 
 
@@ -141,7 +141,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
     }
 
     function axisLockInitialize() {
-        yLock = svg.append('g')
+        /*yLock = svg.append('g')
             .attr('transform', 'translate(' + (margin.left * 0.85) + ',' + (margin.top * 0.6) + ')')
             .attr('class', 'y-lock')
             .attr('locked', 0)
@@ -165,7 +165,12 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
             .attr('height', '30')
             .on('click', function () {
                 lockToggle(xLock);
-            });
+            });*/
+
+
+        yLock = new Lock('y-lock', svg, 30, 30, (margin.left * 0.85), (margin.top * 0.6));
+        xLock = new Lock('x-lock', svg, 30, 30, (width + margin.left * 1.2), (height + margin.top * 0.8));
+
     }
 
     function annotationInitialize() {
@@ -258,7 +263,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         annotationRender([annotationInEdit], currentVector);
     }
 
-    function annotationClick(annotation){
+    function annotationClick(annotation) {
         annotationInEdit = annotation;
         showAnnotation(annotation);
     }
@@ -350,8 +355,8 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         var activeTrend = activeTrend.split('+');
 
         if (id == activeTrend[0] && columnName == activeTrend[1]) {
-           
-         
+
+
         }
 
         var id = $filter('componentIdClassFilter')(id);
@@ -401,13 +406,13 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
         var isZooming = currentVector.k != t.k;
 
-        if (options.axisLock) {
+        /*if (options.axisLock) {
             var xIsLocked = (xLock.attr('locked') == 1);
             var yIsLocked = (yLock.attr('locked') == 1);
 
             t.x = xIsLocked && !isZooming ? currentVector.x : t.x;
             t.y = yIsLocked && !isZooming ? currentVector.y : t.y;
-        }
+        }*/
 
 
 
@@ -441,8 +446,8 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
                 yt = t.rescaleY(trend.scaleY);
 
                 graph.select('.axis--y').call(yAxis.scale(yt));
-              
-                offsetLine.renderWhenPanning(xt,yt);
+
+                offsetLine.renderWhenPanning(xt, yt);
                 var line = d3.line()
                     .x(function (d) { return xt(d.x); })
                     .y(function (d) { return yt(d.y); })
@@ -452,6 +457,9 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
 
             });
+
+
+
 
 
 
@@ -468,7 +476,6 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
     //offsetting trend
     function offsetting(t) {
-
         var xt = t.rescaleX(x);
 
         var activeTrendArray = activeTrend.split('+');
@@ -497,8 +504,8 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
             $state.go('.', {
                 offsetVector: JSON.stringify({ x: xDiffrence, y: yDiffrence })
             })
-            offsetLine.renderWhenOffsetting(xt,yt);
-          
+            offsetLine.renderWhenOffsetting(xt, yt);
+
 
         }
     }
@@ -517,54 +524,114 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
     }
 
-   
 
 
-    function OffsetLine(parentNode, xcoor = 0, ycoor = 0, colour = '255,0,0',width='2') {
+
+    function OffsetLine(parentNode, xcoor = 0, ycoor = 0, boundyHeight, boundryWidth, colour = '255,0,0', width = '2') {
         this.node = parentNode.append('g').attr('class', 'offset-line').append('line');
         this.xcoor = xcoor,
-        this.ycoor = ycoor,
-        this.colour = colour,
-        this.width = width,
+            this.ycoor = ycoor,
+            this.colour = colour,
+            this.width = width,
+            this.boundryHeight = boundyHeight;
+        this.boundryWidth = boundryWidth;
         this.renderWhenOffsetting = function (xScaler, yScaler) {
-            this.node.attr('x2', xScaler(this.xcoor))
-                .attr('y2', yScaler(this.ycoor))
-                .style('stroke', 'rgb(255,0,0)')
-                .style('stroke-width', '2')
+            var xPoint = xScaler(this.xcoor);
+            var yPoint = yScaler(this.ycoor);
+
+            if (yPoint > this.boundryHeight) {
+                yPoint = this.boundryHeight;
+            } else if (yPoint < 0) {
+                yPoint = 0;
             }
+
+            if (xPoint > this.boundryWidth) {
+                xPoint = this.boundryWidth;
+            } else if (xPoint < 0) {
+                xPoint = 0;
+            }
+
+            this.node.attr('x2', xPoint)
+                .attr('y2', yPoint);
+            this.node.style('stroke', 'rgb(255,0,0)')
+                .style('stroke-width', '2');
+        }
         this.renderWhenPanning = function (xScaler, yScaler) {
-            this.node.attr('x1', xScaler(this.xcoor))
-                .attr('y1', yScaler(this.ycoor))
-                .attr('x2', xScaler(this.xcoor))
-                .attr('y2', yScaler(this.ycoor))
-                .style('stroke', 'rgb('+this.colour+')')
-                .style('stroke-width',this.width)
+
+            var xPoint = xScaler(this.xcoor);
+            var yPoint = yScaler(this.ycoor);
+
+            if (yPoint > this.boundryHeight) {
+                yPoint = this.boundryHeight;
+            } else if (yPoint < 0) {
+                yPoint = 0;
+            }
+
+            if (xPoint > this.boundryWidth) {
+                xPoint = this.boundryWidth;
+            } else if (xPoint < 0) {
+                xPoint = 0;
+            }
+
+            this.node.attr('x1', xPoint)
+                .attr('y1', yPoint)
+                .attr('x2', xPoint)
+                .attr('y2', yPoint);
+            this.node.style('stroke', 'rgb(255,0,0)')
+                .style('stroke-width', '2');
         }
     }
 
-    function AnnotationGroup(parentNode){
-        this.group = parentNode.append('g').attr('class','annotation-group');
-        this.controls = parentNode.append('g').attr('class','annotation-control-group');
-        this.annotationRender = function(annotations,xScaler){
+    function Lock(axisLabel, parentNode, lockWidth, lockHeight, transX, transY) {
+        this.lockWidth = lockWidth;
+        this.lockHeight = lockHeight;
+        this.transX = transX;
+        this.transY = transY;
+        this.axisLabel = axisLabel;
+        this.lockToggle = function () {
+            console.log(axisLabel);
+            var lock = (parentNode.select('.' + axisLabel));
+            var image = lock.select('image');
+
+            if (this.locked) {
+                this.locked = false;
+                image.attr('xlink:href', './assets/img/lock_locked.svg');
+            } else {
+                this.locked = true;
+                image.attr('xlink:href', './assets/img/lock_unlocked.svg')
+            }
+        }
+        this.node = parentNode.append('g').attr('transform', 'translate(' + transX + ',' + transY + ')').attr('class', axisLabel).append('svg:image')
+            .attr('xlink:href', './assets/img/lock_unlocked.svg')
+            .attr('width', lockWidth)
+            .attr('height', lockHeight)
+            .on('click', this.lockToggle)
+        this.locked = false;
+    }
+
+    function AnnotationGroup(parentNode) {
+        this.group = parentNode.append('g').attr('class', 'annotation-group');
+        this.controls = parentNode.append('g').attr('class', 'annotation-control-group');
+        this.annotationRender = function (annotations, xScaler) {
             var makeAnnotations = d3.annoation()
                 .notePadding(15)
                 .type(d3.annoationBadge)
                 .accessors({
-                    x: d=> xScaler(d.Time),
-                    y: d=> -10
+                    x: d => xScaler(d.Time),
+                    y: d => -10
                 })
                 .annotations(annoations)
-            
+
             this.group.call(makeAnnotations);
         }
-        this.annotationClick = function(annotation){
-            
+        this.annotationClick = function (annotation) {
+
         }
     }
 
-   
 
-    
+
+
 
 
     //needs looking at ASAP

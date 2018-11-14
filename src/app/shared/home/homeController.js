@@ -13,6 +13,7 @@ app.controller('homeController', ['$scope', '$rootScope', '$filter', '$log', '$m
         $log.log('search query ' + query);
         $scope.loading = true;
         searchPageService.search(query).then(function (result) {
+            $log.log('Search Result',result);
             $scope.results = result;
             $scope.loading = false;
             $scope.$apply();
