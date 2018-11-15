@@ -5,50 +5,80 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
     //data for all graphs currently being viewed
     var data;
 
-    var annotationInEdit;
-
+    //current activeRun and activeColumn
     var activeRunId, activeColumn;
 
+    //current activeTrend
     var activeTrend;
 
+    //graph margins, width and height
     var margin, width, height;
 
+    //offsetline to show how much the active trend is offset
     var offsetLine;
 
+    //d3 x and y scales
     var x, y, z;
 
+    //d3 x and y axises
     var xAxis, yAxis;
 
+    //offsetVector : vector(scale,x,y) for the active trend (which can be offset)
+    //currentVector : vector(scale,x,y) for the non-active trends 
     var offsetVector, currentVector;
 
+    //d3 zoom
     var zoom;
 
+    //svg and graph html node
     var svg, graph;
 
+    //xLock button to lock the x-axis
+    //yLock button to lock the y-axis
     var xLock, yLock;
 
     var trendLineColours = ['#8cc2d0', '#152e34'];
 
+    //options set for the graph
     var options;
 
+    //who is panning/zooming the graph (user or code)
     var user;
 
+    //objects holds all annotations to render
     var annotationGroupObject;
+    //add new annotation button
     var annotationAddButton;
 
+    //init the graph (setting everything up)
+    //
+    // GRAPHDATA:
+    //          graphData is an array of runs, each element is an object holding an array of 'values'
+    //          each element in values must be an object having 2 elements x and y
+    //          example:
+    //          [{[{x : 0, y:-1}]}]
+    //
+    // GRAPHOPTIONS:
+    //         annotation: displays graph annotations (defaults to false)
+    //         axisLock : able locks axises (defaults to true)
+    //         urlState : maintain graph in url (defaults to false)
+    //         height : graph height (defaults to 600px)
+    //         width : graph width (deafults to 1300px)
     self.graphInit = function (graphData, graphOptions) {
-        console.log(graphData)
+        console.log(graphOptions)
         ctrlDown = false;
         user = true;
         data = graphData;
         options = graphOptions;
 
+        //setup options
         options.width = options.hasOwnProperty('width') ? options.width : 1300;
         options.height = options.hasOwnProperty('height') ? options.height : 600;
         options.urlState = options.hasOwnProperty('urlState') ? options.urlState : false;
         options.axisLock = options.hasOwnProperty('axisLock') ? options.axisLock : true;
         options.annotation = options.hasOwnProperty('annotation') ? options.annotation : false;
 
+        //setup margin
         margin = options.hasOwnProperty('margin') ? options.margin : {
             top: 110,
             right: 170,
@@ -59,33 +89,41 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         width = options.width - margin.left - margin.right;
         height = options.height - margin.top - margin.bottom;
 
+        //setup d3 scales
         x = d3.scaleLinear().range([0, width]);
         y = d3.scaleLinear().range([height, 0]);
 
+        //setup d3 axis
         xAxis = d3.axisBottom(x);
         yAxis = d3.axisLeft(y);
 
+        //setup vectors to starting vectors
         offsetVector = d3.zoomIdentity.scale(1).translate(0, 0);
         currentVector = d3.zoomIdentity.scale(1).translate(0, 0);
 
+        //setup svg graph container
         svg = d3.select('.graph-container')
             .attr("width", options.width)
             .attr("height", options.height)
             .attr("viewBox", "0 0 " + options.width + ' ' + options.height)
             .attr("preserveAspectRatio", "xMinYMax meet");
 
+        //setup graph
         graph = svg
             .append("g")
             .attr('class', 'graph')
             .attr("transform",
                 "translate(" + margin.left + "," + margin.top + ")");
 
+        //setup d3 zoom
         zoom = d3.zoom()
             .on('zoom', zoomed);
 
+        //disable double click to zoom
         svg.call(zoom)
             .on("dblclick.zoom", null);
 
+        //detect when ctrl key is pressed
         d3.select('body')
             .on('keydown', function () {
                 $log.log(d3.event.keyCode);
@@ -101,14 +139,17 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
                 }
             });
 
+        //apply clipping path (used to stop graph being render out of the axis bounds)
         svg.append("defs").append("clipPath")
             .attr("id", "clip")
             .append("rect")
             .attr("width", width)
             .attr("height", height);
 
+        //setup offsetline
         offsetLine = new OffsetLine(graph, 0, 0, 420, 970);
 
+        //append y and x axis
         graph.append("g")
             .attr("class", "axis axis--x")
             .attr("transform", "translate(0," + height + ")")
@@ -121,25 +162,31 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         graph.append('g')
             .attr('class', 'run-group')
 
+        //setup axis lock
         if (options.axisLock) {
             axisLockInitialize();
         }
 
+        //setup annotations
         if (options.annotation) {
             annotationInitialize();
         }
     }
 
+    //craetes two axis locks, one for y and one for x
     function axisLockInitialize() {
         yLock = new Lock('y-lock', svg, 30, 30, (margin.left * 0.85), (margin.top * 0.6));
         xLock = new Lock('x-lock', svg, 30, 30, (width + margin.left * 1.2), (height + margin.top * 0.8));
     }
 
+    //creates annotationGroupObject to hold all annotations
+    //creates annotationAddButton to add new annotations =
     function annotationInitialize() {
         annotationGroupObject = new AnnotationGroup(graph);
         annotationAddButton = new AddAnnotationButton(svg, 30, 30, (width + margin.left * 1.2), (margin.top * 0.8));
     }
 
+    //calculate the x domain (largest and smallest values in the x data)
     function calculateXDomain(scale, data) {
         scale.domain([
             d3.min(data, function (d) {
@@ -151,6 +198,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         ])
     }
 
+    //calculate the y domain (largest and smallest values in the y data)
     function calculateYDomain(scale, data) {
         scale.domain([
             d3.min(data, function (d) {
@@ -185,7 +233,9 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         return runData;
     }
 
-    //add trend line
+    //Adds a new trend line
+    //  runId which run does the trend belong to
+    //  columnY  
     self.addTrend = function (runId, columnY) {
 
         var trendData = extractTrendLineData(runId, columnY);
@@ -307,14 +357,9 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         } else {
             panning(t);
         }
+        var active = activeTrend.split('+')
+        annotationGroupObject.render(timeSeriesAnnotationService.getAnnotations(active[0]), x, offsetVector);
 
-        if (annotationInEdit != undefined) {
-            annotationRender([annotationInEdit]);
-            annotationControlsRender(t);
-        } else {
-            var active = activeTrend.split('+')
-            annotationGroupObject.render(timeSeriesAnnotationService.getAnnotations(active[0]), x, offsetVector);
-        }
     }
 
 
@@ -506,18 +551,18 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
             .attr('xlink:href', './assets/img/add.svg')
             .attr('width', buttonWidth)
             .attr('height', buttonHeight)
-            .on('click',function(){
+            .on('click', function () {
                 AddAnnotationButton.click();
             })
-            this.click = function () {
-                var newAnnotation = timeSeriesAnnotationService.addAnnotation(activeRunId, undefined, { Time: 500, description: "", groupId: activeRunId }, undefined);
-                annotationsService.addAnnotations(activeRunId, [{ id: newAnnotation.id, description: newAnnotation.data.description, xcoordinate: newAnnotation.data.Time }]);
-                parentNode.call(zoom).transition()
+        this.click = function () {
+            var newAnnotation = timeSeriesAnnotationService.addAnnotation(activeRunId, undefined, { Time: 500, description: "", groupId: activeRunId }, undefined);
+            annotationsService.addAnnotations(activeRunId, [{ id: newAnnotation.id, description: newAnnotation.data.description, xcoordinate: newAnnotation.data.Time }]);
+            parentNode.call(zoom).transition()
                 .duration(1500)
                 .call(zoom.transform, d3.zoomIdentity
-                    .translate(1,1)
+                    .translate(1, 1)
                 )
-            }
+        }
     }
 
 
