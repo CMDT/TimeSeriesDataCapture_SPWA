@@ -89,7 +89,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         width = options.width - margin.left - margin.right;
         height = options.height - margin.top - margin.bottom;
 
-        //setup d3 scales
+        //setup d3 scales and ranges 
         x = d3.scaleLinear().range([0, width]);
         y = d3.scaleLinear().range([height, 0]);
 
@@ -235,30 +235,36 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
     //Adds a new trend line
     //  runId which run does the trend belong to
-    //  columnY  
+    //  columnY which column does the trend belong to (e.g. voltage) 
     self.addTrend = function (runId, columnY) {
 
         var trendData = extractTrendLineData(runId, columnY);
 
+        //create new trend
         var trend = timeSeriesTrendService.addTrend(runId, columnY, d3.scaleLinear(), d3.scaleLinear(), 'Time', columnY, trendData);
-
+        //setup new trend range
         trend.scaleY.range([height, 0]);
+        //setup new trends domains
         calculateYDomain(trend.scaleY, trend.data);
         calculateXDomain(x, trend.data);
 
-
+        //get active trend
         var activeTrendArray = activeTrend.split('+');
 
+        //if new trend added is the active trend reset offsetLine co-ordinates
         if (runId == activeTrendArray[0] && columnY == activeTrendArray[1]) {
 
             offsetLine.xcoor = trend.data[0].x;
             offsetLine.ycoor = trend.data[0].y;
         }
 
+        //create linear transition of 750 seconds 
         var transition = d3.transition().duration(750).ease(d3.easeLinear);
+        //rescale the axis to show the new trend
         graph.select('.axis--x').transition(transition).call(xAxis.scale(x));
         graph.select('.axis--y').transition(transition).call(yAxis.scale(trend.scaleY));
 
+        //add new trend to the graph DOM
         var run = graph.select('.run-group')
             .selectAll('run')
             .data([trend])
@@ -272,12 +278,9 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         var trendLength = (timeSeriesTrendService.getTrends().length - 1) % trendLineColours.length;
         var trendColour = trendLineColours[trendLength];
 
-        //IS COLUMN NEEDED
+        //add trend data to the run 
         run.append('path')
             .attr('class', 'line')
-            .attr('column', function (trend) {
-                return trend.yLabel;
-            })
             .attr('d', function (trend) {
                 var line = d3.line()
                     .x(function (d) { return x(d.x); })
@@ -286,6 +289,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
             })
             .style('stroke', trendColour)
 
+        //transition the graph to show the new trend
         svg.call(zoom).transition()
             .call(zoom.transform, d3.zoomIdentity
                 .scale(1)
@@ -309,8 +313,10 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         graph.select('.run-group').select('.' + id + '.' + columnName).remove();
     }
 
-    //transition graph
+    //Transitions the graph and offsets the active trend by the given vectors
+    // vector is an object containing 3 elemets : K (scale), x & y
     self.transition = function (transitionVector, offsetVector) {
+        console.log('TRANSITION VECTOR',transitionVector);
         if (transitionVector) {
             svg.call(zoom).transition()
                 .duration(1500)
@@ -337,37 +343,54 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         }
     }
 
-    //when graph zooms
+    //When user either zooms or pans the graph
     function zoomed() {
+        //get the d3 event transformation 
         var t = d3.event.transform;
 
+        //two decimal places only
         t.k = parseFloat((t.k).toFixed(2));
         t.x = parseFloat((t.x).toFixed(2));
         t.y = parseFloat((t.y).toFixed(2));
 
+        //check if user is zooming or panning
+        //by checking the scale of the previous vector (current vector) to scale of this vector
+        //true if zooming false if not
         var isZooming = currentVector.k != t.k;
 
+        //checks if axis lock is enabled
         if (options.axisLock) {
+            //if x axis lock is enabled set x to the pevious vector x component
             t.x = xLock.locked() && !isZooming ? currentVector.x : t.x;
+            //if y axis lock is enabled set y to the pevious vector x component
             t.y = yLock.locked() && !isZooming ? currentVector.y : t.y;
         }
 
+        //if ctrl key is pressed or code is transforming the graph
+        //the graph is being offset
         if (ctrlDown || !user) {
             offsetting(t);
         } else {
             panning(t);
         }
+
+        //render active trends annotations
         var active = activeTrend.split('+')
         annotationGroupObject.render(timeSeriesAnnotationService.getAnnotations(active[0]), x, offsetVector);
 
     }
 
 
+    //Panning the graph 
     function panning(t) {
+        //d3 rescale x scale
         var xt = t.rescaleX(x);
         var yt;
+
+        //rescale the x axis
         graph.select('.axis--x').call(xAxis.scale(xt));
 
+        //for each line (each run column) re-render
         graph.selectAll('.line')
             .attr('d', function (trend) {
 
@@ -382,9 +405,12 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
                 return line(trend.data)
             });
 
+        //set current vector
         currentVector = t;
+        // when user pans the offset graph position is reset back to the current vectors positions
         offsetVector = t;
 
+        //update the url state
         $state.go('.', {
             viewVector: JSON.stringify(t),
             offsetVector: JSON.stringify({ x: 0, y: 0 })
