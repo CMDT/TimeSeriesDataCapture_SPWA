@@ -417,16 +417,19 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         })
     }
 
-    //offsetting trend
+    //Offsetting thr active trend
     function offsetting(t) {
+        //d3 rescale y axis
         var xt = t.rescaleX(x);
 
+        //get active trend line
         var activeTrendArray = activeTrend.split('+');
-
         var line = graph.select('.run-group').select('.' + $filter('componentIdClassFilter')(activeTrendArray[0]) + '.' + $filter('componentIdClassFilter')(activeTrendArray[1])).selectAll('.line');
         var yt;
 
+        //check if there is a active trend
         if (!line.empty()) {
+            //only re-render the active trend
             line.attr('d', function (trend) {
                 yt = t.rescaleY(trend.scaleY);
                 var line = d3.line()
@@ -436,18 +439,29 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
                 return line(trend.data);
             })
 
+            //find the difference between the offset vector and current vector, to store in the url
             var xDiffrence = t.x - currentVector.x;
             var yDiffrence = t.y - currentVector.y;
 
             offsetVector = t;
 
+            //update url state
             $state.go('.', {
                 offsetVector: JSON.stringify({ x: xDiffrence, y: yDiffrence })
             })
+            //render offsetline
             offsetLine.renderWhenOffsetting(xt, yt);
         }
     }
 
+    //Offsetline used to indicate when distance between the offset active trend and its original position
+    //  parentNode : which DOM element to attach the line
+    //  xcoor : starting x coordinate of the line (defaults to 0)
+    //  ycoor : starting y coordinate of the line (defaults to 0)
+    //  boundryHeight : the height of the graph (renders the line only within the axis)
+    //  boundryWidth : the width of the graph 
+    //  colour : colour of the offsetline (defaults to red)
+    //  width : thickness of the offsetline (defaults to 2)
     function OffsetLine(parentNode, xcoor = 0, ycoor = 0, boundyHeight, boundryWidth, colour = '255,0,0', width = '2') {
         this.node = parentNode.append('g').attr('class', 'offset-line').append('line');
         this.xcoor = xcoor,
