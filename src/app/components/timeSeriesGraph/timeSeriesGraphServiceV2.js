@@ -36,17 +36,12 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
     var annotationGroupObject;
 
-
-
     self.graphInit = function (graphData, graphOptions) {
         console.log(graphData)
         ctrlDown = false;
         user = true;
         data = graphData;
         options = graphOptions;
-
-
-
 
         options.width = options.hasOwnProperty('width') ? options.width : 1300;
         options.height = options.hasOwnProperty('height') ? options.height : 600;
@@ -112,11 +107,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
             .attr("width", width)
             .attr("height", height);
 
-
-
         offsetLine = new OffsetLine(graph, 0, 0, 420, 970);
-
-
 
         graph.append("g")
             .attr("class", "axis axis--x")
@@ -130,7 +121,6 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         graph.append('g')
             .attr('class', 'run-group')
 
-
         if (options.axisLock) {
             axisLockInitialize();
         }
@@ -138,8 +128,6 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         if (options.annotation) {
             annotationInitialize();
         }
-
-
     }
 
     function axisLockInitialize() {
@@ -189,60 +177,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         ])
     }
 
-    //renders all annotations 
-    function annotationRender(annotations) {
-        var xt = currentVector.rescaleX(x);
-
-        var makeAnnotations = d3.annotation()
-            .notePadding(15)
-            .type(d3.annotationBadge)
-            .accessors({
-                x: d => xt(d.Time),
-                y: d => -10
-
-            })
-            .annotations(annotations)
-            .on('subjectclick', annotationClick)
-        annotationGroup.call(makeAnnotations);
-    }
-
-    //renders annotation edit controls
-
-
-    function annotationControlsRender(t) {
-        var xt = currentVector.rescaleX(x);
-
-        var annotationInEditId = annotationControls.select('g').attr('id');
-        annotationControls.selectAll('g')
-            .each(function (d) {
-                var image = d3.select(this).select('image');
-                var imageWidth = image.attr('width');
-                //TAKE A LOOK CAN I USE ANNOTATION IN EDIT INSTEAD
-                var annotationInEdit = timeSeriesAnnotationService.getAnnotation(activeRunId, annotationInEditId);
-                var x = xt(annotationBadge.data.Time);
-                image.attr('x', (x - (imageWidth / 2)));
-            })
-    }
-
-    //drags annotation in edit
-    function annotationInEditDrag() {
-        annotationControls.selectAll('g')
-            .each(function (d) {
-                var image = d3.select(this).select('image');
-                var imageWidth = image.attr('width');
-                image.att('x', (d3.event.x - (imageWidth / 2)));
-            })
-
-        var xt = currentVector.rescaleX(x);
-        var time = xt.invert(d3.event.x);
-        annotationInEdit.data.Time = time;
-        annotationRender([annotationInEdit], currentVector);
-    }
-
-    function annotationClick(annotation) {
-        annotationInEdit = annotation;
-        showAnnotation(annotation);
-    }
+   
 
     //extract trend line data
     function extractTrendLineData(runId, columnY) {
@@ -475,23 +410,6 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         }
     }
 
-    function showAnnotation() {
-
-        /*annotationPreviewService.showAnnotationPreviewPanel(annotationInEdit)
-            .then(function (result) {
-                annotationClickEdit(result);
-                annotationBadgeRender([annotationInEdit]);
-            }).catch(function () {
-                annotationInEdit = undefined;
-
-                annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId));
-            });*/
-
-    }
-
-
-
-
     function OffsetLine(parentNode, xcoor = 0, ycoor = 0, boundyHeight, boundryWidth, colour = '255,0,0', width = '2') {
         this.node = parentNode.append('g').attr('class', 'offset-line').append('line');
         this.xcoor = xcoor,
@@ -580,12 +498,14 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         this.group = parentNode.append('g').attr('class', 'annotation-group');
         this.controls = parentNode.append('g').attr('class', 'annotation-control-group');
         this.annotationInEdit = null;
-        this.annotationClick1 = function (group, annotation, axis, vector) {
-            
+        this.annotationClick = function (group, annotation, axis, vector) {
+            var annotationGroup = this;
             annotation = timeSeriesAnnotationService.getAnnotation(annotation.data.groupId, annotation.id);
             group.annotationInEdit = annotation;
             
-            annotation.click(group.controls,axis,vector);
+            annotation.click(group.controls,axis,vector,function(){
+                annotationGroup.annotationInEdit = null
+            });
         }
         this.render = function (annotations, axis, vector) {
             if (this.annotationInEdit) {
@@ -604,7 +524,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
                 .annotations(annotations)
                 .on('subjectclick', function (annotation) {
                     if (!annotationGroup.annotationInEdit) {
-                        annotationGroup.annotationClick1(annotationGroup, annotation, axis, vector);
+                        annotationGroup.annotationClick(annotationGroup, annotation, axis, vector);
                     }
                 });
             this.group.call(makeAnnotations);

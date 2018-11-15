@@ -25,22 +25,18 @@ app.service('timeSeriesAnnotationService', ['$log', 'annotationPreviewService', 
             text: label,
             y: 'top',
         }
-        this.click = function (labelNode,axis,vector) {
+        this.callback = null;
+        this.click = function (labelNode, axis, vector, callback) {
             var annotation = this;
-           
-                annotationPreviewService.showAnnotationPreviewPanel(annotation)
-                    .then(function (result) {
-                        console.log('adding labels then');
-                        annotation.addAnnotationEditButtons(axis,vector,labelNode);
-                    }).catch(function (error) {
-                        console.log('adding labels');
-                       
-                    })
-           
-
+            this.callback = callback;
+            annotationPreviewService.showAnnotationPreviewPanel(annotation)
+                .then(function (result) {
+                    annotation.addAnnotationEditButtons(axis, vector, labelNode);
+                }).catch(function (error) {
+                    callback(this);
+                })
         }
         this.addAnnotationEditButtons = function (axis, t, labelNode) {
-            console.log('axis,t,labelNode');
             var width = 30;
             var height = 30;
             var xt = t.rescaleX(axis);
@@ -56,7 +52,6 @@ app.service('timeSeriesAnnotationService', ['$log', 'annotationPreviewService', 
                 .attr('width', width)
                 .attr('height', height)
 
-
             labelNode.append('g')
                 .attr('class', 'confirm')
                 .append('svg:image')
@@ -66,7 +61,7 @@ app.service('timeSeriesAnnotationService', ['$log', 'annotationPreviewService', 
                 .attr('width', width)
                 .attr('height', height)
         }
-        this.annotationLabelRender = function (groupNode,labelNode, xAxis, vector) {
+        this.annotationLabelRender = function (groupNode, labelNode, xAxis, vector) {
             var annotation = this;
             var xt = vector.rescaleX(xAxis);
             labelNode.selectAll('g')
@@ -79,16 +74,16 @@ app.service('timeSeriesAnnotationService', ['$log', 'annotationPreviewService', 
 
             labelNode.select('.move')
                 .call(d3.drag()
-                .on('drag',function(){
-                    annotation.annotationDrag(groupNode,labelNode, annotation,xAxis,vector);
-                }))
+                    .on('drag', function () {
+                        annotation.annotationDrag(groupNode, labelNode, annotation, xAxis, vector);
+                    }))
 
             labelNode.select('.confirm')
-                .on('click',function(){
-                    annotation.annotationPosEditConfirm(labelNode,annotation,xAxis,vector);
+                .on('click', function () {
+                    annotation.annotationPosEditConfirm(labelNode, annotation, xAxis, vector);
                 })
         }
-        this.annotationDrag = function (groupNode,labelNode, annotation,xAxis,vector) {
+        this.annotationDrag = function (groupNode, labelNode, annotation, xAxis, vector) {
             var xt = vector.rescaleX(xAxis);
             labelNode.selectAll('g')
                 .each(function (d) {
@@ -97,8 +92,8 @@ app.service('timeSeriesAnnotationService', ['$log', 'annotationPreviewService', 
                     image.attr('x', (d3.event.x - (imageWidth / 2)));
                 })
             var Time = xt.invert(d3.event.x);
-    
-            annotation.data.Time = Time;       
+
+            annotation.data.Time = Time;
             var makeAnnotations = d3.annotation()
                 .notePadding(15)
                 .type(d3.annotationBadge)
@@ -109,15 +104,15 @@ app.service('timeSeriesAnnotationService', ['$log', 'annotationPreviewService', 
                 .annotations([annotation])
             groupNode.call(makeAnnotations);
         }
-        this.annotationPosEditConfirm = function(labelNode,annotation,xAxis,vector){
+        this.annotationPosEditConfirm = function (labelNode, annotation, xAxis, vector) {
             var xt = vector.rescaleX(xAxis);
             var image = labelNode.select('g').select('image');
             var cx = parseFloat(image.attr('x'));
-            cx += (parseFloat(image.attr('width')))/2;
+            cx += (parseFloat(image.attr('width'))) / 2;
             var Time = xt.invert(cx);
             annotation.data.Time = Time;
             labelNode.selectAll('g').remove();
-            annotation.click(labelNode,xAxis,vector);
+            annotation.click(labelNode, xAxis, vector,annotation.callback);
         }
     }
 
