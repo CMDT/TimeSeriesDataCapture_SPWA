@@ -2,6 +2,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
     var self = this;
 
+    //data for all graphs currently being viewed
     var data;
 
     var annotationInEdit;
@@ -24,8 +25,6 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
     var svg, graph;
 
-    var annotations, annotationControls
-
     var xLock, yLock;
 
     var trendLineColours = ['#8cc2d0', '#152e34'];
@@ -35,6 +34,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
     var user;
 
     var annotationGroupObject;
+    var annotationAddButton;
 
     self.graphInit = function (graphData, graphOptions) {
         console.log(graphData)
@@ -136,23 +136,8 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
     }
 
     function annotationInitialize() {
-        /*annotationGroup = graph.append('g').attr('class', 'annotation-group');
-        annotationControls = graph.append('g').attr('class', 'annoation-control-group');
-
-        annotationAdd = svg.append('g')
-            .attr('transform', 'translate(' + (width + margin.left * 1.2) + ',' + (margin.top * 0.8) + ')')
-            .attr('class', 'annotation-add');
-
-        annotationAdd.append('svg:image')
-            .attr('xlink:href', './assets/img/add.svg')
-            .attr('width', '30')
-            .attr('height', '30')
-            .on('click', function () {
-                var xt = currentVector.rescaleX(x);
-                annotationAddNew(undefined, xt.invert(500), '');
-            });*/
-
         annotationGroupObject = new AnnotationGroup(graph);
+        annotationAddButton = new AddAnnotationButton(svg, 30, 30, (width + margin.left * 1.2), (margin.top * 0.8));
     }
 
     function calculateXDomain(scale, data) {
@@ -177,7 +162,6 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         ])
     }
 
-   
 
     //extract trend line data
     function extractTrendLineData(runId, columnY) {
@@ -277,7 +261,6 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
     //transition graph
     self.transition = function (transitionVector, offsetVector) {
-
         if (transitionVector) {
             svg.call(zoom).transition()
                 .duration(1500)
@@ -302,13 +285,10 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
                         })
                 });
         }
-
     }
 
     //when graph zooms
     function zoomed() {
-
-
         var t = d3.event.transform;
 
         t.k = parseFloat((t.k).toFixed(2));
@@ -322,10 +302,6 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
             t.y = yLock.locked() && !isZooming ? currentVector.y : t.y;
         }
 
-
-
-
-
         if (ctrlDown || !user) {
             offsetting(t);
         } else {
@@ -337,16 +313,12 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
             annotationControlsRender(t);
         } else {
             var active = activeTrend.split('+')
-            //annotationRender(timeSeriesAnnotationService.getAnnotations(active[0]));
             annotationGroupObject.render(timeSeriesAnnotationService.getAnnotations(active[0]), x, offsetVector);
         }
-
-
     }
 
 
     function panning(t) {
-
         var xt = t.rescaleX(x);
         var yt;
         graph.select('.axis--x').call(xAxis.scale(xt));
@@ -362,12 +334,9 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
                 var line = d3.line()
                     .x(function (d) { return xt(d.x); })
                     .y(function (d) { return yt(d.y); })
-
-
                 return line(trend.data)
-
-
             });
+
         currentVector = t;
         offsetVector = t;
 
@@ -375,7 +344,6 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
             viewVector: JSON.stringify(t),
             offsetVector: JSON.stringify({ x: 0, y: 0 })
         })
-
     }
 
     //offsetting trend
@@ -388,7 +356,6 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         var yt;
 
         if (!line.empty()) {
-
             line.attr('d', function (trend) {
                 yt = t.rescaleY(trend.scaleY);
                 var line = d3.line()
@@ -502,8 +469,8 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
             var annotationGroup = this;
             annotation = timeSeriesAnnotationService.getAnnotation(annotation.data.groupId, annotation.id);
             group.annotationInEdit = annotation;
-            
-            annotation.click(group.controls,axis,vector,function(){
+
+            annotation.click(group.controls, axis, vector, function () {
                 annotationGroup.annotationInEdit = null
             });
         }
@@ -531,6 +498,28 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         }
     }
 
+    function AddAnnotationButton(parentNode, buttonWidth, buttonHeight, transX, transY) {
+        var AddAnnotationButton = this;
+        this.addButton = parentNode.append('g').attr('transform', 'translate(' + transX + ',' + transY + ')')
+            .attr('class', 'annotation-add')
+            .append('svg:image')
+            .attr('xlink:href', './assets/img/add.svg')
+            .attr('width', buttonWidth)
+            .attr('height', buttonHeight)
+            .on('click',function(){
+                AddAnnotationButton.click();
+            })
+            this.click = function () {
+                var newAnnotation = timeSeriesAnnotationService.addAnnotation(activeRunId, undefined, { Time: 500, description: "", groupId: activeRunId }, undefined);
+                annotationsService.addAnnotations(activeRunId, [{ id: newAnnotation.id, description: newAnnotation.data.description, xcoordinate: newAnnotation.data.Time }]);
+                parentNode.call(zoom).transition()
+                .duration(1500)
+                .call(zoom.transform, d3.zoomIdentity
+                    .translate(1,1)
+                )
+            }
+    }
+
 
 
 
@@ -551,8 +540,8 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
     }
 
     self.setActiveRun = function (runId) {
-        //activeRunId = runId;
-
+        activeRunId = runId;
+        console.log('SETRUN', runId);
     }
 
 
