@@ -5,6 +5,7 @@ app.service('annotationPreviewService', ['$log', '$mdDialog', 'annotationsServic
 
 
     self.showAnnotationPreviewPanel = function (annotation) {
+        
         return new Promise(function (resolve, reject) {
             $mdDialog.show({
                 templateUrl: 'app/components/annotations/annotationPreview.html',
@@ -29,6 +30,7 @@ app.service('annotationPreviewService', ['$log', '$mdDialog', 'annotationsServic
 
     function annotaionPreviewPanelController($scope, $mdDialog, annotation, timeSeriesAnnotationService, authenticationService) {
 
+        
 
         var lastAnnotationDesciption;
 

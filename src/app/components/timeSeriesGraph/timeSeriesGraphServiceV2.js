@@ -34,6 +34,8 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
     var user;
 
+    var annotationGroupObject;
+
 
 
     self.graphInit = function (graphData, graphOptions) {
@@ -43,7 +45,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         data = graphData;
         options = graphOptions;
 
-        console.log(options);
+
 
 
         options.width = options.hasOwnProperty('width') ? options.width : 1300;
@@ -146,7 +148,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
     }
 
     function annotationInitialize() {
-        annotationGroup = graph.append('g').attr('class', 'annotation-group');
+        /*annotationGroup = graph.append('g').attr('class', 'annotation-group');
         annotationControls = graph.append('g').attr('class', 'annoation-control-group');
 
         annotationAdd = svg.append('g')
@@ -160,7 +162,9 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
             .on('click', function () {
                 var xt = currentVector.rescaleX(x);
                 annotationAddNew(undefined, xt.invert(500), '');
-            });
+            });*/
+
+        annotationGroupObject = new AnnotationGroup(graph);
     }
 
     function calculateXDomain(scale, data) {
@@ -358,7 +362,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
                             .scale(transitionVector.k)
                         ).on('end', function () {
                             user = true;
-                        }).on('interrupt',function(){
+                        }).on('interrupt', function () {
                             user = true;
                         })
                 });
@@ -385,18 +389,21 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
 
 
-        if (annotationInEdit != undefined) {
-            annotationRender([annotationInEdit]);
-            annotationControlsRender(t);
-        } else {
-            var active = activeTrend.split('+')
-            annotationRender(timeSeriesAnnotationService.getAnnotations(active[0]));
-        }
+
 
         if (ctrlDown || !user) {
             offsetting(t);
         } else {
             panning(t);
+        }
+
+        if (annotationInEdit != undefined) {
+            annotationRender([annotationInEdit]);
+            annotationControlsRender(t);
+        } else {
+            var active = activeTrend.split('+')
+            //annotationRender(timeSeriesAnnotationService.getAnnotations(active[0]));
+            annotationGroupObject.render(timeSeriesAnnotationService.getAnnotations(active[0]), x, offsetVector);
         }
 
 
@@ -427,6 +434,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
             });
         currentVector = t;
+        offsetVector = t;
 
         $state.go('.', {
             viewVector: JSON.stringify(t),
@@ -469,7 +477,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
     function showAnnotation() {
 
-        annotationPreviewService.showAnnotationPreviewPanel(annotationInEdit)
+        /*annotationPreviewService.showAnnotationPreviewPanel(annotationInEdit)
             .then(function (result) {
                 annotationClickEdit(result);
                 annotationBadgeRender([annotationInEdit]);
@@ -477,7 +485,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
                 annotationInEdit = undefined;
 
                 annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId));
-            });
+            });*/
 
     }
 
@@ -558,33 +566,48 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
             .attr('xlink:href', './assets/img/lock_unlocked.svg')
             .attr('width', lockWidth)
             .attr('height', lockHeight)
-            .attr('locked',0)
+            .attr('locked', 0)
             .on('click', this.lockToggle)
-        this.locked = function(){
+        this.locked = function () {
             var lock = parentNode.select('.' + axisLabel);
             var locked = (lock.attr('locked') == 1);
             return locked;
         }
-       
+
     }
 
     function AnnotationGroup(parentNode) {
         this.group = parentNode.append('g').attr('class', 'annotation-group');
         this.controls = parentNode.append('g').attr('class', 'annotation-control-group');
-        this.annotationRender = function (annotations, xScaler) {
-            var makeAnnotations = d3.annoation()
+        this.annotationInEdit = null;
+        this.annotationClick1 = function (group, annotation, axis, vector) {
+            
+            annotation = timeSeriesAnnotationService.getAnnotation(annotation.data.groupId, annotation.id);
+            group.annotationInEdit = annotation;
+            
+            annotation.click(group.controls,axis,vector);
+        }
+        this.render = function (annotations, axis, vector) {
+            if (this.annotationInEdit) {
+                this.annotationInEdit.annotationLabelRender(this.group, this.controls, axis, vector);
+                annotations = [this.annotationInEdit];
+            }
+            var annotationGroup = (this);
+            var xScaler = vector.rescaleX(axis);
+            var makeAnnotations = d3.annotation()
                 .notePadding(15)
-                .type(d3.annoationBadge)
+                .type(d3.annotationBadge)
                 .accessors({
                     x: d => xScaler(d.Time),
                     y: d => -10
                 })
                 .annotations(annotations)
-
+                .on('subjectclick', function (annotation) {
+                    if (!annotationGroup.annotationInEdit) {
+                        annotationGroup.annotationClick1(annotationGroup, annotation, axis, vector);
+                    }
+                });
             this.group.call(makeAnnotations);
-        }
-        this.annotationClick = function (annotation) {
-
         }
     }
 

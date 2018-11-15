@@ -365,7 +365,7 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
         var xt = currentVector.rescaleX(x);
         var Time = xt.invert(d3.event.x);
         annotationInEdit.data.Time = Time;
-        annotationBadgeRender([annotationInEdit]);
+        annotationBadgeRender([annotationInEdit]);                                                                   
 
     }
 
