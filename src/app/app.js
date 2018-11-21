@@ -71,6 +71,8 @@ run.$inject = [
 ]
 
 function run($rootScope,authenticationService){
+  console.log('version 1.1');
+
   $rootScope.url = client_config.BROWSEAPI_URI;
   //$rootScope.url = 'http://localhost:8000';
   $rootScope.isAuthenticated = authenticationService.isAuthenticated();
