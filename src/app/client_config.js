@@ -1,1 +1,0 @@
-var client_config = {"BROWSEAPI_URI":"https://test.com","ONEDRIVE_APPINFO":"test"}
