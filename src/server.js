@@ -35,7 +35,7 @@ var getClientConfig = function () {
 var writeClientConfig = function(config){
   var client_config = config;
   client_config = "var client_config = " + JSON.stringify(client_config);
-  fs.writeFileSync('./client_config.js',client_config);
+  fs.writeFileSync('./app/client_config.js',client_config);
 }
 
 writeClientConfig(getClientConfig());
