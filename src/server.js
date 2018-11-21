@@ -9,10 +9,16 @@ var getClientConfig = function () {
 
 
   if(!process.env.BROWSEAPI_URI) throw new Error("undefined in environment: BROWSEAPI_URI");
-  if(!process.env.ONEDRIVE_APPINFO) throw new Error("undefined in environment: ONEDRIVE_APPINFO");
+  if(!process.env.ONEDRIVE_CLIENTID) throw new Error("undefined in environment: ONEDRIVE_CLIENTID");
+  if(!process.env.ONEDRIVE_REDIRECTURI) throw new Error("undefined in environment: ONEDRIVE_REDIRECTURI");
+  if(!process.env.ONEDRIVE_SCOPES) throw new Error("undefined in environment: ONEDRIVE_SCOPES");
+  if(!process.env.ONEDRIVE_AUTHSERVICEURI) throw new Error("undefined in environment: ONEDRIVE_AUTHSERVICEURI");
   
   result.BROWSEAPI_URI = process.env.BROWSEAPI_URI;
-  result.ONEDRIVE_APPINFO = process.env.ONEDRIVE_APPINFO;
+  result.ONEDRIVE_CLIENTID = process.env.ONEDRIVE_CLIENTID;
+  result.ONEDRIVE_REDIRECTURI = process.env.ONEDRIVE_REDIRECTURI;
+  result.ONEDRIVE_SCOPES = process.env.ONEDRIVE_SCOPES;
+  result.ONEDRIVE_AUTHSERVICEURI = process.env.ONEDRIVE_AUTHSERVICEURI;
 
   return result;
 }

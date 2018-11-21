@@ -3,7 +3,12 @@ app.service('oneDriveAuthenticationService', ['$rootScope', '$log', '$http', '$w
 
     var self = this;
 
-    var appInfo = client_config.ONEDRIVE_APPINFO;
+    var appInfo = {
+        "clientId": client_config.ONEDRIVE_CLIENTID,
+        "redirectUri": client_config.REDIRECTURI,
+        "scopes": client_config.SCOPES,
+        "authServiceUri": client_config.AUTHSERVICEURI
+    }
 
     var logged = false;
 
