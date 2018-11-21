@@ -71,8 +71,7 @@ run.$inject = [
 ]
 
 function run($rootScope,authenticationService){
-  console.log('DEBUGGING LOG CONFIG', client_config);
-  $rootScope.url = 'https://timeseriesdatacapture-browse.herokuapp.com';
+  $rootScope.url = client_config.BROWSEAPI_URI;
   //$rootScope.url = 'http://localhost:8000';
   $rootScope.isAuthenticated = authenticationService.isAuthenticated();
   $rootScope.query = '';
