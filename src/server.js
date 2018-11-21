@@ -5,7 +5,7 @@ var fs = require('fs');
 
 const app = express();
 
-writeClientConfig(getClientConfig());
+
 
 app.use(express.static(path.join(__dirname, '')));
 
@@ -40,3 +40,4 @@ var writeClientConfig = function(config){
   fs.writeFileSync('./app/client_config.js',client_config);
 }
 
+writeClientConfig(getClientConfig());
