@@ -470,6 +470,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
             this.width = width,
             this.boundryHeight = boundyHeight;
         this.boundryWidth = boundryWidth;
+        //renders offset line when user is offsetting
         this.renderWhenOffsetting = function (xScaler, yScaler) {
             var xPoint = xScaler(this.xcoor);
             var yPoint = yScaler(this.ycoor);
@@ -491,6 +492,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
             this.node.style('stroke', 'rgb(255,0,0)')
                 .style('stroke-width', '2');
         }
+        //render offset line when user is panning
         this.renderWhenPanning = function (xScaler, yScaler) {
 
             var xPoint = xScaler(this.xcoor);
@@ -517,14 +519,21 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         }
     }
 
+    //Lock button used to maintain lock status of the button
+    //  axisLabel : label used to distinguish multiple locks
+    //  parentNode : which DOM element to attach the lock
+    //  lockWidth : width of the lock button
+    //  lockHeight : height of the lock button
+    //  transX : x translation of button (used to position the button)
+    //  transY : y translation of button 
     function Lock(axisLabel, parentNode, lockWidth, lockHeight, transX, transY) {
         this.lockWidth = lockWidth;
         this.lockHeight = lockHeight;
         this.transX = transX;
         this.transY = transY;
         this.axisLabel = axisLabel;
+        //toggles lock button status (locked/unlocked)
         this.lockToggle = function () {
-            console.log(this.locked);
             var lock = parentNode.select('.' + axisLabel);
             var image = lock.select('image');
             var locked = (lock.attr('locked') == 1)
@@ -538,6 +547,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
             .attr('height', lockHeight)
             .attr('locked', 0)
             .on('click', this.lockToggle)
+        //returns true if lock is locked, false if unlocked
         this.locked = function () {
             var lock = parentNode.select('.' + axisLabel);
             var locked = (lock.attr('locked') == 1);
@@ -546,19 +556,29 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
     }
 
+    //Annotation Group renders all annotations for the active graph
+    // parentNode : which DOM element to attach the annotations
     function AnnotationGroup(parentNode) {
         this.group = parentNode.append('g').attr('class', 'annotation-group');
         this.controls = parentNode.append('g').attr('class', 'annotation-control-group');
         this.annotationInEdit = null;
+        //when an annotation is clicked
         this.annotationClick = function (group, annotation, axis, vector) {
             var annotationGroup = this;
+            //get the annotation object (not d3-annotation object)
             annotation = timeSeriesAnnotationService.getAnnotation(annotation.data.groupId, annotation.id);
+            //set clicked annotation in edit
             group.annotationInEdit = annotation;
 
+            //open new panel shwoing annotation and allowing admin users to edit
             annotation.click(group.controls, axis, vector, function () {
                 annotationGroup.annotationInEdit = null
             });
         }
+        //renders annotations
+        //  annotations : which annotations to render
+        //  axis : which axis
+        //  vector : which vector
         this.render = function (annotations, axis, vector) {
             if (this.annotationInEdit) {
                 this.annotationInEdit.annotationLabelRender(this.group, this.controls, axis, vector);
@@ -583,6 +603,12 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         }
     }
 
+    //Add Annotation Button button adds new annotation when clicked
+    // parentNode : which DOM element to attach the annotations
+    // buttonWidth : width of button in pixels
+    // buttonHeight : height of button in pixels
+    // transX : x translation of button (used to position the button)
+    // transY : y translation of button 
     function AddAnnotationButton(parentNode, buttonWidth, buttonHeight, transX, transY) {
         var AddAnnotationButton = this;
         this.addButton = parentNode.append('g').attr('transform', 'translate(' + transX + ',' + transY + ')')
@@ -594,6 +620,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
             .on('click', function () {
                 AddAnnotationButton.click();
             })
+        //when button is clicked add new annotation to active run and reset graph view
         this.click = function () {
             var newAnnotation = timeSeriesAnnotationService.addAnnotation(activeRunId, undefined, { Time: 500, description: "", groupId: activeRunId }, undefined);
             annotationsService.addAnnotations(activeRunId, [{ id: newAnnotation.id, description: newAnnotation.data.description, xcoordinate: newAnnotation.data.Time }]);
@@ -611,7 +638,6 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
 
     //needs looking at ASAP
-
     self.getActiveColumn = function () {
         return activeColumn;
     }
