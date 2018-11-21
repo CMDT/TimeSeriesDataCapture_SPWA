@@ -17,7 +17,6 @@ app.service('authenticationNotifyService',['$log',function($log){
     }
 
     
-
     this.subscribe = function(id,callback){
         var wrapper = new Wrapper(id,callback);
         controllers.set(wrapper.id,wrapper);
@@ -25,8 +24,6 @@ app.service('authenticationNotifyService',['$log',function($log){
     }
 
     this.publish = function(id){
-        
-
         var wrapper = controllers.get(id);
         wrapper.set('auth');
     }
