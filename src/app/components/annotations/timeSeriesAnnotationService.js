@@ -80,6 +80,7 @@ app.service('timeSeriesAnnotationService', ['$log', 'annotationPreviewService', 
 
             labelNode.select('.confirm')
                 .on('click', function () {
+                    console.log('stop annotation');
                     annotation.annotationPosEditConfirm(labelNode, annotation, xAxis, vector);
                 })
         }
