@@ -127,7 +127,6 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         //detect when ctrl key is pressed
         d3.select('body')
             .on('keydown', function () {
-                $log.log(d3.event.keyCode);
                 if (d3.event.keyCode === 16) {
                     ctrlDown = true;
                 }
