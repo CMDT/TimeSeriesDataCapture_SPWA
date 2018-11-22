@@ -103,8 +103,8 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
         //setup svg graph container
         svg = d3.select('.graph-container')
-            .attr("width","100%")
-            .attr("height","auto")
+            .attr("width", "100%")
+            .attr("height", "auto")
             .attr("viewBox", "0 0 " + options.width + ' ' + options.height)
             .attr("preserveAspectRatio", "xMinYMax meet");
 
@@ -117,7 +117,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
         //setup d3 zoom
         zoom = d3.zoom()
-            .scaleExtent([0.1,32])
+            .scaleExtent([0.1, 32])
             .on('zoom', zoomed);
 
         //disable double click to zoom
@@ -182,7 +182,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
     //creates annotationGroupObject to hold all annotations
     //creates annotationAddButton to add new annotations =
     function annotationInitialize() {
-        annotationGroupObject = new AnnotationGroup(graph);
+        annotationGroupObject = new AnnotationGroup(graph, 0, 970);
         annotationAddButton = new AddAnnotationButton(svg, 30, 30, (width + margin.left * 1.2), (margin.top * 0.8));
     }
 
@@ -316,7 +316,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
     //Transitions the graph and offsets the active trend by the given vectors
     // vector is an object containing 3 elemets : K (scale), x & y
     self.transition = function (transitionVector, offsetVector) {
-        console.log('TRANSITION VECTOR',transitionVector);
+        console.log('TRANSITION VECTOR', transitionVector);
         if (transitionVector) {
             svg.call(zoom).transition()
                 .duration(1500)
@@ -358,13 +358,13 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         //true if zooming false if not
         var isZooming = currentVector.k != t.k;
 
-        
+
 
         //checks if axis lock is enabled
         if (options.axisLock) {
-         
+
             //if x axis lock is enabled set x to the pevious vector x component
-            t.x = xLock.locked()  ? currentVector.x : t.x;
+            t.x = xLock.locked() ? currentVector.x : t.x;
             //if y axis lock is enabled set y to the pevious vector x component
             t.y = yLock.locked() ? currentVector.y : t.y;
         }
@@ -561,10 +561,14 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
     //Annotation Group renders all annotations for the active graph
     // parentNode : which DOM element to attach the annotations
-    function AnnotationGroup(parentNode) {
+    // xPixelStart : x start position of graph in pixels
+    // xPixelEnd : x end position of graph in pixels
+    function AnnotationGroup(parentNode, xPixelStart= 0, xPixelEnd) {
         this.group = parentNode.append('g').attr('class', 'annotation-group');
         this.controls = parentNode.append('g').attr('class', 'annotation-control-group');
         this.annotationInEdit = null;
+        this.xPixelStart = xPixelStart;
+        this.xPixelEnd = xPixelEnd;
         //when an annotation is clicked
         this.annotationClick = function (group, annotation, axis, vector) {
             var annotationGroup = this;
@@ -577,8 +581,8 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
             annotation.click(group.controls, axis, vector, function () {
                 annotationGroup.annotationInEdit = null
                 var active = activeTrend.split('+')
-                group.render(timeSeriesAnnotationService.getAnnotations(active[0]), axis,offsetVector);
-                
+                group.render(timeSeriesAnnotationService.getAnnotations(active[0]), axis, offsetVector);
+
             });
         }
         //renders annotations
@@ -592,6 +596,8 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
             }
             var annotationGroup = (this);
             var xScaler = vector.rescaleX(axis);
+            //filters out any annotations off the graph view
+            annotations = (this.filterOutBounds(annotations, xScaler));
             var makeAnnotations = d3.annotation()
                 .notePadding(15)
                 .type(d3.annotationBadge)
@@ -606,6 +612,18 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
                     }
                 });
             this.group.call(makeAnnotations);
+        }
+        //removes any annotations that are off the graph view
+        // annotations : array of annotation objects
+        // xScaler : scaler to calculate pixel coordinate of each annotation
+        this.filterOutBounds = function (annotations, xScaler) {
+            var filteredAnnotations = [];
+            for (var i = 0; i < annotations.length; i++) {
+                if (xScaler(annotations[i].data.Time) > this.xPixelStart && xScaler(annotations[i].data.Time) < this.xPixelEnd) {
+                    filteredAnnotations.push(annotations[i]);
+                }
+            }
+            return filteredAnnotations;
         }
     }
 
