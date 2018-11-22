@@ -28,22 +28,25 @@ app.service('annotationPreviewService', ['$log', '$mdDialog', 'annotationsServic
         })
     }
 
+
     function annotaionPreviewPanelController($scope, $mdDialog, annotation, timeSeriesAnnotationService, authenticationService) {
-
         
-
+        //holds original annotation description
         var lastAnnotationDesciption;
 
+        //annotation panel title
         $scope.annotationTitle = 'Annotation ' + annotation.note.title;
+        //annotation panel description
         $scope.annotationDescription = annotation.data.description;
 
+        //which panel view to show, in edit or out of edit
         $scope.editMode = false;
 
-
-
-
         $log.log(annotation);
+        
+        //user editing annotation description
         $scope.annotationDescriptionEdit = function () {
+            //store original annotation description
             lastAnnotationDesciption = $scope.annotationDescription;
             $scope.editMode = true;
         }
@@ -55,7 +58,12 @@ app.service('annotationPreviewService', ['$log', '$mdDialog', 'annotationsServic
         $scope.confirmAnnotation = function () {
             annotation.data.description = $scope.annotationDescription;
             var updatedAnnotation = timeSeriesAnnotationService.updateAnnotation(annotation.data.groupId, annotation.id, annotation.data)
-            annotationsService.updateAnnotation(updatedAnnotation.data.groupId,updatedAnnotation.id,{description: updatedAnnotation.data.description, xcoordinate : updatedAnnotation.data.Time});
+            console.log(updatedAnnotation.data.Time);
+            annotationsService.updateAnnotation(updatedAnnotation.data.groupId,updatedAnnotation.id,{description: updatedAnnotation.data.description, xcoordinate : updatedAnnotation.data.Time}).then(function(result){
+                console.log(result);
+            }).catch(function(error){
+                console.log(error);
+            })
             $mdDialog.cancel();
         }
 
