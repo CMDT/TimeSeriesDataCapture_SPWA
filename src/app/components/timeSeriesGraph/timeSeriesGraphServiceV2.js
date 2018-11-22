@@ -103,8 +103,8 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
         //setup svg graph container
         svg = d3.select('.graph-container')
-            .attr("width", options.width)
-            .attr("height", options.height)
+            .attr("width","100%")
+            .attr("height","auto")
             .attr("viewBox", "0 0 " + options.width + ' ' + options.height)
             .attr("preserveAspectRatio", "xMinYMax meet");
 
