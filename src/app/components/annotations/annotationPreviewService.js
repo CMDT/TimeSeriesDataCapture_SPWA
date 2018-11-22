@@ -48,12 +48,15 @@ app.service('annotationPreviewService', ['$log', '$mdDialog', 'annotationsServic
         $scope.annotationDescriptionEdit = function () {
             //store original annotation description
             lastAnnotationDesciption = $scope.annotationDescription;
+            //change panel view to edit mode
             $scope.editMode = true;
         }
 
+        //user confirms new annotation description
         $scope.confirmAnnotationDescription = function () {
             $scope.editMode = false;
         }
+
 
         $scope.confirmAnnotation = function () {
             annotation.data.description = $scope.annotationDescription;
@@ -72,22 +75,32 @@ app.service('annotationPreviewService', ['$log', '$mdDialog', 'annotationsServic
             $mdDialog.cancel();
         }
 
+        //user cancels annotation description
         $scope.cancelAnnotationDescription = function () {
             $scope.annotationDescription = lastAnnotationDesciption;
             $scope.editMode = false;
         }
 
+        //user deletes annotation
         $scope.annotationDelete = function () {
             $log.log(annotation);
+            //removes annotation from time series graph
             timeSeriesAnnotationService.removeAnnotation(annotation.data.groupId, annotation.id);
+            //removes annotation from whole collection of annotations
             annotationsService.deleteAnnotation(annotation.data.groupId, annotation.id)
             $mdDialog.cancel();
         }
 
+        //user editing the position of annotation
+        //  annotation panel closes, and annotation controls are shown
         $scope.annotationPosEdit = function () {
             $log.log(annotation);
             $mdDialog.cancel(annotation);
         }
+
+        //checks if user is authenticated
+        //  non-authenticated : user can view description, cannot edit anything
+        //  authenticated : user can edit description, position or delete annotation
         $scope.isAuthenticated = function(){
             $log.log('IS AUTH',authenticationService.isAuthenticated());
             return authenticationService.isAuthenticated();
