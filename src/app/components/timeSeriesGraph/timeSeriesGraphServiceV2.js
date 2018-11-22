@@ -117,6 +117,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
         //setup d3 zoom
         zoom = d3.zoom()
+            .scaleExtent([0.1,32])
             .on('zoom', zoomed);
 
         //disable double click to zoom
@@ -358,12 +359,15 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         //true if zooming false if not
         var isZooming = currentVector.k != t.k;
 
+        
+
         //checks if axis lock is enabled
         if (options.axisLock) {
+         
             //if x axis lock is enabled set x to the pevious vector x component
-            t.x = xLock.locked() && !isZooming ? currentVector.x : t.x;
+            t.x = xLock.locked()  ? currentVector.x : t.x;
             //if y axis lock is enabled set y to the pevious vector x component
-            t.y = yLock.locked() && !isZooming ? currentVector.y : t.y;
+            t.y = yLock.locked() ? currentVector.y : t.y;
         }
 
         //if ctrl key is pressed or code is transforming the graph
@@ -573,6 +577,9 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
             //open new panel shwoing annotation and allowing admin users to edit
             annotation.click(group.controls, axis, vector, function () {
                 annotationGroup.annotationInEdit = null
+                var active = activeTrend.split('+')
+                group.render(timeSeriesAnnotationService.getAnnotations(active[0]), axis,offsetVector);
+                
             });
         }
         //renders annotations
