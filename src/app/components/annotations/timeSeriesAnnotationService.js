@@ -93,6 +93,7 @@ app.service('timeSeriesAnnotationService', ['$log', 'annotationPreviewService', 
                     image.attr('x', (d3.event.x - (imageWidth / 2)));
                 })
             var Time = xt.invert(d3.event.x);
+            Time = Time === 1 ? 0 : Time;
 
             annotation.data.Time = Time;
             var makeAnnotations = d3.annotation()
