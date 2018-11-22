@@ -41,7 +41,7 @@ app.service('timeSeriesGraphControlService', ['$log', 'timeSeriesGraphServiceV2'
 
     self.createAnnotation = function (annotationGroupId, annotation) {
         var data = {
-            Time: annotation.position,
+            Time: annotation.xcoordinate,
             description: annotation.description,
             groupId: annotationGroupId
         }
