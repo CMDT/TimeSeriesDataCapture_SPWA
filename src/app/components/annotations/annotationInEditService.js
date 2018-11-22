@@ -7,7 +7,7 @@ app.service('annotationInEditService', ['$rootScope', '$log', function () {
     //adds new annotation which is currently being edited
     // Storing only vital details : id, description and position (time)
     // 
-    // Explaination : When user user clicks an annotation, these annotation details are stored within annotationInEdit
+    // Explaination : When user user clicks an annotation, these annotation details are stored within annotationInEdit.
     //                If user changes position of annotation or decription and cancels changes, these stored details are
     //                used to revert changes made.
     self.addAnnotationInEdit = function (annotation) {
@@ -18,9 +18,6 @@ app.service('annotationInEditService', ['$rootScope', '$log', function () {
         }else{
             annotationinEdit = annotation;
         }
-        
-
-  
     }
 
     //clears annotation 

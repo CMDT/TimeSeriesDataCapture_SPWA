@@ -570,18 +570,18 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         this.xPixelStart = xPixelStart;
         this.xPixelEnd = xPixelEnd;
         //when an annotation is clicked
-        this.annotationClick = function (group, annotation, axis, vector) {
-            var annotationGroup = this;
+        this.annotationClick = function (AnnotationGroup, annotation, axis, vector) {
+            var scope = this;
             //get the annotation object (not d3-annotation object)
             annotation = timeSeriesAnnotationService.getAnnotation(annotation.data.groupId, annotation.id);
             //set clicked annotation in edit
-            group.annotationInEdit = annotation;
+            AnnotationGroup.annotationInEdit = annotation;
 
             //open new panel shwoing annotation and allowing admin users to edit
-            annotation.click(group.controls, axis, vector, function () {
-                annotationGroup.annotationInEdit = null
+            annotation.click(AnnotationGroup.controls, axis, vector, function () {
+                scope.annotationInEdit = null
                 var active = activeTrend.split('+')
-                group.render(timeSeriesAnnotationService.getAnnotations(active[0]), axis, offsetVector);
+                AnnotationGroup.render(timeSeriesAnnotationService.getAnnotations(active[0]), axis, offsetVector);
 
             });
         }

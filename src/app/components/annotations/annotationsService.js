@@ -34,10 +34,8 @@ app.service('annotationsService', ['$rootScope','$log','$http', function ($rootS
     }
 
     self.deleteAnnotation = function (componentId,annotationId){
-      
             var config = {
                 headers: {},
-                
             }
             config.headers.Authorization = 'Bearer ' + localStorage.getItem('accessToken');
            
