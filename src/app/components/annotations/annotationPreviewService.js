@@ -10,7 +10,7 @@ app.service('annotationPreviewService', ['$log', '$mdDialog', 'annotationInEditS
             $mdDialog.show({
                 templateUrl: 'app/components/annotations/annotationPreview.html',
                 parent: angular.element(document.body),
-                clickOutsideToClose: false,
+                clickOutsideToClose: true,
                 escapeToClose : false,
                 locals: {
                     annotation: annotation,
@@ -34,7 +34,7 @@ app.service('annotationPreviewService', ['$log', '$mdDialog', 'annotationInEditS
     function annotaionPreviewPanelController($scope, $mdDialog, annotation, timeSeriesAnnotationService,annotationsService,annotationInEditService, authenticationService) {
         
     
-        console.log('ANNOTATION IN EDIT',annotationInEditService.getAnnotationInEdit());
+        
         //annotation panel title
         $scope.annotationTitle = 'Annotation ' + annotation.note.title;
         //annotation panel description
@@ -43,9 +43,7 @@ app.service('annotationPreviewService', ['$log', '$mdDialog', 'annotationInEditS
         //which panel view to show, in edit or out of edit
         $scope.editMode = false;
 
-        $log.log(annotation);
-        $log.log(annotationsService.get)
-        
+    
         //user editing annotation description
         $scope.annotationDescriptionEdit = function () {
         
@@ -55,16 +53,20 @@ app.service('annotationPreviewService', ['$log', '$mdDialog', 'annotationInEditS
 
         //user confirms new annotation description
         $scope.confirmAnnotationDescription = function () {
+            //update annotation description
             annotation.data.description = $scope.annotationDescription;
             timeSeriesAnnotationService.updateAnnotation(annotation.data.groupId, annotation.id, annotation.data);
+            //switch panel to normal view
             $scope.editMode = false;
         }
 
-
+        //user confirms changes to annotation
         $scope.confirmAnnotation = function () {
+            //update graph annotation
             annotation.data.description = $scope.annotationDescription;
             var updatedAnnotation = timeSeriesAnnotationService.updateAnnotation(annotation.data.groupId, annotation.id, annotation.data);
-            console.log(updatedAnnotation);
+            
+            //http request update annotation
             annotationsService.updateAnnotation(updatedAnnotation.data.groupId,updatedAnnotation.id,{description: updatedAnnotation.data.description, xcoordinate : updatedAnnotation.data.Time}).then(function(result){
                 $mdDialog.cancel();
             }).catch(function(error){
@@ -73,7 +75,9 @@ app.service('annotationPreviewService', ['$log', '$mdDialog', 'annotationInEditS
             
         }
 
+        //user cancels changes to annotation
         $scope.cancelAnnotation = function () {
+            //revert changes to annotation by using the annotationInEditService service
             annotation.data.description = annotationInEditService.getAnnotationInEdit().description;
             annotation.data.Time = annotationInEditService.getAnnotationInEdit().Time;
             timeSeriesAnnotationService.updateAnnotation(annotation.data.groupId, annotation.id, annotation.data);
