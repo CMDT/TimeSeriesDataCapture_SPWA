@@ -187,7 +187,8 @@ app.controller('viewController', ['$scope','$rootScope', '$log', '$state', '$sta
     }
 
 
-
+    // TODO : these functions have been moved to a service (extractTagsService)
+    // needs testing
     function extractTags(runArray) {
         var tagsCollection = {};
         for (var i = 0, n = runArray.length; i < n; i++) {
