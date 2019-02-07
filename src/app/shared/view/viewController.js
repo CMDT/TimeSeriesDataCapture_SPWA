@@ -16,6 +16,7 @@ app.controller('viewController', ['$scope','$rootScope', '$log', '$state', '$sta
 
 
     if ($stateParams.runs != undefined) {
+        // TODO : need to test getRunV2 
         columnTabPanelService.getRun($stateParams.runs.split('+')).then(function (result) {
             columnTabPanelService.clearSelection();
             timeSeriesGraphControlService.clearData();
@@ -38,6 +39,7 @@ app.controller('viewController', ['$scope','$rootScope', '$log', '$state', '$sta
                     annotation: true,
                     palette: paletteResult.data.palette
                 }
+
 
 
                 timeSeriesGraphControlService.drawGraph(result, options);
