@@ -3,12 +3,7 @@ app.service('oneDriveAuthenticationService', ['$rootScope', '$log', '$http', '$w
 
     var self = this;
 
-    var appInfo = {
-        "clientId": configDetails.ONEDRIVE_CLIENTID,
-        "redirectUri": configDetails.REDIRECTURI,
-        "scopes": configDetails.SCOPES,
-        "authServiceUri": configDetails.AUTHSERVICEURI
-    }
+    
 
     var logged = false;
 
@@ -41,6 +36,15 @@ app.service('oneDriveAuthenticationService', ['$rootScope', '$log', '$http', '$w
     }
 
     self.login = function login() {
+
+
+        var appInfo = {
+            "clientId": configDetails.ONEDRIVE_CLIENTID,
+            "redirectUri": configDetails.ONEDRIVE_REDIRECTURI,
+            "scopes": configDetails.ONEDRIVE_SCOPES,
+            "authServiceUri": configDetails.ONEDRIVE_AUTHSERVICEURI
+        }
+
         odauthService.provideAppInfo(appInfo);
         odauthService.challengeForAuth();
         return false;
