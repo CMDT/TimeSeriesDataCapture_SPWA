@@ -1,13 +1,13 @@
 
-app.service('oneDriveAuthenticationService', ['$rootScope', '$log', '$http', '$window', 'odauthService', 'fileStorageAuthenticationDataService', 'authenticationNotifyService', function ($rootScope, $log, $http, $window, odauthService, fileStorageAuthenticationDataService, authenticationNotifyService) {
+app.service('oneDriveAuthenticationService', ['$rootScope', '$log', '$http', '$window', 'odauthService', 'fileStorageAuthenticationDataService', 'authenticationNotifyService','configDetails', function ($rootScope, $log, $http, $window, odauthService, fileStorageAuthenticationDataService, authenticationNotifyService,configDetails) {
 
     var self = this;
 
     var appInfo = {
-        "clientId": client_config.ONEDRIVE_CLIENTID,
-        "redirectUri": client_config.REDIRECTURI,
-        "scopes": client_config.SCOPES,
-        "authServiceUri": client_config.AUTHSERVICEURI
+        "clientId": configDetails.ONEDRIVE_CLIENTID,
+        "redirectUri": configDetails.REDIRECTURI,
+        "scopes": configDetails.SCOPES,
+        "authServiceUri": configDetails.AUTHSERVICEURI
     }
 
     var logged = false;

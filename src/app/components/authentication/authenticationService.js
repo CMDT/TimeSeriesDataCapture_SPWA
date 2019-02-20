@@ -1,4 +1,4 @@
-app.service('authenticationService', ['$log','authenticationNotifyService', function ($log,authenticationNotifyService) {
+app.service('authenticationService', ['$log','authenticationNotifyService','configDetails', function ($log,authenticationNotifyService,configDetails) {
     var self = this;
     var lock = null;
     var options = {
@@ -14,8 +14,8 @@ app.service('authenticationService', ['$log','authenticationNotifyService', func
         if (lock == null) {
 
             lock = new Auth0Lock(
-                client_config.AUTH0_CLIENTID,
-                client_config.AUTH0_DOMAIN,
+                configDetails.AUTH0_CLIENTID,
+                configDetails.AUTH0_DOMAIN,
                 options
             );
         }
