@@ -14,8 +14,8 @@ app.service('authenticationService', ['$log','authenticationNotifyService', func
         if (lock == null) {
 
             lock = new Auth0Lock(
-                '0XLhzBnfbBmbmKU6OnEan4CU5lLWkD81',
-                'timeseriestest.eu.auth0.com',
+                client_config.AUTH0_CLIENTID,
+                client_config.AUTH0_DOMAIN,
                 options
             );
         }
