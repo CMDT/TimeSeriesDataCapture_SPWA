@@ -1,0 +1,1 @@
+app.value('configDetails',{"BROWSEAPI_URI":"sadsadsd","ONEDRIVE_CLIENTID":"sadsadsad","ONEDRIVE_REDIRECTURI":"sdadsadsadsad","ONEDRIVE_SCOPES":"sadsadsadsad","ONEDRIVE_AUTHSERVICEURI":"sdsadsadad","AUTH0_DOMAIN":"sdadsadsad","AUTH0_CLIENTID":"sdsadsadsad"});

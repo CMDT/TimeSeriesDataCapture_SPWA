@@ -67,11 +67,13 @@ function config($stateProvider,$urlRouterProvider) {
 app.run(run);
 
 run.$inject = [
-  '$rootScope','authenticationService'
+  '$rootScope','authenticationService','configDetails'
 ]
 
-function run($rootScope,authenticationService){
-  $rootScope.url = 'https://timeseriesdatacapture-browse.herokuapp.com';
+function run($rootScope,authenticationService,configDetails){
+  console.log('version 1.1');
+
+  $rootScope.url = configDetails.BROWSEAPI_URI;
   //$rootScope.url = 'http://localhost:8000';
   $rootScope.isAuthenticated = authenticationService.isAuthenticated();
   $rootScope.query = '';
