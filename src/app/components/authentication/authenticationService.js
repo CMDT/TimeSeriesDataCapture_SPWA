@@ -1,4 +1,4 @@
-app.service('authenticationService', ['$log','authenticationNotifyService', function ($log,authenticationNotifyService) {
+app.service('authenticationService', ['$log','authenticationNotifyService','configDetails', function ($log,authenticationNotifyService,configDetails) {
     var self = this;
     var lock = null;
     var options = {
@@ -14,8 +14,8 @@ app.service('authenticationService', ['$log','authenticationNotifyService', func
         if (lock == null) {
 
             lock = new Auth0Lock(
-                '0XLhzBnfbBmbmKU6OnEan4CU5lLWkD81',
-                'timeseriestest.eu.auth0.com',
+                configDetails.AUTH0_CLIENTID,
+                configDetails.AUTH0_DOMAIN,
                 options
             );
         }
