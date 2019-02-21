@@ -50,13 +50,9 @@ app.service('authenticationService', ['$log','authenticationNotifyService','conf
                 $log.error('authentication error');
                 return;
             }
-
-          
-
             localStorage.setItem('profile', profile.sub);
             self.setSession(authResult);
             authenticationNotifyService.publish('auth0')
-            console.log(authResult.idToken);
         })
     })
 }])

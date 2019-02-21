@@ -18,8 +18,6 @@ app.controller('homeController', ['$scope', '$rootScope', '$filter', '$log', '$m
             });
     }
 
-
-
     function search(query) {
         $scope.loading = true;
         searchService.searchRequest(query).then(function (result) {
@@ -48,14 +46,13 @@ app.controller('homeController', ['$scope', '$rootScope', '$filter', '$log', '$m
 
 
     $scope.login = function () {
-        authenticationNotifyService.subscribe('auth0', callback);
+        authenticationNotifyService.subscribe('auth0',function(){
+            $scope.$apply();
+        });
         authenticationService.login();
     }
 
-    function callback() {
-        $log.log($scope.isAuthenticated());
-        $scope.$apply();
-    }
+   
 
     $scope.logout = function () {
         authenticationService.logout();
