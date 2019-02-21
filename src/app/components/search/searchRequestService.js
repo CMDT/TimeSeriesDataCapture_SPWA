@@ -1,4 +1,4 @@
-app.service('searchService', ['$log', '$http','$rootScope', 'queryKeywordService', function ($log, $http,$rootScope, queryKeywordService) {
+app.service('searchService', ['$log', '$http','$rootScope', function ($log, $http,$rootScope) {
 
     var self = this;
 

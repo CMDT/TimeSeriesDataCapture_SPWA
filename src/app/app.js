@@ -17,7 +17,7 @@ function config($stateProvider,$urlRouterProvider) {
     url: '/home/?query',
     params: {
       query: {
-        dynamic: true
+        dynamic: false
       },
     },
     templateUrl: 'app/shared/home/homeView.html',

@@ -1,95 +1,51 @@
-app.controller('homeController', ['$scope', '$rootScope', '$filter', '$log', '$mdDialog', 'authenticationService', 'searchPageService', '$state', '$stateParams', 'JSTagsCollection', 'selectionService', 'exportDataService', 'authenticationNotifyService', 'tagPredictionService', 'runRequestService', function ($scope, $rootScope, $filter, $log, $mdDialog, authenticationService, searchPageService, $state, $stateParams, JSTagsCollection, selectionService, exportDataService, authenticationNotifyService, tagPredicitionService, runRequestService) {
+app.controller('homeController', ['$scope', '$rootScope', '$filter', '$log', '$mdDialog', 'authenticationService', 'searchService', '$state', '$stateParams', 'JSTagsCollection', 'selectionService', 'exportDataService', 'authenticationNotifyService', 'tagPredictionService', 'runRequestService', 'searchInputService', function ($scope, $rootScope, $filter, $log, $mdDialog, authenticationService, searchService, $state, $stateParams, JSTagsCollection, selectionService, exportDataService, authenticationNotifyService, tagPredicitionService, runRequestService, searchInputService) {
 
     $scope.loading = false;
 
-    this.uiOnParamsChanged = function (params) {
-        if (params.query != undefined) {
-            $scope.search(params.query);
-            $rootScope.query = params.query;
-        }
+    $scope.searchClick = searchClick;
+    $scope.search = search;
+
+
+    start();
+
+    function searchClick() {
+        var tags = searchInputService.getQuery();
+        $state.go('.', {
+            query: encodeURI(tags)
+        }, {
+                location: true,
+                reload: true
+            });
     }
 
-    $scope.search = function (query) {
-        $log.log('search query ' + query);
+
+
+    function search(query) {
         $scope.loading = true;
-        searchPageService.search(query).then(function (result) {
-            $log.log('Search Result',result);
-            $scope.results = result;
+        searchService.searchRequest(query).then(function (result) {
+            $scope.results = result.data;
             $scope.loading = false;
-            $scope.$apply();
+        }).catch(function (error) {
+            console.error(error);
         })
     }
 
-    $scope.addTagsInput = function (query) {
-        console.log('add tags' + query);
-        var queryArray = query.split('%20');
-        queryArray = queryArray.splice(1);
-        $scope.tags = new JSTagsCollection(queryArray);
-        $log.log($scope);
+    function start() {
+        if ($stateParams.query) {
+            search($stateParams.query);
+        }
+        $scope.jsTagOptions = searchInputService.populateInput($stateParams.query);
+        searchInputService.suggestions();
+        $scope.exampleData = searchInputService.exampleData;
+
     }
 
-
-    if ($stateParams.query != undefined) {
-        $scope.search($stateParams.query);
-        $scope.addTagsInput($stateParams.query);
-    } else {
-        $scope.tags = new JSTagsCollection();
-    }
-
-
-    // Export jsTags options, inlcuding our own tags object
-    $scope.jsTagOptions = {
-        'tags': $scope.tags,
-        'texts': {
-            'inputPlaceHolder': 'Search'
-        }
-    };
+   
 
 
 
-    // Build suggestions array
-    var suggestions = [];
-    suggestions = suggestions.map(function (item) {
-        return {
-            "suggestion": item
-        }
-    });
-
-    // Instantiate the bloodhound suggestion engine
-    var suggestions = new Bloodhound({
-        datumTokenizer: function (d) {
-            return Bloodhound.tokenizers.whitespace(d.suggestion);
-        },
-        queryTokenizer: Bloodhound.tokenizers.whitespace,
-        local: suggestions
-    });
 
 
-    // Initialize the bloodhound suggestion engine
-    suggestions.initialize();
-
-    // Single dataset example
-    $scope.exampleData = {
-        displayKey: 'suggestion',
-        source: suggestions.ttAdapter()
-    };
-
-    // Typeahead options object
-    $scope.exampleOptions = {
-        hint: false,
-        highlight: true
-    };
-
-    tagPredicitionService.getTag('').then(function (result) {
-        var tags = ($filter('tagFilter')(result.data));
-        tags = tags.map(function (item) {
-            return {
-                "suggestion": item
-            }
-        });
-
-        suggestions.add(tags);
-    });
 
     $scope.login = function () {
         authenticationNotifyService.subscribe('auth0', callback);
@@ -117,22 +73,9 @@ app.controller('homeController', ['$scope', '$rootScope', '$filter', '$log', '$m
     }
 
 
-    $scope.searchClick = function () {
-        $log.log('search tags' + $scope.extractTags());
-        $state.go('.', {
-            query: encodeURI($scope.extractTags())
-        });
-    }
 
 
-    $scope.extractTags = function () {
-        var query = '';
-        console.log($scope.tags);
-        Object.keys($scope.tags.tags).forEach(function (key, index) {
-            query += ' ' + ($scope.tags.tags[key].value);
-        });
-        return query;
-    }
+
 
 
     $scope.viewRun = function (run) {
