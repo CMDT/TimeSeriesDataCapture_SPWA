@@ -8,12 +8,9 @@ app.service('annotationsService', ['$rootScope','$log','$http', function ($rootS
       
             var config = {
                 headers: {},
-                responseType: 'json'
             }
             config.headers.Authorization = 'Bearer ' + localStorage.getItem('accessToken');
            
-           
-
             var url =  $rootScope.url + '/apis/components/'+componentId+'/annotations/'+annotationId;
             $log.log(url);
             $log.log(annotation);
@@ -37,10 +34,8 @@ app.service('annotationsService', ['$rootScope','$log','$http', function ($rootS
     }
 
     self.deleteAnnotation = function (componentId,annotationId){
-      
             var config = {
                 headers: {},
-                responseType: 'json'
             }
             config.headers.Authorization = 'Bearer ' + localStorage.getItem('accessToken');
            

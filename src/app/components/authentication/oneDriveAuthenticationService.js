@@ -3,10 +3,8 @@ app.service('oneDriveAuthenticationService', ['$rootScope', '$log', '$http', '$w
 
     var self = this;
 
-    
 
-    var logged = false;
-
+   
 
     $window.onAuthenticated = function (token, authWindow) {
         if (token) {

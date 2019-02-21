@@ -1,4 +1,4 @@
-app.service('timeSeriesGraphControlService', ['$log', 'timeSeriesGraphService', 'timeSeriesAnnotationService', function ($log, timeSeriesGraphService, timeSeriesAnnotationService) {
+app.service('timeSeriesGraphControlService', ['$log', 'timeSeriesGraphServiceV2', 'timeSeriesAnnotationService', function ($log, timeSeriesGraphService, timeSeriesAnnotationService) {
 
     var self = this;
     var timeSeriesData;
@@ -6,18 +6,18 @@ app.service('timeSeriesGraphControlService', ['$log', 'timeSeriesGraphService', 
     self.drawGraph = function (runArray, options) {
         $log.log('drawing graph');
         var runs = [];
-    
+
         for (var i = 0, n = runArray.length; i < n; i++) {
             var runData = self.parseDataToArray(runArray[i].runData);
             runs.push({
                 id: runArray[i].id,
-                values : runData
+                values: runData
             })
             self.extractAnnotations(runArray[i].id, runArray[i].annotations);
         }
 
         timeSeriesData = runs;
-        timeSeriesGraphService.graphInit(options); 
+        timeSeriesGraphService.graphInit(timeSeriesData, options);
     }
 
     self.parseRunArray = function (runArray) {
@@ -45,13 +45,15 @@ app.service('timeSeriesGraphControlService', ['$log', 'timeSeriesGraphService', 
             description: annotation.description,
             groupId: annotationGroupId
         }
-        
+
+
+
         timeSeriesAnnotationService.addAnnotation(annotationGroupId, annotation.id, data, undefined);
     }
 
     self.parseDataToArray = function (dataObject) {
         var dataArray = [];
-        
+
 
         //converts each column array into an array of object rows
         var objectKeys = Object.keys(dataObject);
@@ -65,54 +67,54 @@ app.service('timeSeriesGraphControlService', ['$log', 'timeSeriesGraphService', 
         return dataArray;
     }
 
-    self.addTrend = function(id,columnName){
-       
+    self.addTrend = function (id, columnName) {
+
         var data;
-        for(var i=0, n= timeSeriesData.length; i<n;i++){
-            if(timeSeriesData[i].id === id){
+        for (var i = 0, n = timeSeriesData.length; i < n; i++) {
+            if (timeSeriesData[i].id === id) {
                 data = timeSeriesData[i].values
                 break;
             }
         }
-        
-        timeSeriesGraphService.addTrend(id,columnName,data);
+
+        timeSeriesGraphService.addTrend(id, columnName, data);
     }
 
-    self.removeTrend = function(id,columnName){
+    self.removeTrend = function (id, columnName) {
         $log.log(columnName);
-        timeSeriesGraphService.removeTrend(id,columnName);
+        timeSeriesGraphService.removeTrend(id, columnName);
     }
 
-    
 
-    self.graphTransition = function(transitionVector,offsetVector){
-        timeSeriesGraphService.transition(transitionVector,offsetVector);
+
+    self.graphTransition = function (transitionVector, offsetVector) {
+        timeSeriesGraphService.transition(transitionVector, offsetVector);
     }
 
-   
-    self.setActiveRun = function(runId){
+
+    self.setActiveRun = function (runId) {
         timeSeriesGraphService.setActiveRun(runId);
     }
 
-    self.setActiveColumn = function(columnName){
+    self.setActiveColumn = function (columnName) {
         timeSeriesGraphService.setActiveColumn(columnName);
-        timeSeriesGraphService.setOffsetLine(timeSeriesData,columnName);
+        //timeSeriesGraphService.setOffsetLine(timeSeriesData,columnName);
     }
 
-    self.getActiveRun = function(){
+    self.getActiveRun = function () {
         return timeSeriesGraphService.getActiveRun();
     }
 
-    self.getActiveColumn = function(){
+    self.getActiveColumn = function () {
         return timeSeriesGraphService.getActiveColumn();
     }
 
-    self.clearData = function(){
-        timeSeriesGraphService.clear();
+    self.clearData = function () {
+        //timeSeriesGraphService.clear();
         timeSeriesData = undefined;
     }
 
-    
+
 
 
 

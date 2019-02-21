@@ -1,7 +1,7 @@
-app.controller('homeController', ['$scope','$rootScope','$filter', '$log','$mdDialog', 'authenticationService', 'searchPageService', '$state', '$stateParams', 'JSTagsCollection','selectionService','exportDataService','authenticationNotifyService','tagPredictionService', function ($scope,$rootScope, $filter,$log,$mdDialog, authenticationService, searchPageService, $state, $stateParams, JSTagsCollection,selectionService,exportDataService,authenticationNotifyService,tagPredicitionService) {
+app.controller('homeController', ['$scope', '$rootScope', '$filter', '$log', '$mdDialog', 'authenticationService', 'searchPageService', '$state', '$stateParams', 'JSTagsCollection', 'selectionService', 'exportDataService', 'authenticationNotifyService', 'tagPredictionService', 'runRequestService', function ($scope, $rootScope, $filter, $log, $mdDialog, authenticationService, searchPageService, $state, $stateParams, JSTagsCollection, selectionService, exportDataService, authenticationNotifyService, tagPredicitionService, runRequestService) {
 
     $scope.loading = false;
-    
+
     this.uiOnParamsChanged = function (params) {
         if (params.query != undefined) {
             $scope.search(params.query);
@@ -13,6 +13,7 @@ app.controller('homeController', ['$scope','$rootScope','$filter', '$log','$mdDi
         $log.log('search query ' + query);
         $scope.loading = true;
         searchPageService.search(query).then(function (result) {
+            $log.log('Search Result',result);
             $scope.results = result;
             $scope.loading = false;
             $scope.$apply();
@@ -79,7 +80,7 @@ app.controller('homeController', ['$scope','$rootScope','$filter', '$log','$mdDi
         highlight: true
     };
 
-    tagPredicitionService.getTag('').then(function(result){
+    tagPredicitionService.getTag('').then(function (result) {
         var tags = ($filter('tagFilter')(result.data));
         tags = tags.map(function (item) {
             return {
@@ -91,16 +92,16 @@ app.controller('homeController', ['$scope','$rootScope','$filter', '$log','$mdDi
     });
 
     $scope.login = function () {
-        authenticationNotifyService.subscribe('auth0',callback);
+        authenticationNotifyService.subscribe('auth0', callback);
         authenticationService.login();
     }
 
-    function callback(){
+    function callback() {
         $log.log($scope.isAuthenticated());
         $scope.$apply();
     }
 
-    $scope.logout = function(){
+    $scope.logout = function () {
         authenticationService.logout();
     }
 
@@ -134,63 +135,86 @@ app.controller('homeController', ['$scope','$rootScope','$filter', '$log','$mdDi
     }
 
 
-    $scope.viewRun = function(run){
+    $scope.viewRun = function (run) {
         var options = {
             location: 'replace',
             inherit: false,
         }
 
-        $state.transitionTo('view',{
+        $state.transitionTo('view', {
             runs: run.id,
-            columns : run.id + ':RTH',
+            columns: run.id + ':RTH',
             activeColumn: run.id + '+RTH',
             activeRun: run.id
-        },options);
+        }, options);
     }
 
-    var selectionId = selectionService.addSelectionGroup('runs','runsSelection');
+    var selectionId = selectionService.addSelectionGroup('runs', 'runsSelection');
 
-    $scope.exists = function(runId){
-        return selectionService.isSelected(selectionService.getSelectionGroup(selectionId),runId);
+    $scope.exists = function (runId) {
+        return selectionService.isSelected(selectionService.getSelectionGroup(selectionId), runId);
     }
 
-    $scope.selectedToggle = function(runId){
-        selectionService.selectedToggle(selectionService.getSelectionGroup(selectionId),runId);
+    $scope.selectedToggle = function (runId) {
+        selectionService.selectedToggle(selectionService.getSelectionGroup(selectionId), runId);
     }
 
-    $scope.view = function(){
+    $scope.view = function () {
         var selected = selectionService.selectedToArray(selectionId);
-        
+
         var options = {
             location: 'replace',
             inherit: false,
         }
 
-        $state.transitionTo('view',{
+        $state.transitionTo('view', {
             runs: selected.join('+'),
-            columns : selected[0] + ':RTH',
+            columns: selected[0] + ':RTH',
             activeColumn: selected[0] + '+RTH',
             activeRun: selected[0]
-        },options);
+        }, options);
     }
 
-    $scope.isAuthenticated = function(){
+    $scope.isAuthenticated = function () {
         return authenticationService.isAuthenticated();
     }
 
-    $scope.export = function(){
+    $scope.export = function () {
+        $log.log($scope.results);
         var selected = selectionService.selectedToArray(selectionId);
-        exportDataService.getExport(selected).then(function(result){
+        exportDataService.getExport(selected).then(function (result) {
             $log.log(result);
         })
     }
 
-    $scope.enabled = function(){
-        var test = selectionService.selectedLength(selectionId);
+    $scope.enabled = function () {
         return selectionService.selectedLength(selectionId) > 0;
     }
 
-    
+    $scope.deleteEnabled = function () {
+        return selectionService.selectedLength(selectionId) == 1
+    }
+
+    $scope.delete = function () {
+        var selected = selectionService.selectedToArray(selectionId);
+        runRequestService.deleteRun(selected).then(function (result) {
+            $log.log('item deleted');
+            for (var i = 0; i < $scope.results.length; i++) {
+                if ($scope.results[i].id == selected[0]) {
+                    $log.log(selected[0]);
+                    $scope.results.splice(i, 1);
+                    $log.log($scope.results);
+                    selectionService.removeSelected(selectionService.getSelectionGroup(selectionId), selected[0]);
+                }
+            }
+
+
+        })
+
+
+    }
+
+
 
 
 

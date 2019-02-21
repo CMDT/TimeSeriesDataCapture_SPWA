@@ -1,4 +1,4 @@
-app.service('timeSeriesAnnotationService', ['$log', '$filter', function ($log, $filter) {
+app.service('timeSeriesAnnotationService', ['$log', 'annotationPreviewService', function ($log, annotationPreviewService) {
 
     var self = this;
 
@@ -24,7 +24,98 @@ app.service('timeSeriesAnnotationService', ['$log', '$filter', function ($log, $
         this.subject = {
             text: label,
             y: 'top',
-        };
+        }
+        this.callback = null;
+        this.click = function (labelNode, axis, vector, callback) {
+            var annotation = this;
+            this.callback = callback;
+            annotationPreviewService.showAnnotationPreviewPanel(annotation)
+                .then(function (result) {
+                    annotation.addAnnotationEditButtons(axis, vector, labelNode);
+                }).catch(function (error) {
+                    callback(this);
+                })
+        }
+        this.addAnnotationEditButtons = function (axis, t, labelNode) {
+            var width = 30;
+            var height = 30;
+            var xt = t.rescaleX(axis);
+            var xCor = (xt(this.data.Time));
+            labelNode.selectAll('g').remove();
+            labelNode.append('g')
+                .attr('class', 'move')
+                .attr('id', this.id)
+                .append('svg:image')
+                .attr('x', (xCor - (width / 2)))
+                .attr('y', -80)
+                .attr('xlink:href', './assets/img/arrow_down.svg')
+                .attr('width', width)
+                .attr('height', height)
+
+            labelNode.append('g')
+                .attr('class', 'confirm')
+                .append('svg:image')
+                .attr('x', (xCor - (width / 2)))
+                .attr('y', -110)
+                .attr('xlink:href', './assets/img/stop.svg')
+                .attr('width', width)
+                .attr('height', height)
+        }
+        this.annotationLabelRender = function (groupNode, labelNode, xAxis, vector) {
+            var annotation = this;
+            var xt = vector.rescaleX(xAxis);
+            labelNode.selectAll('g')
+                .each(function (d) {
+                    var image = d3.select(this).select('image');
+                    var imageWidth = image.attr('width');
+                    var x = xt(annotation.data.Time);
+                    image.attr('x', (x - (imageWidth / 2)));
+                })
+
+            labelNode.select('.move')
+                .call(d3.drag()
+                    .on('drag', function () {
+                        annotation.annotationDrag(groupNode, labelNode, annotation, xAxis, vector);
+                    }))
+
+            labelNode.select('.confirm')
+                .on('click', function () {
+                    console.log('stop annotation');
+                    annotation.annotationPosEditConfirm(labelNode, annotation, xAxis, vector);
+                })
+        }
+        this.annotationDrag = function (groupNode, labelNode, annotation, xAxis, vector) {
+            var xt = vector.rescaleX(xAxis);
+            labelNode.selectAll('g')
+                .each(function (d) {
+                    var image = d3.select(this).select('image');
+                    var imageWidth = image.attr('width');
+                    image.attr('x', (d3.event.x - (imageWidth / 2)));
+                })
+            var Time = xt.invert(d3.event.x);
+            Time = Time === 1 ? 0 : Time;
+
+            annotation.data.Time = Time;
+            var makeAnnotations = d3.annotation()
+                .notePadding(15)
+                .type(d3.annotationBadge)
+                .accessors({
+                    x: d => xt(d.Time),
+                    y: d => -10
+                })
+                .annotations([annotation])
+            groupNode.call(makeAnnotations);
+        }
+        this.annotationPosEditConfirm = function (labelNode, annotation, xAxis, vector) {
+            var xt = vector.rescaleX(xAxis);
+            var image = labelNode.select('g').select('image');
+            var cx = parseFloat(image.attr('x'));
+            cx += (parseFloat(image.attr('width'))) / 2;
+            var Time = xt.invert(cx);
+            annotation.data.Time = Time;
+            labelNode.selectAll('g').remove();
+            annotation.click(labelNode, xAxis, vector,annotation.callback);
+        }
     }
 
     self.addAnnotationGroup = function (id, name, annotations) {
@@ -38,7 +129,7 @@ app.service('timeSeriesAnnotationService', ['$log', '$filter', function ($log, $
     }
 
     self.addAnnotation = function (annotationGroupId, id, data, label) {
-
+        console.log('adding annotation');
         var newAnnotation = new annotationBadge(annotationGroupId, id, data, label);
         var annotationGroup = annotationGroups.get(annotationGroupId);
         annotationGroup.annotations.push(newAnnotation);

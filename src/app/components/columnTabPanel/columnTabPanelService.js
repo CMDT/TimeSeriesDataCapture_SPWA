@@ -4,6 +4,9 @@ app.service('columnTabPanelService', ['$log', 'runRequestService', 'selectionSer
     var tabs = new Map();
     var selectedTab;
     var activeColumn;
+
+    // Not a 100% sure why getRunData and getRun functions are here they will be removed
+    // see runRequestService for new functions
     self.getRunData = function (runIdArray) {
         return new Promise(function (resolve, reject) {
             var getRunPromises = runIdArray.map(runRequestService.getRun);

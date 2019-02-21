@@ -1,2 +1,4 @@
 node_modules/
 .vscode/
+src/app/.DS_Store
+src/app/shared/.DS_Store

@@ -365,14 +365,15 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
         var xt = currentVector.rescaleX(x);
         var Time = xt.invert(d3.event.x);
         annotationInEdit.data.Time = Time;
-        annotationBadgeRender([annotationInEdit]);
+        annotationBadgeRender([annotationInEdit]);                                                                   
 
     }
 
     self.addTrend = function (id, columnName, data) {
-
+        console.log('ADD TREND ', data);
         data = extractColumn(data, 'Time', columnName);
         var trend = timeSeriesTrendService.addTrend(id,columnName, d3.scaleLinear(), d3.scaleLinear(), 'Time', columnName, data);
+        console.log('TREND DATA',trend);
         trend.scaleY.range([height, 0]);
         calculateYDomain(trend.scaleY, trend.data, 'Y');
         calculateXDomain(x, trend.data)
