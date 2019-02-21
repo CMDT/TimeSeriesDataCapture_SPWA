@@ -2,7 +2,7 @@ app.service('searchInputService', ['$log', '$filter', 'JSTagsCollection', 'tagPr
 
     var self = this;
 
-    inputQueries = null;
+    var inputQueries = null;
 
 
     self.getQuery = getQuery;

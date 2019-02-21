@@ -5,7 +5,7 @@
 
 <div ng-if='isAuthenticated()'>
     <md-button class="md-raised" ng-click="logout()">Logout</md-button>
-    <md-button class="md-raised" ng-click="import()">Import</md-button>
+    <md-button class="md-raised" ng-click="importClick()">Import</md-button>
 </div>
 
 <div class="search-content">
@@ -16,9 +16,9 @@
 
 
     <div class='run-buttons'>
-        <md-button class='md-primary' ng-click='view()' ng-disabled="!enabled()">View</md-button>
-        <md-button class='md-confirm' ng-click='export()' ng-disabled="!enabled()">Export</md-button>
-        <md-button class='md-warn' ng-disabled='!isAuthenticated() || !deleteEnabled()' ng-click='delete()'>Delete</md-button>
+        <md-button class='md-primary' ng-click='viewClick()' ng-disabled="!enabled()">View</md-button>
+        <md-button class='md-confirm' ng-click='exportClick()' ng-disabled="!enabled()">Export</md-button>
+        <md-button class='md-warn' ng-disabled='!isAuthenticated() || !enabled()' ng-click='deleteClick()'>Delete</md-button>
     </div>
 
     <div class="result">
@@ -30,7 +30,7 @@
             <div class="rect5"></div>
         </div>
         <md-list ng-if='!loading' ng-repeat="run in results" flex>
-            <md-list-item class="md-2-line" ng-click="viewRun(run)">
+            <md-list-item class="md-2-line" ng-click="viewClick(run)">
                 <p>{{run.id}}</p>
 
                 <div class="md-list-item-text" layout="column">

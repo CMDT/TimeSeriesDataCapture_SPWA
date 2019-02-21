@@ -1,12 +1,42 @@
 app.controller('homeController', ['$scope', '$rootScope', '$filter', '$log', '$mdDialog', 'authenticationService', 'searchService', '$state', '$stateParams', 'JSTagsCollection', 'selectionService', 'exportDataService', 'authenticationNotifyService', 'tagPredictionService', 'runRequestService', 'searchInputService', function ($scope, $rootScope, $filter, $log, $mdDialog, authenticationService, searchService, $state, $stateParams, JSTagsCollection, selectionService, exportDataService, authenticationNotifyService, tagPredicitionService, runRequestService, searchInputService) {
 
+
+    var selectionId = selectionService.addSelectionGroup('runs', 'runsSelection');
+
+    start();
+
+
+    $scope.results = [];
     $scope.loading = false;
 
     $scope.searchClick = searchClick;
     $scope.search = search;
 
+    $scope.login = login;
+    $scope.logout = logout;
 
-    start();
+    $scope.importClick = importClick;
+    $scope.viewClick = viewClick;
+    $scope.exportClick = exportClick;
+    $scope.deleteClick = deleteClick;
+
+    $scope.exists = exists;
+    $scope.selectedToggle = selectedToggle;
+    $scope.enabled = enabled;
+
+    $scope.isAuthenticated = isAuthenticated;
+
+
+
+    function start() {
+        if ($stateParams.query) {
+            search($stateParams.query);
+        }
+        $scope.jsTagOptions = searchInputService.populateInput($stateParams.query);
+        searchInputService.suggestions();
+        $scope.exampleData = searchInputService.exampleData;
+
+    }
 
     function searchClick() {
         var tags = searchInputService.getQuery();
@@ -28,39 +58,18 @@ app.controller('homeController', ['$scope', '$rootScope', '$filter', '$log', '$m
         })
     }
 
-    function start() {
-        if ($stateParams.query) {
-            search($stateParams.query);
-        }
-        $scope.jsTagOptions = searchInputService.populateInput($stateParams.query);
-        searchInputService.suggestions();
-        $scope.exampleData = searchInputService.exampleData;
-
-    }
-
-   
-
-
-
-
-
-
-    $scope.login = function () {
-        authenticationNotifyService.subscribe('auth0',function(){
+    function login() {
+        authenticationNotifyService.subscribe('auth0', function () {
             $scope.$apply();
         });
         authenticationService.login();
     }
 
-   
-
-    $scope.logout = function () {
+    function logout() {
         authenticationService.logout();
     }
 
-    $scope.results = [];
-
-    $scope.import = function (ev) {
+    function importClick(ev) {
         $mdDialog.show({
             templateUrl: 'app/shared/import/importPanel.html',
             parent: angular.element(document.body),
@@ -69,38 +78,20 @@ app.controller('homeController', ['$scope', '$rootScope', '$filter', '$log', '$m
         })
     }
 
+    function viewClick(run) {
 
+        columns = run
+        activeColumn = run
+        activeRun = run
 
+        if (!run) {
+            selected = selectionService.selectedToArray(selectionId);
+            run = run.join('+');
 
-
-
-
-    $scope.viewRun = function (run) {
-        var options = {
-            location: 'replace',
-            inherit: false,
+            columns = selected[0];
+            activeColumn = selected[0];
+            activeRun = selected[0];
         }
-
-        $state.transitionTo('view', {
-            runs: run.id,
-            columns: run.id + ':RTH',
-            activeColumn: run.id + '+RTH',
-            activeRun: run.id
-        }, options);
-    }
-
-    var selectionId = selectionService.addSelectionGroup('runs', 'runsSelection');
-
-    $scope.exists = function (runId) {
-        return selectionService.isSelected(selectionService.getSelectionGroup(selectionId), runId);
-    }
-
-    $scope.selectedToggle = function (runId) {
-        selectionService.selectedToggle(selectionService.getSelectionGroup(selectionId), runId);
-    }
-
-    $scope.view = function () {
-        var selected = selectionService.selectedToArray(selectionId);
 
         var options = {
             location: 'replace',
@@ -108,51 +99,65 @@ app.controller('homeController', ['$scope', '$rootScope', '$filter', '$log', '$m
         }
 
         $state.transitionTo('view', {
-            runs: selected.join('+'),
-            columns: selected[0] + ':RTH',
-            activeColumn: selected[0] + '+RTH',
-            activeRun: selected[0]
+            runs: run,
+            columns,
+            activeColumn,
+            activeRun,
         }, options);
     }
 
-    $scope.isAuthenticated = function () {
-        return authenticationService.isAuthenticated();
-    }
-
-    $scope.export = function () {
-        $log.log($scope.results);
+    function exportClick() {
         var selected = selectionService.selectedToArray(selectionId);
-        exportDataService.getExport(selected).then(function (result) {
-            $log.log(result);
-        })
+        exportDataService.getExport(selected);
     }
 
-    $scope.enabled = function () {
-        return selectionService.selectedLength(selectionId) > 0;
-    }
-
-    $scope.deleteEnabled = function () {
-        return selectionService.selectedLength(selectionId) == 1
-    }
-
-    $scope.delete = function () {
+    function deleteClick() {
         var selected = selectionService.selectedToArray(selectionId);
-        runRequestService.deleteRun(selected).then(function (result) {
+        runRequestService.deleteRun(selected[0]).then(function (result) {
             $log.log('item deleted');
             for (var i = 0; i < $scope.results.length; i++) {
                 if ($scope.results[i].id == selected[0]) {
-                    $log.log(selected[0]);
                     $scope.results.splice(i, 1);
-                    $log.log($scope.results);
                     selectionService.removeSelected(selectionService.getSelectionGroup(selectionId), selected[0]);
                 }
             }
 
 
         })
-
-
     }
+
+    function exists(runId){
+        return selectionService.isSelected(selectionService.getSelectionGroup(selectionId), runId);
+    }
+
+    function selectedToggle(runId){
+        selectionService.selectedToggle(selectionService.getSelectionGroup(selectionId), runId);
+    }
+
+    function enabled(){
+        return selectionService.selectedLength(selectionId) > 0;
+    }
+
+    function isAuthenticated(){
+        return authenticationService.isAuthenticated();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
 
 
 
