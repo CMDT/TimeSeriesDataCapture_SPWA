@@ -52,27 +52,41 @@ app.service('runRequestService', ['$rootScope', '$log', '$http', function ($root
     // Can either pass an array of Ids or a single Id
     //      - passing an array returns an object array
     //      - passing a single returns a object
-    self.getRunV2 = function(componentIds){
-        return new Promise(function(resolve,reject){
+    self.getRunV2 = function (componentIds) {
+        return new Promise(function (resolve, reject) {
 
-            if(!componentIds){reject('componentIds not specified')}
+            if (!componentIds) { reject('componentIds not specified') }
 
-            if(Array.isArray(componentIds)){
+            if (Array.isArray(componentIds)) {
                 var getRunPromises = componentIds.map(_getRun);
-                Promise.all(getRunPromises).then(function(result){
+                Promise.all(getRunPromises).then(function (result) {
                     resolve(result)
                 })
-            }else{
+            } else {
                 //perform http request
                 resolve(_getRun(componentIds));
             }
         });
-        
+
     }
-    
-    
-    function _getRun(componentId){
-        return new Promise(function(resolve,reject){
+
+    self.getRuns = function (componentIds) {
+        return new Promise(function (resolve, reject) {
+
+            if (!componentIds) { reject('componentIds not specified') }
+
+
+            var getRunPromises = componentIds.map(_getRun);
+            Promise.all(getRunPromises).then(function (result) {
+                resolve(result)
+            })
+
+        });
+    }
+
+
+    function _getRun(componentId) {
+        return new Promise(function (resolve, reject) {
             var config = {
                 headers: {},
                 responseType: 'json'

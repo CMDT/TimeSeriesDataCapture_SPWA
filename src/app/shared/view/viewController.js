@@ -1,4 +1,4 @@
-app.controller('viewController', ['$scope','$rootScope', '$log', '$state', '$stateParams', 'tagEditPanelService', 'columnTabPanelService', 'timeSeriesGraphControlService', 'timeSeriesTrendService', 'authenticationService', 'paletteDataService', function ($scope,$rootScope, $log, $state, $stateParams, tagEditPanelService, columnTabPanelService, timeSeriesGraphControlService, timeSeriesTrendService, authenticationService, paletteDataService) {
+app.controller('viewController', ['$scope','$rootScope', '$log', '$state', '$stateParams', 'tagEditPanelService', 'columnTabPanelService', 'timeSeriesGraphControlService', 'timeSeriesTrendService', 'authenticationService', 'paletteDataService','runRequestService','timeSeriesGraphServiceV2','activeColumn', function ($scope,$rootScope, $log, $state, $stateParams, tagEditPanelService, columnTabPanelService, timeSeriesGraphControlService, timeSeriesTrendService, authenticationService, paletteDataService,runRequestService,timeSeriesGraphServiceV2,activeColumn) {
 
 
     $scope.runs = [];
@@ -15,9 +15,55 @@ app.controller('viewController', ['$scope','$rootScope', '$log', '$state', '$sta
     $scope.query = $rootScope.query;
 
 
-    if ($stateParams.runs != undefined) {
+    if ($stateParams.runs) {
         // TODO : need to test getRunV2 
-        columnTabPanelService.getRun($stateParams.runs.split('+')).then(function (result) {
+        var runs = $stateParams.runs.split('+');
+       
+        
+        
+    
+        runRequestService.getRuns(runs).then(function(result){
+          
+            result = extractData(result);
+            console.log(result);
+
+            timeSeriesGraphServiceV2.graphInit(result,{});
+            columnTabPanelService.clearSelection();
+            
+            timeSeriesTrendService.clearTrends();
+
+            tagsCollection = (extractTags(result));
+
+            columnTabPanelService.createRunTabs(result);
+            $scope.tabs = columnTabPanelService.getTabs();
+
+
+            if ($stateParams.columns) {
+                var columns = columnTabPanelService.parseUrlColumns($stateParams.columns);
+                columnTabPanelService.selectColumns(columns);
+            }
+
+            if ($stateParams.activeColumn) {
+                activeColumn.column = $stateParams.activeColumn;
+            }
+
+            var offsetVector;
+            var viewVector;
+            if ($stateParams.offsetVector != undefined) {
+                offsetVector = JSON.parse($stateParams.offsetVector);
+            }
+
+            if ($stateParams.viewVector != undefined) {
+                viewVector = JSON.parse($stateParams.viewVector);
+            }
+
+            timeSeriesGraphServiceV2.transition(viewVector,offsetVector);
+
+            $scope.$apply();
+        })
+
+
+        /* columnTabPanelService.getRun($stateParams.runs.split('+')).then(function (result) {
             columnTabPanelService.clearSelection();
             timeSeriesGraphControlService.clearData();
             timeSeriesTrendService.clearTrends();
@@ -82,8 +128,25 @@ app.controller('viewController', ['$scope','$rootScope', '$log', '$state', '$sta
 
         }).catch(function (error) {
             $log.log(error);
+        }) */
+    }
+
+    /* $scope.selectedColumn = function (tabId, columnName) {
+        console.log('activeRun',tabId)
+        $state.go('.', {
+            activeColumn: tabId + '+' + columnName
         })
     }
+
+    $scope.selectedTab = function () {
+        
+        var runId = ($scope.tabs[$scope.activeTabIndex]).id;
+        $log.log(runId);
+        $state.go('.', {
+            activeRun: runId 
+        })
+        
+    } */
 
     $scope.back = function(){
         var options = {
@@ -115,37 +178,26 @@ app.controller('viewController', ['$scope','$rootScope', '$log', '$state', '$sta
         return columnTabPanelService.exists(id, columnName);
     }
 
-    $scope.selectedColumn = function (tabId, columnName) {
-
-        $state.go('.', {
-            activeColumn: tabId + '+' + columnName
+    $scope.activeRunClick = function(tabId,columnName){
+        $state.go('.',{
+            activeColumn : `${tabId}+${columnName}`
         })
     }
 
-    $scope.selectedTab = function () {
-        var runId = ($scope.tabs[$scope.activeTabIndex]).id;
-        $log.log(runId);
-        $state.go('.', {
-            activeRun: runId 
-        })
-        
-    }
+    
+
+  
+
+    
 
     $scope.isActiveColumn = function (tabId, columnName) {
-       
-        var activeColumn = timeSeriesGraphControlService.getActiveColumn()
-
-        if(activeColumn == undefined){
-            return false;
-        }
-
-        activeColumn = activeColumn.split('+');
-
-        if (tabId === activeColumn[0] && columnName === activeColumn[1]) {
-        
-            return true;
-        } else {
-            return false;
+        if(activeColumn.column){
+            var active = activeColumn.column.split("+");
+            if (tabId === active[0] && columnName === active[1]) {
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 
@@ -157,14 +209,12 @@ app.controller('viewController', ['$scope','$rootScope', '$log', '$state', '$sta
         return tagsArray;
     }
 
-   
-    
 
     this.uiOnParamsChanged = function (params) {
         //active selection
 
         if (params.hasOwnProperty('activeColumn')) {
-            timeSeriesGraphControlService.setActiveColumn(params.activeColumn);
+            activeColumn.column = params.activeColumn;
         }
 
 
@@ -178,12 +228,6 @@ app.controller('viewController', ['$scope','$rootScope', '$log', '$state', '$sta
             }
         }
 
-        if(params.hasOwnProperty('activeRun')){
-            timeSeriesGraphControlService.setActiveRun(params.activeRun);
-            $log.log('TAGS ARRAY')
-            tagsArray = tagsCollection[params.activeRun];
-           
-        }
     }
 
 
@@ -210,6 +254,16 @@ app.controller('viewController', ['$scope','$rootScope', '$log', '$state', '$sta
         }
 
         return tags;
+    }
+
+    function extractData(runArray){
+        var results = [];
+        for (var i = 0, n = runArray.length; i < n; i++) {
+            //get data
+            results.push(runArray[i].data);
+        }
+
+        return results;
     }
 
 

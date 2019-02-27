@@ -51,6 +51,7 @@ app.controller('homeController', ['$scope', '$rootScope', '$filter', '$log', '$m
     function search(query) {
         $scope.loading = true;
         searchService.searchRequest(query).then(function (result) {
+            console.log(result);
             $scope.results = result.data;
             $scope.loading = false;
         }).catch(function (error) {
@@ -80,17 +81,16 @@ app.controller('homeController', ['$scope', '$rootScope', '$filter', '$log', '$m
 
     function viewClick(run) {
 
-        columns = run
-        activeColumn = run
-        activeRun = run
+      
+        
+
+       
 
         if (!run) {
             selected = selectionService.selectedToArray(selectionId);
-            run = run.join('+');
-
-            columns = selected[0];
-            activeColumn = selected[0];
-            activeRun = selected[0];
+            runs = selected.join('+');
+        }else{
+            runs = run.id
         }
 
         var options = {
@@ -99,10 +99,7 @@ app.controller('homeController', ['$scope', '$rootScope', '$filter', '$log', '$m
         }
 
         $state.transitionTo('view', {
-            runs: run,
-            columns,
-            activeColumn,
-            activeRun,
+            runs: runs,
         }, options);
     }
 
@@ -131,6 +128,7 @@ app.controller('homeController', ['$scope', '$rootScope', '$filter', '$log', '$m
     }
 
     function selectedToggle(runId){
+        console.log(runId);
         selectionService.selectedToggle(selectionService.getSelectionGroup(selectionId), runId);
     }
 

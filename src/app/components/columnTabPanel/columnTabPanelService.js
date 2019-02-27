@@ -1,4 +1,4 @@
-app.service('columnTabPanelService', ['$log', 'runRequestService', 'selectionService','timeSeriesGraphControlService', function ($log, runRequestService, selectionService, timeSeriesGraphControlService) {
+app.service('columnTabPanelService', ['$log', 'runRequestService', 'selectionService','timeSeriesGraphControlService','graphEventEmitterService', function ($log, runRequestService, selectionService, timeSeriesGraphControlService,graphEventEmitterService) {
 
     var self = this;
     var tabs = new Map();
@@ -174,8 +174,7 @@ app.service('columnTabPanelService', ['$log', 'runRequestService', 'selectionSer
             for (var o = 0, m = columns[i].selected.length; o < m; o++) {
                 if (!selection.includes(columns[i].selected[o])) {
                     selectionService.addSelected(selectionService.getSelectionGroup(columns[i].selectionGroup), columns[i].selected[o]);
-                    $log.log('add selection', columns[i].selected[o]);
-                    timeSeriesGraphControlService.addTrend(columns[i].selectionGroup,columns[i].selected[o]);
+                    graphEventEmitterService.publishAddTrend(columns[i].selectionGroup,columns[i].selected[o]);
                 }
             }
 
@@ -183,8 +182,7 @@ app.service('columnTabPanelService', ['$log', 'runRequestService', 'selectionSer
             for (var o = 0, m = selection.length; o < m; o++) {
                 if (!(columns[i].selected.includes(selection[o]))) {
                     selectionService.removeSelected(selectionService.getSelectionGroup(columns[i].selectionGroup), selection[o]);
-                    $log.log('remove selection', selection[o]);
-                    timeSeriesGraphControlService.removeTrend(columns[i].selectionGroup,selection[o])
+                    graphEventEmitterService.publishRemoveTrend(columns[i].selectionGroup,selection[o]);
                 }
             }
         }

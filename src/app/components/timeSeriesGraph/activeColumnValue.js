@@ -1,0 +1,1 @@
+app.value("activeColumn",{"column" : undefined});
