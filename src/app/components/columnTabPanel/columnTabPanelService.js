@@ -1,9 +1,22 @@
-app.service('columnTabPanelService', ['$log', 'runRequestService', 'selectionService','timeSeriesGraphControlService','graphEventEmitterService', function ($log, runRequestService, selectionService, timeSeriesGraphControlService,graphEventEmitterService) {
+app.service('columnTabPanelService', ['$log', 'runRequestService', 'selectionService', 'timeSeriesGraphControlService', 'graphEventEmitterService', function ($log, runRequestService, selectionService, timeSeriesGraphControlService, graphEventEmitterService) {
 
     var self = this;
     var tabs = new Map();
-    var selectedTab;
-    var activeColumn;
+
+    self.createRunTabs = createRunTabs;
+    self.createRunTab = createRunTab;
+
+    self.getTabs = getTabs;
+    self.getTab = getTab;
+
+    self.getSelectedGroupColumns = getSelectedGroupColumns;
+    self.getSelectedColumns = getSelectedColumns;
+
+    self.parseUrlColumns = parseUrlColumns;
+    self.parseColumnsUrl = parseColumnsUrl;
+
+    self.selectColumns = selectColumns;
+    self.clearSelection = clearSelection;
 
     // Not a 100% sure why getRunData and getRun functions are here they will be removed
     // see runRequestService for new functions
@@ -14,7 +27,7 @@ app.service('columnTabPanelService', ['$log', 'runRequestService', 'selectionSer
                 .then(function (result) {
                     resolve(result);
                 })
-                .catch(function(error){
+                .catch(function (error) {
                     reject(error);
                 })
         })
@@ -29,7 +42,7 @@ app.service('columnTabPanelService', ['$log', 'runRequestService', 'selectionSer
                     results.push(result[i].data);
                 }
                 resolve(results);
-            }).catch(function(error){
+            }).catch(function (error) {
                 reject(error);
             })
         });
@@ -40,37 +53,37 @@ app.service('columnTabPanelService', ['$log', 'runRequestService', 'selectionSer
         return selectionService.isSelected(selectionService.getSelectionGroup(id), columnName);
     }
 
-    self.createRunTabs = function (runArray){
-        for(var i=0, n=runArray.length;i<n;i++){
-            self.createRunTab(runArray[i].id, runArray[i].runData);
+    function createRunTabs(runArray) {
+        for (var i = 0, n = runArray.length; i < n; i++) {
+            createRunTab(runArray[i].id, runArray[i].runData);
         }
     }
 
-    self.createRunTab = function (id, data){
+    function createRunTab(id, data) {
         selectionService.addSelectionGroup(id);
         var tabObject = {
             id: id,
-            columns : []
+            columns: []
         }
         var columnNames = Object.keys(data);
         tabObject.columns = columnNames;
-        tabs.set(id,tabObject);
+        tabs.set(id, tabObject);
     }
 
-    self.getTabs = function (){
+    function getTabs() {
         var tabsArray = [];
-        tabs.forEach(function(value,id){
+        tabs.forEach(function (value, id) {
             tabsArray.push(value);
         })
         return tabsArray;
     }
 
-    self.getTab = function(id){
+    function getTab(id) {
         return tabs.get(id);
     }
-    
 
-    self.getSelectedGroupColumns = function (selectionGroupIds) {
+
+    function getSelectedGroupColumns(selectionGroupIds) {
         var selectionArray = [];
         for (var i = 0, n = selectionGroupIds.length; i < n; i++) {
             var selected = selectionService.selectedToArray(selectionGroupIds[i])
@@ -83,7 +96,7 @@ app.service('columnTabPanelService', ['$log', 'runRequestService', 'selectionSer
         return selectionArray
     }
 
-    self.getSelectedColumns = function (id, columnName) {
+    function getSelectedColumns(id, columnName) {
         var selectionGroupIds = selectionService.getGroupIds();
         var selectedColumns = self.getSelectedGroupColumns(selectionGroupIds);
 
@@ -110,7 +123,7 @@ app.service('columnTabPanelService', ['$log', 'runRequestService', 'selectionSer
         return selectedColumns;
     }
 
-    self.parseUrlColumns = function (columns) {
+    function parseUrlColumns(columns) {
         columns = columns.split('+');
         var columnGroup = new Map();
 
@@ -137,7 +150,7 @@ app.service('columnTabPanelService', ['$log', 'runRequestService', 'selectionSer
         return columnGroupArray;
     }
 
-    self.parseColumnsUrl = function (columns) {
+    function parseColumnsUrl(columns) {
         var columnParam = '';
         for (var i = 0, n = columns.length; i < n; i++) {
             var id = columns[i].selectionGroup;
@@ -147,25 +160,25 @@ app.service('columnTabPanelService', ['$log', 'runRequestService', 'selectionSer
             }
         }
 
-        return columnParam.slice(0,-1);
+        return columnParam.slice(0, -1);
     }
 
-    self.selectColumns = function (columns) {
+    function selectColumns(columns) {
         var columnIds = [];
-        for(var i=0, n= columns.length; i<n;i++){
+        for (var i = 0, n = columns.length; i < n; i++) {
             columnIds.push(columns[i].selectionGroup);
         }
 
         var diff = selectionService.getGroupIds().filter(x => !columnIds.includes(x));
-        
-        for(var i=0,n=diff.length;i<n;i++){
+
+        for (var i = 0, n = diff.length; i < n; i++) {
             columns.push({
-                selectionGroup : diff[i],
+                selectionGroup: diff[i],
                 selected: []
             })
         }
 
-        
+
 
         for (var i = 0, n = columns.length; i < n; i++) {
             var selection = selectionService.selectedToArray(columns[i].selectionGroup);
@@ -174,7 +187,7 @@ app.service('columnTabPanelService', ['$log', 'runRequestService', 'selectionSer
             for (var o = 0, m = columns[i].selected.length; o < m; o++) {
                 if (!selection.includes(columns[i].selected[o])) {
                     selectionService.addSelected(selectionService.getSelectionGroup(columns[i].selectionGroup), columns[i].selected[o]);
-                    graphEventEmitterService.publishAddTrend(columns[i].selectionGroup,columns[i].selected[o]);
+                    graphEventEmitterService.publishAddTrend(columns[i].selectionGroup, columns[i].selected[o]);
                 }
             }
 
@@ -182,16 +195,16 @@ app.service('columnTabPanelService', ['$log', 'runRequestService', 'selectionSer
             for (var o = 0, m = selection.length; o < m; o++) {
                 if (!(columns[i].selected.includes(selection[o]))) {
                     selectionService.removeSelected(selectionService.getSelectionGroup(columns[i].selectionGroup), selection[o]);
-                    graphEventEmitterService.publishRemoveTrend(columns[i].selectionGroup,selection[o]);
+                    graphEventEmitterService.publishRemoveTrend(columns[i].selectionGroup, selection[o]);
                 }
             }
         }
     }
 
-    self.clearSelection = function (){
+    function clearSelection() {
         selectedTab = undefined;
         activeColumn = undefined;
-        tabs= new Map();
+        tabs = new Map();
         selectionService.clearAllSelections();
     }
 
