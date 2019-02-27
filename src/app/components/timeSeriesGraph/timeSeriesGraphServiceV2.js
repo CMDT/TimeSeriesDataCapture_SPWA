@@ -2,6 +2,16 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
     var self = this;
 
+    self.graphInit = graphInit;
+
+    self.addTrend = addTrend;
+    self.removeTrend = removeTrend;
+
+    self.transition = transition;
+
+    graphEventEmitterService.subscribeAddTrend(self.addTrend);
+    graphEventEmitterService.subscribeRemoveTrend(self.removeTrend);
+
     //data for all graphs currently being viewed
     var data;
 
@@ -63,7 +73,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
     //         urlState : maintain graph in url (defaults to false)
     //         height : graph height (defaults to 600px)
     //         width : graph width (deafults to 1300px)
-    self.graphInit = function (graphData, graphOptions) {
+    function graphInit (graphData, graphOptions) {
         console.log(graphOptions)
         ctrlDown = false;
         user = true;
@@ -241,7 +251,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
     //Adds a new trend line
     //  runId which run does the trend belong to
     //  columnY which column does the trend belong to (e.g. voltage) 
-    self.addTrend = function (runId, columnY) {
+    function addTrend(runId, columnY) {
         console.log(`adding tend ${runId} ${columnY}`)
         var trendData = extractTrendLineData(runId, columnY);
 
@@ -303,7 +313,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
     }
 
     //remove trend
-    self.removeTrend = function (id, columnName) {
+    function removeTrend(id, columnName) {
         timeSeriesTrendService.removeTrend(id, columnName);
 
         var id = $filter('componentIdClassFilter')(id);
@@ -313,7 +323,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
     //Transitions the graph and offsets the active trend by the given vectors
     // vector is an object containing 3 elemets : K (scale), x & y
-    self.transition = function (viewVector, offsetVector) {
+    function transition (viewVector, offsetVector) {
 
 
         if (viewVector) {
@@ -675,9 +685,6 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         }
     }
 
-
-    graphEventEmitterService.subscribeAddTrend(self.addTrend);
-    graphEventEmitterService.subscribeRemoveTrend(self.removeTrend);
 
 
 
