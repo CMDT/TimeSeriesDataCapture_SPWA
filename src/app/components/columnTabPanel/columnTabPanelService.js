@@ -202,8 +202,6 @@ app.service('columnTabPanelService', ['$log', 'runRequestService', 'selectionSer
     }
 
     function clearSelection() {
-        selectedTab = undefined;
-        activeColumn = undefined;
         tabs = new Map();
         selectionService.clearAllSelections();
     }

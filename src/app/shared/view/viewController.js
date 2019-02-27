@@ -20,8 +20,6 @@ app.controller('viewController', ['$scope','$rootScope', '$log', '$state', '$sta
         var runs = $stateParams.runs.split('+');
        
         
-        
-    
         runRequestService.getRuns(runs).then(function(result){
           
             result = extractData(result);
@@ -44,7 +42,7 @@ app.controller('viewController', ['$scope','$rootScope', '$log', '$state', '$sta
             }
 
             if ($stateParams.activeColumn) {
-                activeColumn.column = $stateParams.activeColumn;
+               setActiveColumn($stateParams.activeColumn);
             }
 
             var offsetVector;
@@ -61,92 +59,10 @@ app.controller('viewController', ['$scope','$rootScope', '$log', '$state', '$sta
 
             $scope.$apply();
         })
-
-
-        /* columnTabPanelService.getRun($stateParams.runs.split('+')).then(function (result) {
-            columnTabPanelService.clearSelection();
-            timeSeriesGraphControlService.clearData();
-            timeSeriesTrendService.clearTrends();
-
-            tagsCollection = (extractTags(result));
-
-            $scope.runs = result;
-            columnTabPanelService.createRunTabs(result);
-            $scope.tabs = columnTabPanelService.getTabs();
-
-            var palette = $stateParams.palette != undefined ? $stateParams.palette : 'default';
-            paletteDataService.getPalette(palette).then(function (paletteResult) {
-                $log.log(paletteResult.data.palette);
-                var options = {
-                    state: true,
-                    width: 1300,
-                    height: 600,
-                    lock: true,
-                    annotation: true,
-                    palette: paletteResult.data.palette
-                }
-
-
-
-                timeSeriesGraphControlService.drawGraph(result, options);
-
-                if ($stateParams.activeColumn != undefined) {
-                    $log.log('ACTIVE COLUMN',$stateParams.activeColumn);
-                    timeSeriesGraphControlService.setActiveColumn($stateParams.activeColumn);
-                }
-
-                if($stateParams.activeRun != undefined){
-                    timeSeriesGraphControlService.setActiveRun($stateParams.activeRun);
-                    tagsArray = tagsCollection[$stateParams.activeRun];
-                }
-
-
-                if ($stateParams.columns != undefined) {
-                    var columns = columnTabPanelService.parseUrlColumns($stateParams.columns);
-                    columnTabPanelService.selectColumns(columns);
-                }
-
-
-
-                var offsetVector;
-                var viewVector;
-                if ($stateParams.offsetVector != undefined) {
-                    offsetVector = JSON.parse($stateParams.offsetVector);
-                }
-
-                if ($stateParams.viewVector != undefined) {
-                    viewVector = JSON.parse($stateParams.viewVector);
-                }
-                timeSeriesGraphControlService.graphTransition(viewVector, offsetVector);
-
-                $scope.selectedTab();
-                //$scope.$apply();
-            });
-
-
-
-
-        }).catch(function (error) {
-            $log.log(error);
-        }) */
     }
 
-    /* $scope.selectedColumn = function (tabId, columnName) {
-        console.log('activeRun',tabId)
-        $state.go('.', {
-            activeColumn: tabId + '+' + columnName
-        })
-    }
 
-    $scope.selectedTab = function () {
-        
-        var runId = ($scope.tabs[$scope.activeTabIndex]).id;
-        $log.log(runId);
-        $state.go('.', {
-            activeRun: runId 
-        })
-        
-    } */
+      
 
     $scope.back = function(){
         var options = {
@@ -184,21 +100,8 @@ app.controller('viewController', ['$scope','$rootScope', '$log', '$state', '$sta
         })
     }
 
-    
-
-  
-
-    
-
-    $scope.isActiveColumn = function (tabId, columnName) {
-        if(activeColumn.column){
-            var active = activeColumn.column.split("+");
-            if (tabId === active[0] && columnName === active[1]) {
-                return true;
-            } else {
-                return false;
-            }
-        }
+    $scope.isActiveColumn = function (runId, columnName) {
+        return activeColumn.isActive(runId,columnName);
     }
 
     $scope.isAuthenticated = function () {
@@ -214,7 +117,7 @@ app.controller('viewController', ['$scope','$rootScope', '$log', '$state', '$sta
         //active selection
 
         if (params.hasOwnProperty('activeColumn')) {
-            activeColumn.column = params.activeColumn;
+            setActiveColumn(params.activeColumn);
         }
 
 
@@ -228,6 +131,12 @@ app.controller('viewController', ['$scope','$rootScope', '$log', '$state', '$sta
             }
         }
 
+    }
+
+    function setActiveColumn(runColumn){
+        var active = runColumn.split('+');
+        activeColumn.setRun(active[0]);
+        activeColumn.setColumn(active[1]);
     }
 
 

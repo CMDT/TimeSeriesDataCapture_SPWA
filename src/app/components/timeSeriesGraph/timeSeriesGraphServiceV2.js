@@ -15,10 +15,6 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
     //data for all graphs currently being viewed
     var data;
 
-    //current activeRun and activeColumn
-    var activeRunId, activeColumn;
-
-
 
     //graph margins, width and height
     var margin, width, height;
@@ -73,7 +69,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
     //         urlState : maintain graph in url (defaults to false)
     //         height : graph height (defaults to 600px)
     //         width : graph width (deafults to 1300px)
-    function graphInit (graphData, graphOptions) {
+    function graphInit(graphData, graphOptions) {
         console.log(graphOptions)
         ctrlDown = false;
         user = true;
@@ -263,11 +259,8 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         calculateYDomain(trend.scaleY, trend.data);
         calculateXDomain(x, trend.data);
 
-        //get active trend
-        var activeTrendArray = getActiveColumn();
-
         //if new trend added is the active trend reset offsetLine co-ordinates
-        if (runId == activeTrendArray[0] && columnY == activeTrendArray[1]) {
+        if (runId == activeColumn.getRun() && columnY == activeColumn.getColumn()) {
 
             offsetLine.xcoor = trend.data[0].x;
             offsetLine.ycoor = trend.data[0].y;
@@ -323,7 +316,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
     //Transitions the graph and offsets the active trend by the given vectors
     // vector is an object containing 3 elemets : K (scale), x & y
-    function transition (viewVector, offsetVector) {
+    function transition(viewVector, offsetVector) {
 
 
         if (viewVector) {
@@ -344,7 +337,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
                         .call(zoom.transform, d3.zoomIdentity
                             .translate(x0, y0)
                             .scale(viewVector.k)
-                        ).on('end',function(){
+                        ).on('end', function () {
                             user = true;
                         })
                 })
@@ -387,8 +380,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         }
 
         //render active trends annotations
-        var active = getActiveColumn()
-        annotationGroupObject.render(timeSeriesAnnotationService.getAnnotations(active[0]), x, offsetVector);
+        annotationGroupObject.render(timeSeriesAnnotationService.getAnnotations(activeColumn.getRun()), x, offsetVector);
 
     }
 
@@ -441,39 +433,36 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         //d3 rescale y axis
         var xt = t.rescaleX(x);
 
-        //get active trend line
-        var activeTrendArray = getActiveColumn()
 
-        if (activeTrendArray) {
-            var line = graph.select('.run-group').select('.' + $filter('componentIdClassFilter')(activeTrendArray[0]) + '.' + $filter('componentIdClassFilter')(activeTrendArray[1])).selectAll('.line');
-            var yt;
+        var line = graph.select('.run-group').select('.' + $filter('componentIdClassFilter')(activeColumn.getRun()) + '.' + $filter('componentIdClassFilter')(activeColumn.getColumn())).selectAll('.line');
+        var yt;
 
-            //check if there is a active trend
-            if (!line.empty()) {
-                //only re-render the active trend
-                line.attr('d', function (trend) {
-                    yt = t.rescaleY(trend.scaleY);
-                    var line = d3.line()
-                        .x(function (d) { return xt(d.x) })
-                        .y(function (d) { return yt(d.y) })
+        //check if there is a active trend
+        if (!line.empty()) {
+            //only re-render the active trend
+            line.attr('d', function (trend) {
+                yt = t.rescaleY(trend.scaleY);
+                var line = d3.line()
+                    .x(function (d) { return xt(d.x) })
+                    .y(function (d) { return yt(d.y) })
 
-                    return line(trend.data);
-                })
+                return line(trend.data);
+            })
 
-                //find the difference between the offset vector and current vector, to store in the url
-                var xDiffrence = t.x - currentVector.x;
-                var yDiffrence = t.y - currentVector.y;
+            //find the difference between the offset vector and current vector, to store in the url
+            var xDiffrence = t.x - currentVector.x;
+            var yDiffrence = t.y - currentVector.y;
 
-                offsetVector = t;
+            offsetVector = t;
 
-                //update url state
-                $state.go('.', {
-                    offsetVector: JSON.stringify({ x: xDiffrence, y: yDiffrence })
-                })
-                //render offsetline
-                offsetLine.renderWhenOffsetting(xt, yt);
-            }
+            //update url state
+            $state.go('.', {
+                offsetVector: JSON.stringify({ x: xDiffrence, y: yDiffrence })
+            })
+            //render offsetline
+            offsetLine.renderWhenOffsetting(xt, yt);
         }
+
 
     }
 
@@ -600,8 +589,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
             //open new panel shwoing annotation and allowing admin users to edit
             annotation.click(AnnotationGroup.controls, axis, vector, function () {
                 scope.annotationInEdit = null
-                var active = getActiveColumn()
-                AnnotationGroup.render(timeSeriesAnnotationService.getAnnotations(active[0]), axis, offsetVector);
+                AnnotationGroup.render(timeSeriesAnnotationService.getAnnotations(activeColumn.getRun()), axis, offsetVector);
 
             });
         }
@@ -666,8 +654,8 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
             })
         //when button is clicked add new annotation to active run and reset graph view
         this.click = function () {
-            var newAnnotation = timeSeriesAnnotationService.addAnnotation(activeRunId, undefined, { Time: 500, description: "", groupId: activeRunId }, undefined);
-            annotationsService.addAnnotations(activeRunId, [{ id: newAnnotation.id, description: newAnnotation.data.description, xcoordinate: newAnnotation.data.Time }]);
+            var newAnnotation = timeSeriesAnnotationService.addAnnotation(activeColumn.getRun(), undefined, { Time: 500, description: "", groupId: activeColumn.getRun() }, undefined);
+            annotationsService.addAnnotations(activeColumn.getRun(), [{ id: newAnnotation.id, description: newAnnotation.data.description, xcoordinate: newAnnotation.data.Time }]);
             parentNode.call(zoom).transition()
                 .duration(1500)
                 .call(zoom.transform, d3.zoomIdentity
@@ -676,14 +664,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         }
     }
 
-    function getActiveColumn() {
-        if (activeColumn.column) {
-            var active = activeColumn.column.split("+");
-            return active;
-        } else {
-            return '';
-        }
-    }
+   
 
 
 
