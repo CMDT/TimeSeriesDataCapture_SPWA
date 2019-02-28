@@ -137,7 +137,7 @@ app.controller('importPanelControllerV2', ['$scope', '$log', '$mdDialog', '$filt
     }
 
     $scope.login = function () {
-        authenticationNotifyService.subscribe('oneDrive', callback);
+        authenticationNotifyService.subscribeOneDrive(callback);
         oneDriveAuthenticationService.login();
 
     }

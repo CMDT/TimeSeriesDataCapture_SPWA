@@ -1,36 +1,38 @@
-app.service('authenticationNotifyService',['$log',function($log){
-    
+angular.module('app').service('authenticationNotifyService',authenticationNotifyService);
 
+authenticationNotifyService.$inject = [
+];
+
+
+function authenticationNotifyService() {
     var self = this;
-    var controllers = new Map();
+  
 
-    function Wrapper(id = uniqueId(),callback) {
-        this.id = id;
-        var value;
-        this.set = function(v) {
-            value = v;
-            callback(this);
+    self.subscribeAuth0 = subscribeAuth0;
+    self.publishAuth0 = publishAuth0;
+
+    self.subscribeOneDrive = subscribeOneDrive;
+    self.publishOneDrive = publishOneDrive;
+
+    var auth0Subscribers = [];
+    function subscribeAuth0(fn) {
+        auth0Subscribers.push(fn);
+    }
+
+    function publishAuth0() {
+        for (var i = 0, length = auth0Subscribers.length; i < length; i++) {
+            auth0Subscribers[i]();
         }
-        this.get = function() {
-            return value;
-        }  
     }
 
-    
-    this.subscribe = function(id,callback){
-        var wrapper = new Wrapper(id,callback);
-        controllers.set(wrapper.id,wrapper);
-        return id;
+    var oneDriveSubscribers = [];
+    function subscribeOneDrive(fn) {
+        oneDriveSubscribers.push(fn);
     }
 
-    this.publish = function(id){
-        var wrapper = controllers.get(id);
-        wrapper.set('auth');
+    function publishOneDrive() {
+        for (var i = 0, length = oneDriveSubscribers.length; i < length; i++) {
+            oneDriveSubscribers[i]();
+        }
     }
-
-    function uniqueId() {
-        return 'id-' + Math.random().toString(36).substr(2, 16);
-    };
-
-}])
-
+}

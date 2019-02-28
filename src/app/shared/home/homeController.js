@@ -77,7 +77,7 @@ function homeController($scope,$log, $mdDialog, authenticationService, searchSer
     }
 
     function login() {
-        authenticationNotifyService.subscribe('auth0', function () {
+        authenticationNotifyService.subscribeAuth0(function () {
             $scope.$apply();
         });
         authenticationService.login();

@@ -24,7 +24,7 @@ app.service('oneDriveAuthenticationService', ['$rootScope', '$log', '$http', '$w
         fileStorageAuthenticationDataService.postAuthentication({ profileID: profileId, storageToken: token }).then(function(result){
             var expiresAt = JSON.stringify(3600 * 1000 + new Date().getTime());
             localStorage.setItem('oneDriveExpiresAt',expiresAt);
-            authenticationNotifyService.publish('oneDrive');
+            authenticationNotifyService.publishOneDrive();
         })
     }
 

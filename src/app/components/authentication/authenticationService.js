@@ -52,7 +52,7 @@ app.service('authenticationService', ['$log','authenticationNotifyService','conf
             }
             localStorage.setItem('profile', profile.sub);
             self.setSession(authResult);
-            authenticationNotifyService.publish('auth0')
+            authenticationNotifyService.publishAuth0();
         })
     })
 }])
