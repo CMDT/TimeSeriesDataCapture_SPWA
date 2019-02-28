@@ -1,6 +1,6 @@
-angular.module('app').controller('homeController', homeController);
+angular.module('app').controller('indexController', indexController);
 
-homeController.$inject = [
+indexController.$inject = [
     '$scope',
     '$log',
     '$mdDialog',
@@ -16,7 +16,7 @@ homeController.$inject = [
 ];
 
 
-function homeController($scope,$log, $mdDialog, authenticationService, searchService, $state, $stateParams, 
+function indexController($scope,$log, $mdDialog, authenticationService, searchService, $state, $stateParams, 
     selectionService, exportDataService, authenticationNotifyService,runRequestService, searchInputService) {
    
     start();

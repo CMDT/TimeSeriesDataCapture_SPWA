@@ -105,7 +105,7 @@ function viewController($scope,
             inherit: false,
         }
 
-        $state.transitionTo('home', {
+        $state.transitionTo('index', {
             query: $rootScope.query
         }, options);
     }

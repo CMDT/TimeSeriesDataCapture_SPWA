@@ -12,16 +12,16 @@ function config($stateProvider, $urlRouterProvider) {
 
 
 
-  var homeState = {
-    name: 'home',
-    url: '/home/?query',
+  var indexState = {
+    name: 'index',
+    url: '/index/?query',
     params: {
       query: {
         dynamic: false
       },
     },
-    templateUrl: 'app/shared/home/homeView.html',
-    controller: 'homeController'
+    templateUrl: 'app/shared/index/indexView.html',
+    controller: 'indexController'
   }
 
   var viewState = {
@@ -68,14 +68,14 @@ function config($stateProvider, $urlRouterProvider) {
             deferred.resolve(result);
           }else{
             console.error('unauthenticated')
-            $state.go('home');
+            $state.go('index');
             deferred.reject();
           }
 
          
         }).catch(function (error) {
           console.error(error);
-          $state.go('home');
+          $state.go('index');
           deferred.reject();
         })
 
@@ -84,10 +84,10 @@ function config($stateProvider, $urlRouterProvider) {
     }
   }
 
-  $stateProvider.state(homeState);
+  $stateProvider.state(indexState);
   $stateProvider.state(viewState);
 
-  $urlRouterProvider.otherwise('/home/');
+  $urlRouterProvider.otherwise('/index/');
 
 }
 
