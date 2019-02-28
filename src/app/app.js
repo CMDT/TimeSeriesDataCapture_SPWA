@@ -62,8 +62,17 @@ function config($stateProvider, $urlRouterProvider) {
         var runs = $stateParams.runs.split('+');
 
         runRequestService.getRuns(runs).then(function (result) {
-          console.log(result);
-          deferred.resolve(result);
+
+          //temp solution for unathenticated
+          if(Object.keys(result[0].data).length > 0){
+            deferred.resolve(result);
+          }else{
+            console.error('unauthenticated')
+            $state.go('home');
+            deferred.reject();
+          }
+
+         
         }).catch(function (error) {
           console.error(error);
           $state.go('home');
