@@ -654,7 +654,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
             })
         //when button is clicked add new annotation to active run and reset graph view
         this.click = function () {
-            var newAnnotation = timeSeriesAnnotationService.addAnnotation(activeColumn.getRun(), undefined, { Time: 500, description: "", groupId: activeColumn.getRun() }, undefined);
+            var newAnnotation = timeSeriesAnnotationService.addAnnotation(activeColumn.getRun(), undefined, { Time: 3, description: "", groupId: activeColumn.getRun() }, undefined);
             annotationsService.addAnnotations(activeColumn.getRun(), [{ id: newAnnotation.id, description: newAnnotation.data.description, xcoordinate: newAnnotation.data.Time }]);
             parentNode.call(zoom).transition()
                 .duration(1500)

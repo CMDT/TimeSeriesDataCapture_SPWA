@@ -118,6 +118,28 @@ app.service('timeSeriesAnnotationService', ['$log', 'annotationPreviewService', 
         }
     }
 
+    self.extractAnnotations = function(runs){
+        for(var i=0,length=runs.length;i<length;i++){
+            self.addAnnotationGroup(runs[i].id);
+
+            var annotationIds = Object.keys(runs[i].annotations);
+
+            for(var j=0,annotationLength=annotationIds.length;j<annotationLength;j++){
+                createAnnotation(runs[i].id,runs[i]['annotations'][annotationIds[j]]);
+            }
+        }
+    }
+
+    function createAnnotation(annotationGroupId,annotation){
+        var data = {
+            Time: annotation.xcoordinate,
+            description: annotation.description,
+            groupId: annotationGroupId
+        }
+
+        self.addAnnotation(annotationGroupId, annotation.id, data, undefined);
+    }
+
     self.addAnnotationGroup = function (id, name, annotations) {
         var newAnnotationGroup = new annotationGroup(id, name, annotations);
         annotationGroups.set(id, newAnnotationGroup);
@@ -129,7 +151,7 @@ app.service('timeSeriesAnnotationService', ['$log', 'annotationPreviewService', 
     }
 
     self.addAnnotation = function (annotationGroupId, id, data, label) {
-        console.log('adding annotation');
+        console.log('adding annotation',annotationGroupId);
         var newAnnotation = new annotationBadge(annotationGroupId, id, data, label);
         var annotationGroup = annotationGroups.get(annotationGroupId);
         annotationGroup.annotations.push(newAnnotation);

@@ -1,4 +1,4 @@
-app.controller('viewController', ['$scope', '$rootScope', '$log', '$state', '$stateParams', 'tagEditPanelService', 'columnTabPanelService', 'timeSeriesGraphControlService', 'timeSeriesTrendService', 'authenticationService', 'paletteDataService', 'runRequestService', 'timeSeriesGraphServiceV2', 'activeColumn', function ($scope, $rootScope, $log, $state, $stateParams, tagEditPanelService, columnTabPanelService, timeSeriesGraphControlService, timeSeriesTrendService, authenticationService, paletteDataService, runRequestService, timeSeriesGraphServiceV2, activeColumn) {
+app.controller('viewController', ['$scope', '$rootScope', '$log', '$state', '$stateParams', 'tagEditPanelService', 'columnTabPanelService', 'timeSeriesGraphControlService', 'timeSeriesTrendService', 'authenticationService', 'paletteDataService', 'runRequestService', 'timeSeriesGraphServiceV2', 'activeColumn','timeSeriesAnnotationService', function ($scope, $rootScope, $log, $state, $stateParams, tagEditPanelService, columnTabPanelService, timeSeriesGraphControlService, timeSeriesTrendService, authenticationService, paletteDataService, runRequestService, timeSeriesGraphServiceV2, activeColumn,timeSeriesAnnotationService) {
 
 
     $scope.runs = [];
@@ -21,9 +21,10 @@ app.controller('viewController', ['$scope', '$rootScope', '$log', '$state', '$st
 
 
         runRequestService.getRuns(runs).then(function (result) {
-
             result = extractData(result);
             console.log(result);
+
+            timeSeriesAnnotationService.extractAnnotations(result);
 
             timeSeriesGraphServiceV2.graphInit(result, {});
             columnTabPanelService.clearSelection();
