@@ -1,9 +1,27 @@
-app.controller('homeController', ['$scope', '$rootScope', '$filter', '$log', '$mdDialog', 'authenticationService', 'searchService', '$state', '$stateParams', 'JSTagsCollection', 'selectionService', 'exportDataService', 'authenticationNotifyService', 'tagPredictionService', 'runRequestService', 'searchInputService', function ($scope, $rootScope, $filter, $log, $mdDialog, authenticationService, searchService, $state, $stateParams, JSTagsCollection, selectionService, exportDataService, authenticationNotifyService, tagPredicitionService, runRequestService, searchInputService) {
+angular.module('app').controller('homeController', homeController);
 
+homeController.$inject = [
+    '$scope',
+    '$log',
+    '$mdDialog',
+    'authenticationService',
+    'searchService',
+    '$state',
+    '$stateParams',
+    'selectionService',
+    'exportDataService',
+    'authenticationNotifyService',
+    'runRequestService',
+    'searchInputService'
+];
+
+
+function homeController($scope,$log, $mdDialog, authenticationService, searchService, $state, $stateParams, 
+    selectionService, exportDataService, authenticationNotifyService,runRequestService, searchInputService) {
+   
+    start();
 
     var selectionId = selectionService.addSelectionGroup('runs', 'runsSelection');
-
-    start();
 
 
     $scope.results = [];
@@ -51,7 +69,6 @@ app.controller('homeController', ['$scope', '$rootScope', '$filter', '$log', '$m
     function search(query) {
         $scope.loading = true;
         searchService.searchRequest(query).then(function (result) {
-            console.log(result);
             $scope.results = result.data;
             $scope.loading = false;
         }).catch(function (error) {
@@ -80,27 +97,19 @@ app.controller('homeController', ['$scope', '$rootScope', '$filter', '$log', '$m
     }
 
     function viewClick(run) {
-
-      
-        
-
-       
-
         if (!run) {
             selected = selectionService.selectedToArray(selectionId);
             runs = selected.join('+');
-        }else{
-            runs = run.id
-        }
-
-        var options = {
-            location: 'replace',
-            inherit: false,
+        } else {
+            runs = run.id;
         }
 
         $state.transitionTo('view', {
             runs: runs,
-        }, options);
+        },{
+            location: 'replace',
+            inherit: false,
+        });
     }
 
     function exportClick() {
@@ -118,27 +127,29 @@ app.controller('homeController', ['$scope', '$rootScope', '$filter', '$log', '$m
                     selectionService.removeSelected(selectionService.getSelectionGroup(selectionId), selected[0]);
                 }
             }
-
-
         })
     }
 
-    function exists(runId){
+    function exists(runId) {
         return selectionService.isSelected(selectionService.getSelectionGroup(selectionId), runId);
     }
 
-    function selectedToggle(runId){
-        console.log(runId);
+    function selectedToggle(runId) {
         selectionService.selectedToggle(selectionService.getSelectionGroup(selectionId), runId);
     }
 
-    function enabled(){
+    function enabled() {
         return selectionService.selectedLength(selectionId) > 0;
     }
 
-    function isAuthenticated(){
+    function isAuthenticated() {
         return authenticationService.isAuthenticated();
     }
+}
+
+
+
+    
 
 
 
@@ -186,5 +197,3 @@ app.controller('homeController', ['$scope', '$rootScope', '$filter', '$log', '$m
 
 
 
-
-}])
