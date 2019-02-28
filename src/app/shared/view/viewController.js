@@ -27,7 +27,9 @@ function viewController($scope,
     timeSeriesGraphServiceV2, 
     activeColumn, 
     timeSeriesAnnotationService, 
-    runData) {
+    runData) 
+    
+    {
     $scope.runs = [];
     $scope.tabs = [];
 
@@ -35,11 +37,23 @@ function viewController($scope,
 
     $scope.isColumns = true;
 
-    var tagsArray = [];
-
-    var tagsCollection = {};
-
     $scope.query = $rootScope.query;
+    
+    //functions
+    $scope.back = back;
+
+    $scope.selectedToggle = selectedToggle;
+
+    $scope.tagEdit = tagEdit;
+
+    $scope.exists = exists;
+    $scope.activeRunClick = activeRunClick;
+    $scope.isActiveColumn = isActiveColumn;
+
+    $scope.isAuthenticated = isAuthenticated;
+
+    var tagsArray = [];
+    var tagsCollection = {};
 
 
     if (runData) {
@@ -85,7 +99,7 @@ function viewController($scope,
 
 
 
-    $scope.back = function () {
+    function back () {
         var options = {
             location: 'replace',
             inherit: false,
@@ -96,7 +110,7 @@ function viewController($scope,
         }, options);
     }
 
-    $scope.selectedToggle = function (runId, columnName) {
+    function selectedToggle (runId, columnName) {
         if (!activeColumn.isActive(runId, columnName)) {
             var selectedColumns = columnTabPanelService.getSelectedColumns(runId, columnName);
             var columnParam = columnTabPanelService.parseColumnsUrl(selectedColumns);
@@ -105,20 +119,20 @@ function viewController($scope,
                 columns: columnParam
             })
         }
-
     }
 
-    $scope.tagEdit = function () {
+    function tagEdit() {
         var runId = ($scope.tabs[$scope.activeTabIndex]).id;
         $log.log(runId)
         tagEditPanelService.showTagEditPanel(undefined, runId, tagsArray);
     }
+    
 
-    $scope.exists = function (id, columnName) {
+    function exists(id, columnName) {
         return columnTabPanelService.exists(id, columnName);
     }
 
-    $scope.activeRunClick = function (tabId, columnName) {
+    function activeRunClick(tabId, columnName) {
         if (columnTabPanelService.exists(tabId, columnName)) {
             $state.go('.', {
                 activeColumn: `${tabId}+${columnName}`
@@ -126,11 +140,12 @@ function viewController($scope,
         }
     }
 
-    $scope.isActiveColumn = function (runId, columnName) {
+
+    function isActiveColumn(runId, columnName) {
         return activeColumn.isActive(runId, columnName);
     }
 
-    $scope.isAuthenticated = function () {
+    function isAuthenticated() {
         return authenticationService.isAuthenticated();
     }
 
