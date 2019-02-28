@@ -1,5 +1,10 @@
-app.service('timeSeriesTrendService', ['$log', function ($log) {
+angular.module('app').service('timeSeriesTrendService', timeSeriesTrendService);
 
+timeSeriesTrendService.$inject = [
+];
+
+
+function timeSeriesTrendService() {
     var self = this;
 
 
@@ -18,8 +23,8 @@ app.service('timeSeriesTrendService', ['$log', function ($log) {
 
 
 
-    self.addTrend = function (id, columnName,scaleX, scaleY, xLabel, yLabel, data) {
-        var newTrend = new trendLine(id,columnName,scaleX, scaleY, xLabel, yLabel, data);
+    self.addTrend = function (id, columnName, scaleX, scaleY, xLabel, yLabel, data) {
+        var newTrend = new trendLine(id, columnName, scaleX, scaleY, xLabel, yLabel, data);
         trends.push(newTrend);
         return newTrend;
     }
@@ -47,4 +52,8 @@ app.service('timeSeriesTrendService', ['$log', function ($log) {
     self.clearTrends = function () {
         trends = [];
     }
-}])
+
+}
+
+
+
