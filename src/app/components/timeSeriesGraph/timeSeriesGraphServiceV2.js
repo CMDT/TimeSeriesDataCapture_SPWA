@@ -215,6 +215,18 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
     }
 
 
+
+    function maxDataX(data) {
+
+        var max = -1;
+
+        for (var i = 0, length = data.length; i < length; i++) {
+            max = Math.max(max, data[i].x);
+        }
+
+        return max;
+    }
+
     //extract trend line data
     function extractTrendLineData(runId, columnY) {
         var runData = null;
@@ -654,17 +666,23 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
             })
         //when button is clicked add new annotation to active run and reset graph view
         this.click = function () {
-            var newAnnotation = timeSeriesAnnotationService.addAnnotation(activeColumn.getRun(), undefined, { Time: 3, description: "", groupId: activeColumn.getRun() }, undefined);
-            annotationsService.addAnnotations(activeColumn.getRun(), [{ id: newAnnotation.id, description: newAnnotation.data.description, xcoordinate: newAnnotation.data.Time }]);
-            parentNode.call(zoom).transition()
-                .duration(1500)
-                .call(zoom.transform, d3.zoomIdentity
-                    .translate(1, 1)
-                )
+
+            if (activeColumn.getRun()) {
+                var maxX = maxDataX(extractTrendLineData(activeColumn.getRun(), activeColumn.getColumn()));
+
+                var newAnnotation = timeSeriesAnnotationService.addAnnotation(activeColumn.getRun(), undefined, { Time: Math.floor(maxX / 2), description: "", groupId: activeColumn.getRun() }, undefined);
+                annotationsService.addAnnotations(activeColumn.getRun(), [{ id: newAnnotation.id, description: newAnnotation.data.description, xcoordinate: newAnnotation.data.Time }]);
+                parentNode.call(zoom).transition()
+                    .duration(1500)
+                    .call(zoom.transform, d3.zoomIdentity
+                        .translate(1, 1)
+                    )
+            }
+
         }
     }
 
-   
+
 
 
 
