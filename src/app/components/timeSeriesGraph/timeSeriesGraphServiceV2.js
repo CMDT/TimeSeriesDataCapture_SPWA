@@ -32,6 +32,8 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
     //currentVector : vector(scale,x,y) for the non-active trends 
     var offsetVector, currentVector;
 
+    var isOffsetting;
+
     //d3 zoom
     var zoom;
 
@@ -72,6 +74,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
     function graphInit(graphData, graphOptions) {
         console.log(graphOptions)
         ctrlDown = false;
+        isOffsetting = false;
         user = true;
         data = graphData;
         options = graphOptions;
@@ -123,7 +126,8 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         //setup d3 zoom
         zoom = d3.zoom()
             .scaleExtent([0.1, 32])
-            .on('zoom', zoomed);
+            .on('zoom', zoomed)
+            .on('end',zoomEnd);
 
         //disable double click to zoom
         svg.call(zoom)
@@ -217,13 +221,11 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
 
     function maxDataX(data) {
-
         var max = -1;
 
         for (var i = 0, length = data.length; i < length; i++) {
             max = Math.max(max, data[i].x);
         }
-
         return max;
     }
 
@@ -356,6 +358,26 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         }
     }
 
+    function zoomEnd() {
+        if (isOffsetting) {
+            //find the difference between the offset vector and current vector, to store in the url
+            var xDiffrence = offsetVector.x - currentVector.x;
+            var yDiffrence = offsetVector.y - currentVector.y;
+
+            //update url state
+            $state.go('.', {
+                offsetVector: JSON.stringify({ x: xDiffrence, y: yDiffrence })
+            });
+
+        } else {
+            //update the url state
+            $state.go('.', {
+                viewVector: JSON.stringify(currentVector),
+                offsetVector: JSON.stringify({ x: 0, y: 0 })
+            });
+        }
+    }
+
     //When user either zooms or pans the graph
     function zoomed() {
         //get the d3 event transformation 
@@ -400,6 +422,8 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
     //Panning the graph 
     function panning(t) {
 
+        isOffsetting = false;
+
         //d3 rescale x scale
         var xt = t.rescaleX(x);
         var yt;
@@ -433,17 +457,19 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         // when user pans the offset graph position is reset back to the current vectors positions
         offsetVector = t;
 
-        //update the url state
+        /* //update the url state
         $state.go('.', {
             viewVector: JSON.stringify(t),
             offsetVector: JSON.stringify({ x: 0, y: 0 })
-        })
+        }) */
     }
 
     //Offsetting thr active trend
     function offsetting(t) {
         //d3 rescale y axis
         var xt = t.rescaleX(x);
+
+        isOffsetting = true;
 
         if (activeColumn.getRun() && activeColumn.getColumn()) {
             var line = graph.select('.run-group').select('.' + $filter('componentIdClassFilter')(activeColumn.getRun()) + '.' + $filter('componentIdClassFilter')(activeColumn.getColumn())).selectAll('.line');
@@ -462,15 +488,15 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
                 })
 
                 //find the difference between the offset vector and current vector, to store in the url
-                var xDiffrence = t.x - currentVector.x;
-                var yDiffrence = t.y - currentVector.y;
+                //var xDiffrence = t.x - currentVector.x;
+                //var yDiffrence = t.y - currentVector.y;
 
                 offsetVector = t;
 
-                //update url state
+               /*  //update url state
                 $state.go('.', {
                     offsetVector: JSON.stringify({ x: xDiffrence, y: yDiffrence })
-                })
+                }) */
                 //render offsetline
                 offsetLine.renderWhenOffsetting(xt, yt);
             }
