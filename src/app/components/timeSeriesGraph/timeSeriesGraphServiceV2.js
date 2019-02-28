@@ -1,5 +1,24 @@
-app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSeriesAnnotationService', 'timeSeriesTrendService', 'annotationPreviewService', 'annotationsService', 'graphEventEmitterService', 'activeColumn', function ($log, $state, $filter, timeSeriesAnnotationService, timeSeriesTrendService, annotationPreviewService, annotationsService, graphEventEmitterService, activeColumn) {
+angular.module('app').service('timeSeriesGraphServiceV2', timeSeriesGraphServiceV2);
 
+timeSeriesGraphServiceV2.$inject = [
+    '$state',
+    '$filter',
+    'timeSeriesAnnotationService',
+    'timeSeriesTrendService',
+    'annotationsService',
+    'graphEventEmitterService',
+    'activeColumn'
+];
+
+
+function timeSeriesGraphServiceV2(
+    $state,
+    $filter,
+    timeSeriesAnnotationService,
+    timeSeriesTrendService,
+    annotationsService,
+    graphEventEmitterService,
+    activeColumn) {
     var self = this;
 
     self.graphInit = graphInit;
@@ -127,7 +146,7 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         zoom = d3.zoom()
             .scaleExtent([0.1, 32])
             .on('zoom', zoomed)
-            .on('end',zoomEnd);
+            .on('end', zoomEnd);
 
         //disable double click to zoom
         svg.call(zoom)
@@ -493,10 +512,10 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
                 offsetVector = t;
 
-               /*  //update url state
-                $state.go('.', {
-                    offsetVector: JSON.stringify({ x: xDiffrence, y: yDiffrence })
-                }) */
+                /*  //update url state
+                 $state.go('.', {
+                     offsetVector: JSON.stringify({ x: xDiffrence, y: yDiffrence })
+                 }) */
                 //render offsetline
                 offsetLine.renderWhenOffsetting(xt, yt);
             }
@@ -712,11 +731,9 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
 
 
 
+}
 
 
 
 
 
-
-
-}])
