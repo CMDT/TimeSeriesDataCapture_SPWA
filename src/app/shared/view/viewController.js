@@ -1,4 +1,4 @@
-app.controller('viewController', ['$scope', '$rootScope', '$log', '$state', '$stateParams', 'tagEditPanelService', 'columnTabPanelService', 'timeSeriesGraphControlService', 'timeSeriesTrendService', 'authenticationService', 'paletteDataService', 'runRequestService', 'timeSeriesGraphServiceV2', 'activeColumn','timeSeriesAnnotationService', function ($scope, $rootScope, $log, $state, $stateParams, tagEditPanelService, columnTabPanelService, timeSeriesGraphControlService, timeSeriesTrendService, authenticationService, paletteDataService, runRequestService, timeSeriesGraphServiceV2, activeColumn,timeSeriesAnnotationService) {
+app.controller('viewController', ['$scope', '$rootScope', '$log', '$state', '$stateParams', 'tagEditPanelService', 'columnTabPanelService', 'timeSeriesGraphControlService', 'timeSeriesTrendService', 'authenticationService', 'paletteDataService', 'runRequestService', 'timeSeriesGraphServiceV2', 'activeColumn', 'timeSeriesAnnotationService', 'runData', function ($scope, $rootScope, $log, $state, $stateParams, tagEditPanelService, columnTabPanelService, timeSeriesGraphControlService, timeSeriesTrendService, authenticationService, paletteDataService, runRequestService, timeSeriesGraphServiceV2, activeColumn, timeSeriesAnnotationService, runData) {
 
 
     $scope.runs = [];
@@ -15,51 +15,44 @@ app.controller('viewController', ['$scope', '$rootScope', '$log', '$state', '$st
     $scope.query = $rootScope.query;
 
 
-    if ($stateParams.runs) {
+    if (runData) {
         // TODO : need to test getRunV2 
-        var runs = $stateParams.runs.split('+');
+        result = extractData(runData);
+        console.log(result);
+
+        timeSeriesAnnotationService.extractAnnotations(result);
+
+        timeSeriesGraphServiceV2.graphInit(result, {});
+        columnTabPanelService.clearSelection();
+
+        timeSeriesTrendService.clearTrends();
+
+        tagsCollection = (extractTags(result));
+
+        columnTabPanelService.createRunTabs(result);
+        $scope.tabs = columnTabPanelService.getTabs();
 
 
-        runRequestService.getRuns(runs).then(function (result) {
-            result = extractData(result);
-            console.log(result);
+        if ($stateParams.columns) {
+            var columns = columnTabPanelService.parseUrlColumns($stateParams.columns);
+            columnTabPanelService.selectColumns(columns);
+        }
 
-            timeSeriesAnnotationService.extractAnnotations(result);
+        if ($stateParams.activeColumn) {
+            setActiveColumn($stateParams.activeColumn);
+        }
 
-            timeSeriesGraphServiceV2.graphInit(result, {});
-            columnTabPanelService.clearSelection();
+        var offsetVector;
+        var viewVector;
+        if ($stateParams.offsetVector != undefined) {
+            offsetVector = JSON.parse($stateParams.offsetVector);
+        }
 
-            timeSeriesTrendService.clearTrends();
+        if ($stateParams.viewVector != undefined) {
+            viewVector = JSON.parse($stateParams.viewVector);
+        }
 
-            tagsCollection = (extractTags(result));
-
-            columnTabPanelService.createRunTabs(result);
-            $scope.tabs = columnTabPanelService.getTabs();
-
-
-            if ($stateParams.columns) {
-                var columns = columnTabPanelService.parseUrlColumns($stateParams.columns);
-                columnTabPanelService.selectColumns(columns);
-            }
-
-            if ($stateParams.activeColumn) {
-                setActiveColumn($stateParams.activeColumn);
-            }
-
-            var offsetVector;
-            var viewVector;
-            if ($stateParams.offsetVector != undefined) {
-                offsetVector = JSON.parse($stateParams.offsetVector);
-            }
-
-            if ($stateParams.viewVector != undefined) {
-                viewVector = JSON.parse($stateParams.viewVector);
-            }
-
-            timeSeriesGraphServiceV2.transition(viewVector, offsetVector);
-
-            $scope.$apply();
-        })
+        timeSeriesGraphServiceV2.transition(viewVector, offsetVector);
     }
 
 

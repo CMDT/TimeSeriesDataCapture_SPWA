@@ -445,35 +445,37 @@ app.service('timeSeriesGraphServiceV2', ['$log', '$state', '$filter', 'timeSerie
         //d3 rescale y axis
         var xt = t.rescaleX(x);
 
+        if (activeColumn.getRun() && activeColumn.getColumn()) {
+            var line = graph.select('.run-group').select('.' + $filter('componentIdClassFilter')(activeColumn.getRun()) + '.' + $filter('componentIdClassFilter')(activeColumn.getColumn())).selectAll('.line');
+            var yt;
 
-        var line = graph.select('.run-group').select('.' + $filter('componentIdClassFilter')(activeColumn.getRun()) + '.' + $filter('componentIdClassFilter')(activeColumn.getColumn())).selectAll('.line');
-        var yt;
+            //check if there is a active trend
+            if (!line.empty()) {
+                //only re-render the active trend
+                line.attr('d', function (trend) {
+                    yt = t.rescaleY(trend.scaleY);
+                    var line = d3.line()
+                        .x(function (d) { return xt(d.x) })
+                        .y(function (d) { return yt(d.y) })
 
-        //check if there is a active trend
-        if (!line.empty()) {
-            //only re-render the active trend
-            line.attr('d', function (trend) {
-                yt = t.rescaleY(trend.scaleY);
-                var line = d3.line()
-                    .x(function (d) { return xt(d.x) })
-                    .y(function (d) { return yt(d.y) })
+                    return line(trend.data);
+                })
 
-                return line(trend.data);
-            })
+                //find the difference between the offset vector and current vector, to store in the url
+                var xDiffrence = t.x - currentVector.x;
+                var yDiffrence = t.y - currentVector.y;
 
-            //find the difference between the offset vector and current vector, to store in the url
-            var xDiffrence = t.x - currentVector.x;
-            var yDiffrence = t.y - currentVector.y;
+                offsetVector = t;
 
-            offsetVector = t;
-
-            //update url state
-            $state.go('.', {
-                offsetVector: JSON.stringify({ x: xDiffrence, y: yDiffrence })
-            })
-            //render offsetline
-            offsetLine.renderWhenOffsetting(xt, yt);
+                //update url state
+                $state.go('.', {
+                    offsetVector: JSON.stringify({ x: xDiffrence, y: yDiffrence })
+                })
+                //render offsetline
+                offsetLine.renderWhenOffsetting(xt, yt);
+            }
         }
+
 
 
     }
