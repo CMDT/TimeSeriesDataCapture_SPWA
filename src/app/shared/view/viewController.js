@@ -1,6 +1,33 @@
-app.controller('viewController', ['$scope', '$rootScope', '$log', '$state', '$stateParams', 'tagEditPanelService', 'columnTabPanelService', 'timeSeriesGraphControlService', 'timeSeriesTrendService', 'authenticationService', 'paletteDataService', 'runRequestService', 'timeSeriesGraphServiceV2', 'activeColumn', 'timeSeriesAnnotationService', 'runData', function ($scope, $rootScope, $log, $state, $stateParams, tagEditPanelService, columnTabPanelService, timeSeriesGraphControlService, timeSeriesTrendService, authenticationService, paletteDataService, runRequestService, timeSeriesGraphServiceV2, activeColumn, timeSeriesAnnotationService, runData) {
+angular.module('app').controller('viewController', viewController);
 
+viewController.$inject = [
+    '$scope',
+    '$rootScope',
+    '$log',
+    '$state',
+    '$stateParams',
+    'tagEditPanelService',
+    'columnTabPanelService',
+    'timeSeriesTrendService',
+    'authenticationService',
+    'timeSeriesGraphServiceV2',
+    'activeColumn',
+    'timeSeriesAnnotationService',
+    'runData'
+]
 
+function viewController($scope, 
+    $rootScope, 
+    $log, $state, 
+    $stateParams, 
+    tagEditPanelService, 
+    columnTabPanelService, 
+    timeSeriesTrendService, 
+    authenticationService, 
+    timeSeriesGraphServiceV2, 
+    activeColumn, 
+    timeSeriesAnnotationService, 
+    runData) {
     $scope.runs = [];
     $scope.tabs = [];
 
@@ -174,12 +201,5 @@ app.controller('viewController', ['$scope', '$rootScope', '$log', '$state', '$st
         return results;
     }
 
+}
 
-
-
-
-
-
-
-
-}])
