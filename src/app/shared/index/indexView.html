@@ -1,16 +1,16 @@
-<a target="_blank" class='help' href="https://github.com/CMDT/TimeSeriesDataCapture/blob/master/Documents/help/searching.md">help</a>
-<div ng-if='!isAuthenticated()'>
+
+<div class="top-bar" ng-if='!isAuthenticated()'>
     <md-button class="md-raised" ng-click='login()'>Login</md-button>
 </div>
 
-<div ng-if='isAuthenticated()'>
+<div class="top-bar" ng-if='isAuthenticated()'>
     <md-button class="md-raised" ng-click="logout()">Logout</md-button>
     <md-button class="md-raised" ng-click="importClick()">Import</md-button>
 </div>
 
 <div class="search-content">
     <div class='search'>
-        <js-tag js-tag-mode="typeahead" js-tag-options="jsTagOptions"></js-tag>
+        <js-tag class="input" js-tag-mode="typeahead" js-tag-options="jsTagOptions"></js-tag>
         <md-button class="md-raised" ng-click='searchClick()'>Search</md-button>
     </div>
 

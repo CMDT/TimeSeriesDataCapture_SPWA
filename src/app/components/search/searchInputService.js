@@ -41,7 +41,7 @@ app.service('searchInputService', ['$log', '$filter', 'JSTagsCollection', 'tagPr
         return {
             "tags": inputQueries,
             "texts": {
-                "inputPlaceHolder": "Search"
+                "inputPlaceHolder": ""
             }
         };
 

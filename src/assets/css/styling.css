@@ -14,8 +14,24 @@ body {
     
 }
 
+.top-bar{
+    background-color: #455964;
+    padding: 10px;
+}
+
 .help {
     float: right;
+    padding-right: 10px;
+    color: white;
+}
+
+.help a{
+    text-decoration: none;
+}
+
+.help a:hover, a:visited, a:link, a:active
+{
+    text-decoration: none;
 }
 
 .md-button[disabled] {
@@ -63,12 +79,15 @@ body {
 }
 
 .search-content .search{
-    margin-left: 20%;
-    width: 100%;
+    text-align: center;
 }
 
 .search-content .run-buttons{
     text-align: center;
+}
+
+.input{
+    text-align: left;
 }
 
 
