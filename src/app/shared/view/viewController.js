@@ -10,7 +10,7 @@ viewController.$inject = [
     'columnTabPanelService',
     'timeSeriesTrendService',
     'authenticationService',
-    'timeSeriesGraphServiceV2',
+    'timeSeriesGraphService',
     'activeColumn',
     'timeSeriesAnnotationService',
     'runData'
@@ -24,7 +24,7 @@ function viewController($scope,
     columnTabPanelService, 
     timeSeriesTrendService, 
     authenticationService, 
-    timeSeriesGraphServiceV2, 
+    timeSeriesGraphService, 
     activeColumn, 
     timeSeriesAnnotationService, 
     runData) 
@@ -63,7 +63,7 @@ function viewController($scope,
 
         timeSeriesAnnotationService.extractAnnotations(result);
 
-        timeSeriesGraphServiceV2.graphInit(result, {});
+        timeSeriesGraphService.graphInit(result, {});
         columnTabPanelService.clearSelection();
 
         timeSeriesTrendService.clearTrends();
@@ -93,7 +93,7 @@ function viewController($scope,
             viewVector = JSON.parse($stateParams.viewVector);
         }
 
-        timeSeriesGraphServiceV2.transition(viewVector, offsetVector);
+        timeSeriesGraphService.transition(viewVector, offsetVector);
     }
 
 

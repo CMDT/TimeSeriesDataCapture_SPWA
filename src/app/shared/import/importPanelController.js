@@ -1,4 +1,4 @@
-app.controller('importPanelControllerV2', ['$scope', '$log', '$mdDialog', '$filter', 'getFolderService', 'folderBreadcrumbService', 'algorithmsService', 'selectionService', 'fileStorageAuthenticationDataService', 'oneDriveAuthenticationService', 'authenticationNotifyService', 'timeSeriesGraphControlService', 'timeSeriesTrendService', function ($scope, $log, $mdDialog, $filter, getFolderService, folderBreadcrumbService, algorithmsService, selectionService, fileStorageAuthenticationDataService, oneDriveAuthenticationService, authenticationNotifyService, timeSeriesGraphControlService, timeSeriesTrendService) {
+app.controller('importPanelController', ['$scope', '$log', '$mdDialog', '$filter', 'getFolderService', 'folderBreadcrumbService', 'algorithmsService', 'selectionService', 'fileStorageAuthenticationDataService', 'oneDriveAuthenticationService', 'authenticationNotifyService', 'timeSeriesTrendService','timeSeriesGraphService','graphEventEmitterService','configDetails', function ($scope, $log, $mdDialog, $filter, getFolderService, folderBreadcrumbService, algorithmsService, selectionService, fileStorageAuthenticationDataService, oneDriveAuthenticationService, authenticationNotifyService, timeSeriesTrendService,timeSeriesGraphService,graphEventEmitterService,configDetails) {
 
     var self = this;
 
@@ -28,7 +28,7 @@ app.controller('importPanelControllerV2', ['$scope', '$log', '$mdDialog', '$filt
         getFolderService.getComponent(component).then(function (result) {
             $scope.loading = false;
             if (component.type === 'run') {
-                timeSeriesGraphControlService.clearData();
+                
                 timeSeriesTrendService.clearTrends();
                 var data = {
                     id: result.id,
@@ -42,12 +42,7 @@ app.controller('importPanelControllerV2', ['$scope', '$log', '$mdDialog', '$filt
                     state: false,
                     lock: false,
                     annotations: false,
-                    margin: {
-                        top: 20,
-                        right: 80,
-                        bottom: 80,
-                        left: 80
-                    },
+                    
                     autoSize: false
                 }
 
@@ -56,10 +51,9 @@ app.controller('importPanelControllerV2', ['$scope', '$log', '$mdDialog', '$filt
                     //$scope.$apply();
                 })
 
-                timeSeriesGraphControlService.drawGraph([data], options)
-                timeSeriesGraphControlService.setActiveRun(result.id);
-                timeSeriesGraphControlService.setActiveColumn('T(Copper)');
-                timeSeriesGraphControlService.addTrend(result.id, 'T(Copper)');
+                timeSeriesGraphService.graphInit([data], options);
+                graphEventEmitterService.publishAddTrend(result.id,'Time');
+                
 
             }else{
                 $log.log(result);
@@ -81,13 +75,16 @@ app.controller('importPanelControllerV2', ['$scope', '$log', '$mdDialog', '$filt
     }
 
     $scope.previewToggle = function (component) {
-        if ($scope.preview) {
-            $scope.preview = false;
-            pathChange($scope.breadcrumb[$scope.breadcrumb.length - 2]);
-        } else {
-            $scope.preview = true;
-            pathChange(component);
+        if(configDetails.DEFAULT_COLUMN){
+            if ($scope.preview) {
+                $scope.preview = false;
+                pathChange($scope.breadcrumb[$scope.breadcrumb.length - 2]);
+            } else {
+                $scope.preview = true;
+                pathChange(component);
+            }
         }
+       
     }
 
     $scope.selectedToggle = function (runId) {

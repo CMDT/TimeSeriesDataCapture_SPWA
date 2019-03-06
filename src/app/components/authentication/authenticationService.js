@@ -1,5 +1,29 @@
-app.service('authenticationService', ['$log','authenticationNotifyService','configDetails', function ($log,authenticationNotifyService,configDetails) {
+
+
+angular.module('app').service('authenticationService', authenticationService);
+
+authenticationService.$inject = [
+    '$log',
+    'authenticationNotifyService',
+    'configDetails'
+];
+
+function authenticationService(
+    $log,
+    authenticationNotifyService,
+    configDetails
+) {
     var self = this;
+
+    self.initialize = initialize;
+
+    self.setSession = setSession;
+
+    self.isAuthenticated = isAuthenticated;
+
+    self.login = login;
+    self.logout = logout;
+
     var lock = null;
     var options = {
         autoclose: true,
@@ -9,10 +33,8 @@ app.service('authenticationService', ['$log','authenticationNotifyService','conf
         }
     }
 
-    self.initialize = function () {
-
+    function initialize() {
         if (lock == null) {
-
             lock = new Auth0Lock(
                 configDetails.AUTH0_CLIENTID,
                 configDetails.AUTH0_DOMAIN,
@@ -20,28 +42,27 @@ app.service('authenticationService', ['$log','authenticationNotifyService','conf
             );
         }
     }
-
     self.initialize();
 
-    self.setSession = function (authResult) {
-        $log.log('AUTH RESULT',authResult);
+    function setSession(authResult) {
+        $log.log('AUTH RESULT', authResult);
         var expiresAt = JSON.stringify(authResult.expiresIn * 1000 + new Date().getTime());
         localStorage.setItem('accessToken', authResult.idToken);
         localStorage.setItem('expiresAt', expiresAt)
     }
 
-    self.isAuthenticated = function(){
+    function isAuthenticated() {
         var expiresAt = JSON.parse(localStorage.getItem('expiresAt'));
         return new Date().getTime() < expiresAt;
     }
 
-    self.login = function () {
+    function login() {
         lock.show();
     }
 
-    self.logout = function(){
-        localStorage.setItem('expiresAt',0);
-        localStorage.setItem('accessToken','na');
+    function logout() {
+        localStorage.setItem('expiresAt', 0);
+        localStorage.setItem('accessToken', 'na');
     }
 
     lock.on('authenticated', function (authResult) {
@@ -55,5 +76,6 @@ app.service('authenticationService', ['$log','authenticationNotifyService','conf
             authenticationNotifyService.publishAuth0();
         })
     })
-}])
+
+}
 

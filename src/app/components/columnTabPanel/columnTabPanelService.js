@@ -1,4 +1,4 @@
-app.service('columnTabPanelService', ['$log', 'runRequestService', 'selectionService', 'timeSeriesGraphControlService', 'graphEventEmitterService', function ($log, runRequestService, selectionService, timeSeriesGraphControlService, graphEventEmitterService) {
+app.service('columnTabPanelService', ['$log', 'runRequestService', 'selectionService', 'graphEventEmitterService', function ($log, runRequestService, selectionService, graphEventEmitterService) {
 
     var self = this;
     var tabs = new Map();

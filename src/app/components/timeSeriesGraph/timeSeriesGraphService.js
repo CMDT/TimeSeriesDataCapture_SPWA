@@ -1,244 +1,194 @@
-app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesAnnotationService', 'timeSeriesTrendService', 'annotationPreviewService', 'annotationsService','authenticationService', function ($log, $state, $filter, timeSeriesAnnotationService, timeSeriesTrendService, annotationPreviewService, annotationsService, authenticationService) {
+angular.module('app').service('timeSeriesGraphService', timeSeriesGraphService);
 
+timeSeriesGraphService.$inject = [
+    '$state',
+    '$filter',
+    'timeSeriesAnnotationService',
+    'timeSeriesTrendService',
+    'annotationsService',
+    'graphEventEmitterService',
+    'activeColumn'
+];
+
+
+function timeSeriesGraphService(
+    $state,
+    $filter,
+    timeSeriesAnnotationService,
+    timeSeriesTrendService,
+    annotationsService,
+    graphEventEmitterService,
+    activeColumn) {
     var self = this;
-    var annotationInEdit;
-    var activeRunId;
-    var activeColumn;
 
-    var activeOffsetVector = undefined;
-    var activeViewVector = undefined;
+    self.graphInit = graphInit;
 
-    var user = true;
+    self.addTrend = addTrend;
+    self.removeTrend = removeTrend;
 
-    // set the dimensions and margins of the graph
-    var margin;
-    var width;
-    var height;
+    self.transition = transition;
 
-    var graphOptions;
+    graphEventEmitterService.subscribeAddTrend(self.addTrend);
+    graphEventEmitterService.subscribeRemoveTrend(self.removeTrend);
 
-    var trendLineColors = ['#8cc2d0', '#152e34']
+    //data for all graphs currently being viewed
+    var data;
 
-    var circleX;
-    var circleY;
 
-    // set the ranges
-    var x;
-    var y;
-    var z;
+    //graph margins, width and height
+    var margin, width, height;
 
-    var xAxis;
-    var yAxis;
-
-    var endZoomVector;
-    var currentVector;
-
-    var ctrlDown = false;
-
-    var zoom;
-
-    var svg;
-
-    var graph;
-
-    var annotationLabelGroup;
-    var annotationGroup;
-
-    var yLock;
-    var xLock;
-
-    var annotationAdd;
-
+    //offsetline to show how much the active trend is offset
     var offsetLine;
 
-    var keepState;
+    //d3 x and y scales
+    var x, y, z;
 
-    function annotationAddNew(id, time, description) {
+    //d3 x and y axises
+    var xAxis, yAxis;
 
-        $log.log('adding annotation');
+    //offsetVector : vector(scale,x,y) for the active trend (which can be offset)
+    //currentVector : vector(scale,x,y) for the non-active trends 
+    var offsetVector, currentVector;
 
-        var newAnnotation = timeSeriesAnnotationService.addAnnotation(activeRunId, id, { Time: time, description: description, groupId: activeRunId }, undefined);
-        annotationsService.addAnnotations(activeRunId, [{ id: newAnnotation.id, description: newAnnotation.data.description, xcoordinate: newAnnotation.data.Time }]);
-        annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId));
-        annotationClick(newAnnotation);
-    }
+    var isOffsetting;
 
-    self.setActiveRun = function (id) {
-        activeRunId = id;
-        annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId));
-    }
+    //d3 zoom
+    var zoom;
 
-    self.getActiveRun = function () {
+    //svg and graph html node
+    var svg, graph;
 
-        return activeRunId;
-    }
+    //xLock button to lock the x-axis
+    //yLock button to lock the y-axis
+    var xLock, yLock;
 
-    self.setActiveColumn = function (column) {
-        var activeTrend = column.split('+');
-        svg.select('.y-label').text(activeTrend[1]);
-        activeColumn = column;
-    }
+    var trendLineColours = ['#8cc2d0', '#152e34'];
 
-    self.getActiveColumn = function () {
-        return activeColumn;
-    }
+    //options set for the graph
+    var options;
 
-    function graphInit(options) {
-        $log.log(options);
-        graphOptions = options
+    //who is panning/zooming the graph (user or code)
+    var user;
 
-        keepState = options.hasOwnProperty('state') ? options.state : false;
-        var w = options.hasOwnProperty('width') ? options.width : 1300;
-        var h = options.hasOwnProperty('height') ? options.height : 600;
-        var auto = options.hasOwnProperty('autoSize') ? options.autoSize : true;
+    //objects holds all annotations to render
+    var annotationGroupObject;
+    //add new annotation button
+    var annotationAddButton;
 
-        trendLineColors = options.hasOwnProperty('palette') ? options.palette : ['#8cc2d0', '#152e34'];
+    //init the graph (setting everything up)
+    //
+    // GRAPHDATA:
+    //          graphData is an array of runs, each element is an object holding an array of 'values'
+    //          each element in values must be an object having 2 elements x and y
+    //          example:
+    //          [{[{x : 0, y:-1}]}]
+    //
+    // GRAPHOPTIONS:
+    //         annotation: displays graph annotations (defaults to false)
+    //         axisLock : able locks axises (defaults to true)
+    //         urlState : maintain graph in url (defaults to false)
+    //         height : graph height (defaults to 600px)
+    //         width : graph width (deafults to 1300px)
+    function graphInit(graphData, graphOptions) {
+        console.log(graphData)
+        ctrlDown = false;
+        isOffsetting = false;
+        user = true;
+        data = graphData;
+        options = graphOptions;
 
+        //setup options
+        options.width = options.hasOwnProperty('width') ? options.width : 1300;
+        options.height = options.hasOwnProperty('height') ? options.height : 600;
+        options.urlState = options.hasOwnProperty('urlState') ? options.urlState : true;
+        options.axisLock = options.hasOwnProperty('axisLock') ? options.axisLock : true;
+        options.annotation = options.hasOwnProperty('annotation') ? options.annotation : true;
+        options.autoSize = options.hasOwnProperty('autoSize') ? options.autoSize : true;
+
+        //setup margin
         margin = options.hasOwnProperty('margin') ? options.margin : {
             top: 110,
             right: 170,
             bottom: 70,
             left: 160
-        };
+        }
 
-        width = w - margin.left - margin.right;
-        height = h - margin.top - margin.bottom;
+        width = options.width - margin.left - margin.right;
+        height = options.height - margin.top - margin.bottom;
 
-        ctrlDown = false;
-        user = true;
-
-        // set the ranges
+        //setup d3 scales and ranges 
         x = d3.scaleLinear().range([0, width]);
         y = d3.scaleLinear().range([height, 0]);
-        z = d3.scaleOrdinal(trendLineColors);
 
+        //setup d3 axis
         xAxis = d3.axisBottom(x);
-        yAxis = d3.axisLeft(y).ticks(20);
+        yAxis = d3.axisLeft(y);
 
-        endZoomVector = d3.zoomIdentity.scale(1).translate(0, 0);
+        //setup vectors to starting vectors
+        offsetVector = d3.zoomIdentity.scale(1).translate(0, 0);
         currentVector = d3.zoomIdentity.scale(1).translate(0, 0);
 
-        if(auto){
+        if (options.autoSize) {
+            //setup svg graph container
             svg = d3.select('.graph-container')
-            .attr("width",'100%')
-            .attr("height",'auto')
-            .attr("viewBox", "0 0 " + w + ' ' + h)
-            .attr("preserveAspectRatio", "xMinYMax meet");
-        }else{
+                .attr("width", "100%")
+                .attr("height", "auto")
+                .attr("viewBox", "0 0 1300 600")
+                .attr("preserveAspectRatio", "xMinYMax meet");
+        } else {
+            //setup svg graph container
             svg = d3.select('.graph-container')
-            .attr("width", w)
-            .attr("height", h)
-            .attr("viewBox", "0 0 " + w + ' ' + h)
-            .attr("preserveAspectRatio", "xMinYMax meet");
+                .attr("width", width)
+                .attr("height", height)
+                .attr("viewBox", "0 0 1300 600")
+                .attr("preserveAspectRatio", "xMinYMax meet");
         }
-        
 
 
-
+        //setup graph
         graph = svg
             .append("g")
             .attr('class', 'graph')
             .attr("transform",
                 "translate(" + margin.left + "," + margin.top + ")");
 
-        svg.append("text")
-            .attr("class", "x-label")
-            .attr("text-anchor", "end")
-            .attr("x", (width / 2) + margin.left + 100)
-            .attr("y", (h - margin.bottom) + 40)
-            .text("Time (Seconds)");
-
-        svg.append("text")
-            .attr("class", "y-label")
-            .attr("text-anchor", "end")
-            .attr("y", margin.left-100)
-            .attr("x", -height / 2)
-            .attr("dy", ".75em")
-            .attr("transform", "rotate(-90)")
-            .text("");
-
+        //setup d3 zoom
         zoom = d3.zoom()
+            .scaleExtent([0.1, 32])
             .on('zoom', zoomed)
-            .on('end', zoomedEnd)
+            .on('end', zoomEnd);
 
+        //disable double click to zoom
         svg.call(zoom)
             .on("dblclick.zoom", null);
 
+        //detect when ctrl key is pressed
         d3.select('body')
             .on('keydown', function () {
-                $log.log(d3.event.keyCode);
                 if (d3.event.keyCode === 16) {
-                    $log.log('keyPress');
                     ctrlDown = true;
                 }
-            })
+            });
+
         d3.select('body')
             .on('keyup', function () {
                 if (d3.event.keyCode === 16) {
-                    $log.log('keyUp');
                     ctrlDown = false;
                 }
-            })
+            });
 
+        //apply clipping path (used to stop graph being render out of the axis bounds)
         svg.append("defs").append("clipPath")
             .attr("id", "clip")
             .append("rect")
             .attr("width", width)
             .attr("height", height);
 
-        annotationLabelGroup = graph.append('g').attr('class', 'annotationLabel-group');
-        annotationGroup = graph.append('g').attr('class', 'annotation-group');
+        //setup offsetline
+        offsetLine = new OffsetLine(graph, 0, 0, 420, 970);
 
-        if (options.hasOwnProperty('lock') && options.lock) {
-            yLock = svg.append('g')
-                .attr('transform', 'translate(' + (margin.left * 0.85) + ',' + (margin.top * 0.6) + ')')
-                .attr('class', 'y-lock')
-                .attr('class','md-light')
-                .attr('locked', 0)
-            
-
-            yLock.append('svg:image')
-                .attr('xlink:href', './assets/img/lock_unlocked.svg')
-                .attr('width', '30')
-                .attr('height', '30')
-                .on('click', function () {
-                    lockToggle(yLock);
-                });
-
-            xLock = svg.append('g')
-                .attr('transform', 'translate(' + (width + margin.left * 1.2) + ',' + (height + margin.top * 0.8) + ')')
-                .attr('class', 'x-lock')
-                .attr('locked', 0)
-
-            xLock.append('svg:image')
-                .attr('xlink:href', './assets/img/lock_unlocked.svg')
-                .attr('width', '30')
-                .attr('height', '30')
-                .on('click', function () {
-                    lockToggle(xLock);
-
-                });
-        }
-
-        if (options.hasOwnProperty('annotation') && options.annotation && authenticationService.isAuthenticated()) {
-
-            annotationAdd = svg.append('g')
-                .attr('transform', 'translate(' + (width + margin.left * 1.2) + ',' + (margin.top * 0.8) + ')')
-                .attr('class', 'annotation-add')
-
-            annotationAdd.append('svg:image')
-                .attr('xlink:href', './assets/img/add.svg')
-                .attr('width', '30')
-                .attr('height', '30')
-                .on('click', function () {
-                    var xt = currentVector.rescaleX(x);
-                    annotationAddNew(undefined, xt.invert(500), '');
-                })
-        }
-
-
-
-
+        //append y and x axis
         graph.append("g")
             .attr("class", "axis axis--x")
             .attr("transform", "translate(0," + height + ")")
@@ -251,158 +201,124 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
         graph.append('g')
             .attr('class', 'run-group')
 
-        offsetLine = graph.append('g')
-            .attr('class', 'offsetLine')
-            .append('line')
+        //setup axis lock
+        if (options.axisLock) {
+            axisLockInitialize();
+        }
 
-        annotationAdd = svg.append('g')
-            .attr('transform', 'translate(' + (width + margin.left * 1.2) + ',' + (margin.top * 0.8) + ')')
-            .attr('class', 'annotation-add')
-
+        if(options.annotation){
+            annotationInitialize();
+        }
+       
 
     }
 
-
-
-    self.graphInit = function (options) {
-        graphInit(options);
+    //craetes two axis locks, one for y and one for x
+    function axisLockInitialize() {
+        yLock = new Lock('y-lock', svg, 30, 30, (margin.left * 0.85), (margin.top * 0.6));
+        xLock = new Lock('x-lock', svg, 30, 30, (width + margin.left * 1.2), (height + margin.top * 0.8));
     }
 
+    //creates annotationGroupObject to hold all annotations
+    //creates annotationAddButton to add new annotations =
+    function annotationInitialize() {
+        annotationGroupObject = new AnnotationGroup(graph, 0, 970);
+        annotationAddButton = new AddAnnotationButton(svg, 30, 30, (width + margin.left * 1.2), (margin.top * 0.8));
+    }
 
-
-
+    //calculate the x domain (largest and smallest values in the x data)
     function calculateXDomain(scale, data) {
         scale.domain([
-            d3.min(data, function (d) { return d.x; }),
-            d3.max(data, function (d) { return d.x; })
+            d3.min(data, function (d) {
+                return d.x;
+            }),
+            d3.max(data, function (d) {
+                return d.x;
+            })
         ])
     }
 
+    //calculate the y domain (largest and smallest values in the y data)
     function calculateYDomain(scale, data) {
         scale.domain([
-            d3.min(data, function (d) { return d.y; }),
-            d3.max(data, function (d) { return d.y; })
+            d3.min(data, function (d) {
+                return d.y;
+            }),
+            d3.max(data, function (d) {
+                return d.y;
+            })
         ])
     }
 
 
 
-    function extractColumn(data, columnX, columnY) {
-        var dataArray = [];
-        for (var i = 0, n = data.length; i < n; i++) {
-            dataArray.push({
-                x: data[i][columnX],
-                y: data[i][columnY]
-            });
-        }
+    function maxDataX(data) {
+        var max = -1;
 
-        return dataArray;
+        for (var i = 0, length = data.length; i < length; i++) {
+            max = Math.max(max, data[i].x);
+        }
+        return max;
     }
 
+    //extract trend line data
+    function extractTrendLineData(runId, columnY) {
+        var runData = null;
 
-    function annotationBadgeRender(annotations, t) {
-        annotations = (timeSeriesAnnotationService.getAnnotations(activeRunId));
-        var xt = currentVector.rescaleX(x);
-        var yt = currentVector.rescaleY(y);
-
-        if (t != undefined) {
-            xt = t.rescaleX(x);
-            yt = t.rescaleY(y);
-        }
-
-        var makeAnnotations = d3.annotation()
-            .notePadding(15)
-            .type(d3.annotationBadge)
-            .accessors({
-                x: d => xt(d.Time),
-                y: d => -10
-
-            })
-            .annotations(annotations)
-            .on('subjectclick', annotationClick)
-        annotationGroup.call(makeAnnotations);
-    }
-
-
-    function annotationLabelRender(t) {
-        var xt = currentVector.rescaleX(x);
-        var yt = currentVector.rescaleY(y);
-
-        if (t != undefined) {
-            xt = t.rescaleX(x);
-            yt = t.rescaleY(y);
+        for (var i = 0; i < data.length; i++) {
+            if (data[i].id === runId) {
+                runData = (data[i].runData);
+            }
         }
 
 
+        var xyData = [];
 
-        //render annotation label (stop button and arrow)
-        if (annotationInEdit != undefined) {
-            var id = annotationLabelGroup.select('g').attr('id')
-            annotationLabelGroup.selectAll('g')
-                .each(function (d) {
-                    var image = d3.select(this).select('image');
-                    var imageWidth = image.attr('width');
-                    var annotationBadge = timeSeriesAnnotationService.getAnnotation(activeRunId, id);
-                    var x = xt(annotationBadge.data.Time);
-                    image.attr('x', (x - (imageWidth / 2)));
+        if (runData) {
+            for (var i = 0; i < runData['Time'].length; i++) {
+                xyData.push({
+                    x: runData['Time'][i],
+                    y: runData[columnY][i]
                 })
+            }
+            console.log(xyData);
+            return xyData;
+        } else {
+            throw new Error("data in wrong format");
         }
 
-    }
-
-    function annotationDrag(d) {
-
-        annotationLabelGroup.selectAll('g')
-            .each(function (d) {
-                var image = d3.select(this).select('image');
-                var imageWidth = image.attr('width');
-                image.attr('x', (d3.event.x - (imageWidth / 2)));
-            })
-
-
-
-
-        var xt = currentVector.rescaleX(x);
-        var Time = xt.invert(d3.event.x);
-        annotationInEdit.data.Time = Time;
-        annotationBadgeRender([annotationInEdit]);                                                                   
 
     }
 
-    self.addTrend = function (id, columnName, data) {
-        console.log('ADD TREND ', data);
-        data = extractColumn(data, 'Time', columnName);
-        var trend = timeSeriesTrendService.addTrend(id,columnName, d3.scaleLinear(), d3.scaleLinear(), 'Time', columnName, data);
-        console.log('TREND DATA',trend);
+    //Adds a new trend line
+    //  runId which run does the trend belong to
+    //  columnY which column does the trend belong to (e.g. voltage) 
+    function addTrend(runId, columnY) {
+        console.log(`adding tend ${runId} ${columnY}`)
+        var trendData = extractTrendLineData(runId, columnY);
+
+        //create new trend
+        var trend = timeSeriesTrendService.addTrend(runId, columnY, d3.scaleLinear(), d3.scaleLinear(), 'Time', columnY, trendData);
+        //setup new trend range
         trend.scaleY.range([height, 0]);
-        calculateYDomain(trend.scaleY, trend.data, 'Y');
-        calculateXDomain(x, trend.data)
+        //setup new trends domains
+        calculateYDomain(trend.scaleY, trend.data);
+        calculateXDomain(x, trend.data);
 
-        var activeTrend = activeColumn.split('+');
-      
-        if (id === activeTrend[0] && columnName === activeTrend[1]) {
-            
-            circleX = trend.data[0].x;
-            circleY = trend.data[0].y;
-            svg.select('.y-label').text(columnName);
-            offsetLine.attr('x1', x(trend.data[0].x))
-                .attr('y1', y(trend.data[0].y))
-                .attr('x2', x(trend.data[0].x))
-                .attr('y2', y(trend.data[0].y))
-                .style('stroke', 'rgb(255,0,0)')
-                .style('stroke-width', '2')
+        //if new trend added is the active trend reset offsetLine co-ordinates
+        if (runId == activeColumn.getRun() && columnY == activeColumn.getColumn()) {
+
+            offsetLine.xcoor = trend.data[0].x;
+            offsetLine.ycoor = trend.data[0].y;
         }
 
-        var transition = d3.transition()
-            .duration(750)
-            .ease(d3.easeLinear);
-
-
+        //create linear transition of 750 seconds 
+        var transition = d3.transition().duration(750).ease(d3.easeLinear);
+        //rescale the axis to show the new trend
         graph.select('.axis--x').transition(transition).call(xAxis.scale(x));
         graph.select('.axis--y').transition(transition).call(yAxis.scale(trend.scaleY));
 
-
-
+        //add new trend to the graph DOM
         var run = graph.select('.run-group')
             .selectAll('run')
             .data([trend])
@@ -411,26 +327,23 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
                 var id = $filter('componentIdClassFilter')(d.id);
                 var columnName = $filter('componentIdClassFilter')(d.yLabel);
                 return 'run ' + id + ' ' + columnName;
-            })
+            });
 
-        var trendLength = (timeSeriesTrendService.getTrends().length-1) % trendLineColors.length;
-        var trendColour = trendLineColors[trendLength];
-        $log.log('TREND COLOUR ' + trendColour)
+        var trendLength = (timeSeriesTrendService.getTrends().length - 1) % trendLineColours.length;
+        var trendColour = trendLineColours[trendLength];
+
+        //add trend data to the run 
         run.append('path')
             .attr('class', 'line')
-            .attr('column', function (trend) {
-                return trend.yLabel;
-            })
             .attr('d', function (trend) {
                 var line = d3.line()
                     .x(function (d) { return x(d.x); })
                     .y(function (d) { return trend.scaleY(d.y); })
-
                 return line(trend.data)
             })
-            .style("stroke",trendColour)
+            .style('stroke', trendColour)
 
-
+        //transition the graph to show the new trend
         svg.call(zoom).transition()
             .call(zoom.transform, d3.zoomIdentity
                 .scale(1)
@@ -438,302 +351,402 @@ app.service('timeSeriesGraphService', ['$log', '$state', '$filter', 'timeSeriesA
             )
     }
 
-    self.removeTrend = function (id, columnName) {
-        $log.log(columnName);
-        timeSeriesTrendService.removeTrend(id,columnName);
-        var activeTrend = activeColumn.split('+');
-        if (id == activeTrend[0] && columnName == activeTrend[1]) {
-            circleX = 0;
-            circleY = 0;
+    //remove trend
+    function removeTrend(id, columnName) {
+        timeSeriesTrendService.removeTrend(id, columnName);
 
-            offsetLine.attr('x1', 0)
-                .attr('y1', 0)
-                .attr('x2', 0)
-                .attr('y2', 0)
-        }
         var id = $filter('componentIdClassFilter')(id);
-        columnName = $filter('componentIdClassFilter')(columnName);
+        var columnName = $filter('componentIdClassFilter')(columnName);
         graph.select('.run-group').select('.' + id + '.' + columnName).remove();
-
-        svg.call(zoom).transition()
-            .duration(1500)
-            .call(zoom.transform, endZoomVector);
     }
 
+    //Transitions the graph and offsets the active trend by the given vectors
+    // vector is an object containing 3 elemets : K (scale), x & y
+    function transition(viewVector, offsetVector) {
 
-    self.transition = function (transitionVector, offsetVector) {
 
-        activeViewVector = transitionVector;
-        activeOffsetVector = offsetVector;
-
-        $log.log(transitionVector, "v", offsetVector);
-        if (transitionVector != undefined) {
-            $log.log('zooming');
-            ctrlDown = false;
+        if (viewVector) {
             svg.call(zoom).transition()
                 .duration(1500)
                 .call(zoom.transform, d3.zoomIdentity
-                    .translate(transitionVector.x, transitionVector.y)
-                    .scale(transitionVector.k)
-
-                ).on('end', function () {
+                    .translate(Number(viewVector.x), Number(viewVector.y))
+                    .scale(Number(viewVector.k))
+                )
+                .on('end', function () {
                     user = false;
-                    var xO = activeOffsetVector.x + activeViewVector.x;
-                    var yO = activeOffsetVector.y + activeViewVector.y;
 
+                    var x0 = offsetVector.x + viewVector.x;
+                    var y0 = offsetVector.y + viewVector.y;
 
                     svg.call(zoom).transition()
                         .duration(1500)
                         .call(zoom.transform, d3.zoomIdentity
-                            .translate(xO, yO)
-                            .scale(activeViewVector.k)
-                        )
-                        .on('end', function () {
-
+                            .translate(x0, y0)
+                            .scale(viewVector.k)
+                        ).on('end', function () {
                             user = true;
                         })
                 })
         }
     }
 
-    self.setOffsetLine = function (data, columnName) {
-        for (var i = 0, n = data.length; i < n; i++) {
-            if (data[i].id === activeRunId) {
-                circleY = data[i].values[0][columnName];
-            }
+    function zoomEnd() {
+        if (isOffsetting && options.urlState) {
+            //find the difference between the offset vector and current vector, to store in the url
+            var xDiffrence = offsetVector.x - currentVector.x;
+            var yDiffrence = offsetVector.y - currentVector.y;
+
+            //update url state
+            $state.go('.', {
+                offsetVector: JSON.stringify({ x: xDiffrence, y: yDiffrence })
+            });
+
+        } else {
+            //update the url state
+            $state.go('.', {
+                viewVector: JSON.stringify(currentVector),
+                offsetVector: JSON.stringify({ x: 0, y: 0 })
+            });
         }
     }
 
-
-    function zoomedEnd() {
-
-    }
-
+    //When user either zooms or pans the graph
     function zoomed() {
-        $log.log(activeRunId);
+        //get the d3 event transformation 
         var t = d3.event.transform;
 
+        //two decimal places only
         t.k = parseFloat((t.k).toFixed(2));
         t.x = parseFloat((t.x).toFixed(2));
         t.y = parseFloat((t.y).toFixed(2));
 
-        var isZooming = endZoomVector.k != t.k;
+        //check if user is zooming or panning
+        //by checking the scale of the previous vector (current vector) to scale of this vector
+        //true if zooming false if not
+        var isZooming = currentVector.k != t.k;
 
-        if (graphOptions.hasOwnProperty('lock') && graphOptions.lock) {
-            var xIsLocked = (xLock.attr('locked') == 1);
-            var yIsLocked = (yLock.attr('locked') == 1);
 
-            t.x = xIsLocked && !isZooming ? endZoomVector.x : t.x;
-            t.y = yIsLocked && !isZooming ? endZoomVector.y : t.y;
+
+
+        //checks if axis lock is enabled
+        if (options.axisLock) {
+
+            //if x axis lock is enabled set x to the pevious vector x component
+            t.x = xLock.locked() ? currentVector.x : t.x;
+            //if y axis lock is enabled set y to the pevious vector x component
+            t.y = yLock.locked() ? currentVector.y : t.y;
         }
 
+        //if ctrl key is pressed or code is transforming the graph
+        //the graph is being offset
+        if (ctrlDown || !user) {
+            offsetting(t);
+        } else {
+            panning(t);
+        }
 
+        //render active trends annotations
+        annotationGroupObject.render(timeSeriesAnnotationService.getAnnotations(activeColumn.getRun()), x, offsetVector);
+
+    }
+
+
+    //Panning the graph 
+    function panning(t) {
+
+        isOffsetting = false;
+
+        //d3 rescale x scale
+        var xt = t.rescaleX(x);
+        var yt;
+
+        //rescale the x axis
+        graph.select('.axis--x').call(xAxis.scale(xt));
+
+        //for each line (each run column) re-render
+        graph.selectAll('.line')
+            .attr('d', function (trend) {
+
+                yt = t.rescaleY(trend.scaleY);
+
+
+
+                graph.select('.axis--y').call(yAxis.scale(yt));
+
+                offsetLine.renderWhenPanning(xt, yt);
+                var line = d3.line()
+                    .x(function (d) { return xt(d.x); })
+                    .y(function (d) {
+                        var ytDy = yt(d.y);
+                        console.log()
+                        return ytDy;
+                    })
+                return line(trend.data)
+            });
+
+        //set current vector
+        currentVector = t;
+        // when user pans the offset graph position is reset back to the current vectors positions
+        offsetVector = t;
+
+        /* //update the url state
+        $state.go('.', {
+            viewVector: JSON.stringify(t),
+            offsetVector: JSON.stringify({ x: 0, y: 0 })
+        }) */
+    }
+
+    //Offsetting thr active trend
+    function offsetting(t) {
+        //d3 rescale y axis
         var xt = t.rescaleX(x);
 
-        if (annotationInEdit != undefined) {
-            annotationBadgeRender([annotationInEdit]);
-        } else {
-            annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId), t);
-        }
+        isOffsetting = true;
 
-        annotationLabelRender(t);
-
-       
-        if (ctrlDown || !user) {
-            var activeTrend = activeColumn.split('+');
-            var id = $filter('componentIdClassFilter')(activeTrend[0]);
-            var columnName = $filter('componentIdClassFilter')(activeTrend[1]);
-
-           
-
-            var line = graph.select('.run-group').select('.' + id + '.' + columnName).selectAll('.line');
+        if (activeColumn.getRun() && activeColumn.getColumn()) {
+            var line = graph.select('.run-group').select('.' + $filter('componentIdClassFilter')(activeColumn.getRun()) + '.' + $filter('componentIdClassFilter')(activeColumn.getColumn())).selectAll('.line');
             var yt;
+
+            //check if there is a active trend
             if (!line.empty()) {
-            
+                //only re-render the active trend
                 line.attr('d', function (trend) {
                     yt = t.rescaleY(trend.scaleY);
                     var line = d3.line()
-                        .x(function (d) { return xt(d.x); })
-                        .y(function (d) { return yt(d.y); })
+                        .x(function (d) { return xt(d.x) })
+                        .y(function (d) { return yt(d.y) })
 
-                    return line(trend.data)
-                });
-
-                offsetLine.attr('x2', xt(circleX))
-                    .attr('y2', yt(circleY))
-
-                var xDiffrence = t.x - endZoomVector.x;
-                var yDiffrence = t.y - endZoomVector.y;
-
-                var offsetVector = {
-                    x: xDiffrence,
-                    y: yDiffrence
-                }
-
-
-                if (keepState) {
-                    $state.go('.', {
-                        offsetVector: JSON.stringify(offsetVector)
-                    })
-                }
-
-
-            }
-
-
-
-
-
-        } else {
-            var offsetLineYt;
-            graph.select('.axis--x').call(xAxis.scale(xt));
-            graph.selectAll('.line')
-                .attr('d', function (trend) {
-
-                    var yt = t.rescaleY(trend.scaleY);
-
-                    var activeTrend = activeColumn.split('+');
-                    if (trend.id === activeTrend[0] && trend.yLabel === activeTrend[1]) {
-                        graph.select('.axis--y').call(yAxis.scale(yt));
-                        offsetLineYt = t.rescaleY(trend.scaleY);
-                    }
-
-                    var line = d3.line()
-                        .x(function (d) { return xt(d.x); })
-                        .y(function (d) { return yt(d.y); })
-
-
-                    return line(trend.data)
-
-
-                });
-
-            if (offsetLineYt != undefined) {
-                offsetLine.attr('x1', xt(circleX))
-                    .attr('y1', offsetLineYt(circleY))
-                    .attr('x2', xt(circleX))
-                    .attr('y2', offsetLineYt(circleY))
-            }
-
-            endZoomVector = t;
-
-            var viewVector = JSON.stringify(t);
-            var offsetVector = {
-                x: 0,
-                y: 0
-            }
-            offsetVector = JSON.stringify(offsetVector);
-
-            if (keepState) {
-                $state.go('.', {
-                    viewVector: viewVector,
-                    offsetVector: offsetVector
+                    return line(trend.data);
                 })
+
+                //find the difference between the offset vector and current vector, to store in the url
+                //var xDiffrence = t.x - currentVector.x;
+                //var yDiffrence = t.y - currentVector.y;
+
+                offsetVector = t;
+
+                /*  //update url state
+                 $state.go('.', {
+                     offsetVector: JSON.stringify({ x: xDiffrence, y: yDiffrence })
+                 }) */
+                //render offsetline
+                offsetLine.renderWhenOffsetting(xt, yt);
+            }
+        }
+
+
+
+    }
+
+    //Offsetline used to indicate when distance between the offset active trend and its original position
+    //  parentNode : which DOM element to attach the line
+    //  xcoor : starting x coordinate of the line (defaults to 0)
+    //  ycoor : starting y coordinate of the line (defaults to 0)
+    //  boundryHeight : the height of the graph (renders the line only within the axis)
+    //  boundryWidth : the width of the graph 
+    //  colour : colour of the offsetline (defaults to red)
+    //  width : thickness of the offsetline (defaults to 2)
+    function OffsetLine(parentNode, xcoor = 0, ycoor = 0, boundyHeight, boundryWidth, colour = '255,0,0', width = '2') {
+        this.node = parentNode.append('g').attr('class', 'offset-line').append('line');
+        this.xcoor = xcoor,
+            this.ycoor = ycoor,
+            this.colour = colour,
+            this.width = width,
+            this.boundryHeight = boundyHeight;
+        this.boundryWidth = boundryWidth;
+        //renders offset line when user is offsetting
+        this.renderWhenOffsetting = function (xScaler, yScaler) {
+            var xPoint = xScaler(this.xcoor);
+            var yPoint = yScaler(this.ycoor);
+
+            if (yPoint > this.boundryHeight) {
+                yPoint = this.boundryHeight;
+            } else if (yPoint < 0) {
+                yPoint = 0;
+            }
+
+            if (xPoint > this.boundryWidth) {
+                xPoint = this.boundryWidth;
+            } else if (xPoint < 0) {
+                xPoint = 0;
+            }
+
+            this.node.attr('x2', xPoint)
+                .attr('y2', yPoint);
+            this.node.style('stroke', 'rgb(255,0,0)')
+                .style('stroke-width', '2');
+        }
+        //render offset line when user is panning
+        this.renderWhenPanning = function (xScaler, yScaler) {
+
+            var xPoint = xScaler(this.xcoor);
+            var yPoint = yScaler(this.ycoor);
+
+            if (yPoint > this.boundryHeight) {
+                yPoint = this.boundryHeight;
+            } else if (yPoint < 0) {
+                yPoint = 0;
+            }
+
+            if (xPoint > this.boundryWidth) {
+                xPoint = this.boundryWidth;
+            } else if (xPoint < 0) {
+                xPoint = 0;
+            }
+
+            this.node.attr('x1', xPoint)
+                .attr('y1', yPoint)
+                .attr('x2', xPoint)
+                .attr('y2', yPoint);
+            this.node.style('stroke', 'rgb(255,0,0)')
+                .style('stroke-width', '2');
+        }
+    }
+
+    //Lock button used to maintain lock status of the button
+    //  axisLabel : label used to distinguish multiple locks
+    //  parentNode : which DOM element to attach the lock
+    //  lockWidth : width of the lock button
+    //  lockHeight : height of the lock button
+    //  transX : x translation of button (used to position the button)
+    //  transY : y translation of button 
+    function Lock(axisLabel, parentNode, lockWidth, lockHeight, transX, transY) {
+        this.lockWidth = lockWidth;
+        this.lockHeight = lockHeight;
+        this.transX = transX;
+        this.transY = transY;
+        this.axisLabel = axisLabel;
+        //toggles lock button status (locked/unlocked)
+        this.lockToggle = function () {
+            var lock = parentNode.select('.' + axisLabel);
+            var image = lock.select('image');
+            var locked = (lock.attr('locked') == 1)
+            locked ? image.attr('xlink:href', './assets/img/lock_unlocked.svg') : image.attr('xlink:href', './assets/img/lock_locked.svg')
+            locked ? locked = 0 : locked = 1;
+            lock.attr('locked', locked);
+        }
+        this.node = parentNode.append('g').attr('transform', 'translate(' + transX + ',' + transY + ')').attr('class', axisLabel).append('svg:image')
+            .attr('xlink:href', './assets/img/lock_unlocked.svg')
+            .attr('width', lockWidth)
+            .attr('height', lockHeight)
+            .attr('locked', 0)
+            .on('click', this.lockToggle)
+        //returns true if lock is locked, false if unlocked
+        this.locked = function () {
+            var lock = parentNode.select('.' + axisLabel);
+            var locked = (lock.attr('locked') == 1);
+            return locked;
+        }
+
+    }
+
+    //Annotation Group renders all annotations for the active graph
+    // parentNode : which DOM element to attach the annotations
+    // xPixelStart : x start position of graph in pixels
+    // xPixelEnd : x end position of graph in pixels
+    function AnnotationGroup(parentNode, xPixelStart = 0, xPixelEnd) {
+        this.group = parentNode.append('g').attr('class', 'annotation-group');
+        this.controls = parentNode.append('g').attr('class', 'annotation-control-group');
+        this.annotationInEdit = null;
+        this.xPixelStart = xPixelStart;
+        this.xPixelEnd = xPixelEnd;
+        //when an annotation is clicked
+        this.annotationClick = function (AnnotationGroup, annotation, axis, vector) {
+            var scope = this;
+            //get the annotation object (not d3-annotation object)
+            annotation = timeSeriesAnnotationService.getAnnotation(annotation.data.groupId, annotation.id);
+            //set clicked annotation in edit
+            AnnotationGroup.annotationInEdit = annotation;
+
+            //open new panel shwoing annotation and allowing admin users to edit
+            annotation.click(AnnotationGroup.controls, axis, vector, function () {
+                scope.annotationInEdit = null
+                AnnotationGroup.render(timeSeriesAnnotationService.getAnnotations(activeColumn.getRun()), axis, offsetVector);
+
+            });
+        }
+        //renders annotations
+        //  annotations : which annotations to render
+        //  axis : which axis
+        //  vector : which vector
+        this.render = function (annotations, axis, vector) {
+            if (this.annotationInEdit) {
+                this.annotationInEdit.annotationLabelRender(this.group, this.controls, axis, vector);
+                annotations = [this.annotationInEdit];
+            }
+            var annotationGroup = (this);
+            var xScaler = vector.rescaleX(axis);
+            //filters out any annotations off the graph view
+            annotations = (this.filterOutBounds(annotations, xScaler));
+            var makeAnnotations = d3.annotation()
+                .notePadding(15)
+                .type(d3.annotationBadge)
+                .accessors({
+                    x: d => xScaler(d.Time),
+                    y: d => -10
+                })
+                .annotations(annotations)
+                .on('subjectclick', function (annotation) {
+                    if (!annotationGroup.annotationInEdit) {
+                        annotationGroup.annotationClick(annotationGroup, annotation, axis, vector);
+                    }
+                });
+            this.group.call(makeAnnotations);
+        }
+        //removes any annotations that are off the graph view
+        // annotations : array of annotation objects
+        // xScaler : scaler to calculate pixel coordinate of each annotation
+        this.filterOutBounds = function (annotations, xScaler) {
+            var filteredAnnotations = [];
+            for (var i = 0; i < annotations.length; i++) {
+                if (xScaler(annotations[i].data.Time) > this.xPixelStart && xScaler(annotations[i].data.Time) < this.xPixelEnd) {
+                    filteredAnnotations.push(annotations[i]);
+                }
+            }
+            return filteredAnnotations;
+        }
+    }
+
+    //Add Annotation Button button adds new annotation when clicked
+    // parentNode : which DOM element to attach the annotations
+    // buttonWidth : width of button in pixels
+    // buttonHeight : height of button in pixels
+    // transX : x translation of button (used to position the button)
+    // transY : y translation of button 
+    function AddAnnotationButton(parentNode, buttonWidth, buttonHeight, transX, transY) {
+        var AddAnnotationButton = this;
+        this.addButton = parentNode.append('g').attr('transform', 'translate(' + transX + ',' + transY + ')')
+            .attr('class', 'annotation-add')
+            .append('svg:image')
+            .attr('xlink:href', './assets/img/add.svg')
+            .attr('width', buttonWidth)
+            .attr('height', buttonHeight)
+            .on('click', function () {
+                AddAnnotationButton.click();
+            })
+        //when button is clicked add new annotation to active run and reset graph view
+        this.click = function () {
+
+            if (activeColumn.getRun()) {
+                var maxX = maxDataX(extractTrendLineData(activeColumn.getRun(), activeColumn.getColumn()));
+
+                var newAnnotation = timeSeriesAnnotationService.addAnnotation(activeColumn.getRun(), undefined, { Time: Math.floor(maxX / 2), description: "", groupId: activeColumn.getRun() }, undefined);
+                annotationsService.addAnnotations(activeColumn.getRun(), [{ id: newAnnotation.id, description: newAnnotation.data.description, xcoordinate: newAnnotation.data.Time }]);
+                parentNode.call(zoom).transition()
+                    .duration(1500)
+                    .call(zoom.transform, d3.zoomIdentity
+                        .translate(1, 1)
+                    )
             }
 
         }
-
-        currentVector = t;
-
-    }
-
-    self.clear = function () {
-
     }
 
 
 
-    function lockToggle(lock) {
-        var image = lock.select('image');
-        var locked = (lock.attr('locked') == 1)
-        locked ? image.attr('xlink:href', './assets/img/lock_unlocked.svg') : image.attr('xlink:href', './assets/img/lock_locked.svg')
-        locked ? locked = 0 : locked = 1;
-        lock.attr('locked', locked);
-    }
-
-    function annotationClick(annotation) {
-        $log.log(annotation);
-        annotationInEdit = annotation;
-        showAnnotation(annotation);
-    }
-
-    self.getAnnotationInEdit = function () {
-        return annotationInEdit;
-    }
-
-    self.getActiveRunId = function () {
-        return activeRunId;
-    }
-
-    function dragended(d) {
-        d3.select(this).classed("active", false);
-    }
-
-    function annotationClickEdit(annotation) {
-
-        var width = 30;
-        var height = 30;
-        var xt = currentVector.rescaleX(x);
-        var xCor = (xt(annotation.data.Time));
-        annotationLabelGroup.selectAll('g').remove();
-        annotationLabelGroup.append('g')
-            .attr('class', 'move')
-            .attr('id', annotation.id)
-            .append('svg:image')
-            .attr('x', (xCor - (width / 2)))
-            .attr('y', -80)
-            .attr('xlink:href', './assets/img/arrow_down.svg')
-            .attr('width', width)
-            .attr('height', height)
-            .call(d3.drag()
-                .on('drag', annotationDrag)
-                .on('end', dragended))
-
-
-        annotationLabelGroup.append('g')
-            .attr('class', 'confirm')
-            .append('svg:image')
-            .attr('x', (xCor - (width / 2)))
-            .attr('y', -110)
-            .attr('xlink:href', './assets/img/stop.svg')
-            .attr('width', width)
-            .attr('height', height)
-            .on('click', annotationPosEditConfirm)
-    }
-
-    function annotationPosEditConfirm(d) {
-
-        var image = annotationLabelGroup.select('g').select('image');
-        var cx = parseFloat(image.attr('x'));
-        cx += (parseFloat(image.attr('width'))) / 2;
-        $log.log(cx);
-        var xt = currentVector.rescaleX(x);
-        var Time = xt.invert(cx);
-        $log.log(Time);
-        annotationInEdit.data.Time = Time
-        annotationLabelGroup.selectAll('g').remove();
-        showAnnotation();
-    }
-
-    function showAnnotation() {
-
-        annotationPreviewService.showAnnotationPreviewPanel(annotationInEdit)
-            .then(function (result) {
-                annotationClickEdit(result);
-                annotationBadgeRender([annotationInEdit]);
-            }).catch(function () {
-                annotationInEdit = undefined;
-
-                annotationBadgeRender(timeSeriesAnnotationService.getAnnotations(activeRunId));
-            });
-
-    }
+}
 
 
 
-    d3.selection.prototype.moveToFront = function () {
-        return this.each(function () {
-            this.parentNode.appendChild(this);
-        });
-    };
-}])
+
+

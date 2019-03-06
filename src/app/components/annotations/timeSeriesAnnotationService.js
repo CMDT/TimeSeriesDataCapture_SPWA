@@ -1,9 +1,36 @@
 app.service('timeSeriesAnnotationService', ['$log', 'annotationPreviewService', function ($log, annotationPreviewService) {
 
+
+
+}])
+
+
+angular.module('app').service('timeSeriesAnnotationService', timeSeriesAnnotationService);
+
+timeSeriesAnnotationService.$inject = [
+    '$log',
+    'annotationPreviewService'
+]
+
+function timeSeriesAnnotationService(
+    $log,
+    annotationPreviewService
+) {
     var self = this;
 
-
     var annotationGroups = new Map();
+
+    self.extractAnnotations = extractAnnotations;
+
+    self.addAnnotationGroup = addAnnotationGroup;
+    self.removeAnnotationGroup = removeAnnotationGroup;
+
+    self.addAnnotation = addAnnotation;
+    self.removeAnnotation = removeAnnotation;
+    self.updateAnnotation = updateAnnotation;
+
+    self.getAnnotations = getAnnotations;
+    self.getAnnotation = getAnnotation;
 
 
     function annotationGroup(id, name, annotations = []) {
@@ -114,23 +141,23 @@ app.service('timeSeriesAnnotationService', ['$log', 'annotationPreviewService', 
             var Time = xt.invert(cx);
             annotation.data.Time = Time;
             labelNode.selectAll('g').remove();
-            annotation.click(labelNode, xAxis, vector,annotation.callback);
+            annotation.click(labelNode, xAxis, vector, annotation.callback);
         }
     }
 
-    self.extractAnnotations = function(runs){
-        for(var i=0,length=runs.length;i<length;i++){
+    function extractAnnotations(runs) {
+        for (var i = 0, length = runs.length; i < length; i++) {
             self.addAnnotationGroup(runs[i].id);
 
             var annotationIds = Object.keys(runs[i].annotations);
 
-            for(var j=0,annotationLength=annotationIds.length;j<annotationLength;j++){
-                createAnnotation(runs[i].id,runs[i]['annotations'][annotationIds[j]]);
+            for (var j = 0, annotationLength = annotationIds.length; j < annotationLength; j++) {
+                createAnnotation(runs[i].id, runs[i]['annotations'][annotationIds[j]]);
             }
         }
     }
 
-    function createAnnotation(annotationGroupId,annotation){
+    function createAnnotation(annotationGroupId, annotation) {
         var data = {
             Time: annotation.xcoordinate,
             description: annotation.description,
@@ -140,25 +167,25 @@ app.service('timeSeriesAnnotationService', ['$log', 'annotationPreviewService', 
         self.addAnnotation(annotationGroupId, annotation.id, data, undefined);
     }
 
-    self.addAnnotationGroup = function (id, name, annotations) {
+    function addAnnotationGroup(id, name, annotations) {
         var newAnnotationGroup = new annotationGroup(id, name, annotations);
         annotationGroups.set(id, newAnnotationGroup);
         return id;
     }
 
-    self.removeAnnotationGroup = function (id) {
+    function removeAnnotationGroup(id) {
         annotationGroups.delete(id);
     }
 
-    self.addAnnotation = function (annotationGroupId, id, data, label) {
-        console.log('adding annotation',annotationGroupId);
+    function addAnnotation(annotationGroupId, id, data, label) {
+        console.log('adding annotation', annotationGroupId);
         var newAnnotation = new annotationBadge(annotationGroupId, id, data, label);
         var annotationGroup = annotationGroups.get(annotationGroupId);
         annotationGroup.annotations.push(newAnnotation);
         return newAnnotation
     }
 
-    self.removeAnnotation = function (annotationGroupId, annotationId) {
+    function removeAnnotation(annotationGroupId, annotationId) {
         var annotationGroup = annotationGroups.get(annotationGroupId);
         for (var i = 0, n = annotationGroup.annotations.length; i < n; i++) {
             if (annotationGroup.annotations[i].id === annotationId) {
@@ -167,7 +194,7 @@ app.service('timeSeriesAnnotationService', ['$log', 'annotationPreviewService', 
         }
     }
 
-    self.getAnnotations = function (annotationGroupId) {
+    function getAnnotations(annotationGroupId) {
         var annotationGroup = annotationGroups.get(annotationGroupId);
         if (annotationGroup != undefined) {
             return annotationGroup.annotations;
@@ -176,7 +203,7 @@ app.service('timeSeriesAnnotationService', ['$log', 'annotationPreviewService', 
         }
     }
 
-    self.getAnnotation = function (annotationGroupId, annotationId) {
+    function getAnnotation(annotationGroupId, annotationId) {
         var annotationGroup = annotationGroups.get(annotationGroupId);
 
         for (var i = 0, n = annotationGroup.annotations.length; i < n; i++) {
@@ -186,7 +213,7 @@ app.service('timeSeriesAnnotationService', ['$log', 'annotationPreviewService', 
         }
     }
 
-    self.updateAnnotation = function (annotationGroupId, annotationId, updateData) {
+    function updateAnnotation(annotationGroupId, annotationId, updateData) {
         var annotationGroup = annotationGroups.get(annotationGroupId);
 
         for (var i = 0, n = annotationGroup.annotations.length; i < n; i++) {
@@ -215,5 +242,4 @@ app.service('timeSeriesAnnotationService', ['$log', 'annotationPreviewService', 
             return v.toString(16);
         });
     }
-
-}])
+}
