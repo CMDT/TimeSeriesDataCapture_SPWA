@@ -23,7 +23,7 @@
                     <md-content>
                         <md-list ng-show='isColumns' flex>
                             <md-list-item ng-repeat="column in tab.columns" class="md-2-line" ng-class="{'active-column': isActiveColumn(tab.id,column)}"
-                                ng-click="selectedColumn(tab.id,column)">
+                                ng-click="activeRunClick(tab.id,column)">
                                 <p>{{column}}</p>
                                 <md-list-item class="md-2-line" ng-click="null">
                                     <md-checkbox md-no-ink='false' ng-click="selectedToggle(tab.id,column)" ng-checked="exists(tab.id,column)" aria-label="Checkbox "></md-checkbox>

@@ -1,19 +1,31 @@
-app.service('algorithmsService', ['$rootScope','$log','$http', function ($rootScope, $log, $http) {
+angular.module('app').service('algorithmsService', algorithmsService);
 
+algorithmsService.$inject = [
+    '$rootScope',
+    '$log',
+    '$http'
+]
+
+
+function algorithmsService(
+    $rootScope,
+    $log,
+    $http
+) {
     var self = this;
 
-    self.getAllAlgorithms = function () {
-       
-            var config = {
-                headers: {},
-                responseType: 'json'
-            }
-            config.headers.Authorization = 'Bearer ' + localStorage.getItem('accessToken');
+    self.getAllAlgorithms = getAllAlgorithms;
 
-            var url = $rootScope.url + '/apis/algorithms';
-            $log.log(url);
+    function getAllAlgorithms() {
 
-            return $http.get(url, config)
+        var config = {
+            headers: {},
+            responseType: 'json'
+        }
+        config.headers.Authorization = 'Bearer ' + localStorage.getItem('accessToken');
+
+        var url = $rootScope.url + '/apis/algorithms';
+        return $http.get(url, config)
     }
 
-}])
+}

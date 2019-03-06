@@ -1,6 +1,35 @@
-app.controller('viewController', ['$scope','$rootScope', '$log', '$state', '$stateParams', 'tagEditPanelService', 'columnTabPanelService', 'timeSeriesGraphControlService', 'timeSeriesTrendService', 'authenticationService', 'paletteDataService', function ($scope,$rootScope, $log, $state, $stateParams, tagEditPanelService, columnTabPanelService, timeSeriesGraphControlService, timeSeriesTrendService, authenticationService, paletteDataService) {
+angular.module('app').controller('viewController', viewController);
 
+viewController.$inject = [
+    '$scope',
+    '$rootScope',
+    '$log',
+    '$state',
+    '$stateParams',
+    'tagEditPanelService',
+    'columnTabPanelService',
+    'timeSeriesTrendService',
+    'authenticationService',
+    'timeSeriesGraphService',
+    'activeColumn',
+    'timeSeriesAnnotationService',
+    'runData'
+]
 
+function viewController($scope, 
+    $rootScope, 
+    $log, $state, 
+    $stateParams, 
+    tagEditPanelService, 
+    columnTabPanelService, 
+    timeSeriesTrendService, 
+    authenticationService, 
+    timeSeriesGraphService, 
+    activeColumn, 
+    timeSeriesAnnotationService, 
+    runData) 
+    
+    {
     $scope.runs = [];
     $scope.tabs = [];
 
@@ -8,161 +37,128 @@ app.controller('viewController', ['$scope','$rootScope', '$log', '$state', '$sta
 
     $scope.isColumns = true;
 
-    var tagsArray = [];
+    $scope.query = $rootScope.query;
+    
+    //functions
+    $scope.back = back;
 
+    $scope.selectedToggle = selectedToggle;
+
+    $scope.tagEdit = tagEdit;
+
+    $scope.exists = exists;
+    $scope.activeRunClick = activeRunClick;
+    $scope.isActiveColumn = isActiveColumn;
+
+    $scope.isAuthenticated = isAuthenticated;
+
+    var tagsArray = [];
     var tagsCollection = {};
 
-    $scope.query = $rootScope.query;
+
+    if (runData) {
+        // TODO : need to test getRunV2 
+        result = extractData(runData);
+        console.log(result);
+
+        timeSeriesAnnotationService.extractAnnotations(result);
+
+        timeSeriesGraphService.graphInit(result, {});
+        columnTabPanelService.clearSelection();
+
+        timeSeriesTrendService.clearTrends();
+
+        tagsCollection = (extractTags(result));
+
+        columnTabPanelService.createRunTabs(result);
+        $scope.tabs = columnTabPanelService.getTabs();
 
 
-    if ($stateParams.runs != undefined) {
-        columnTabPanelService.getRun($stateParams.runs.split('+')).then(function (result) {
-            columnTabPanelService.clearSelection();
-            timeSeriesGraphControlService.clearData();
-            timeSeriesTrendService.clearTrends();
+        if ($stateParams.columns) {
+            var columns = columnTabPanelService.parseUrlColumns($stateParams.columns);
+            columnTabPanelService.selectColumns(columns);
+        }
 
-            tagsCollection = (extractTags(result));
+        if ($stateParams.activeColumn) {
+            setActiveColumn($stateParams.activeColumn);
+        }
 
-            $scope.runs = result;
-            columnTabPanelService.createRunTabs(result);
-            $scope.tabs = columnTabPanelService.getTabs();
+        var offsetVector;
+        var viewVector;
+        if ($stateParams.offsetVector != undefined) {
+            offsetVector = JSON.parse($stateParams.offsetVector);
+        }
 
-            var palette = $stateParams.palette != undefined ? $stateParams.palette : 'default';
-            paletteDataService.getPalette(palette).then(function (paletteResult) {
-                $log.log(paletteResult.data.palette);
-                var options = {
-                    state: true,
-                    width: 1300,
-                    height: 600,
-                    lock: true,
-                    annotation: true,
-                    palette: paletteResult.data.palette
-                }
+        if ($stateParams.viewVector != undefined) {
+            viewVector = JSON.parse($stateParams.viewVector);
+        }
 
-
-                timeSeriesGraphControlService.drawGraph(result, options);
-
-                if ($stateParams.activeColumn != undefined) {
-                    $log.log('ACTIVE COLUMN',$stateParams.activeColumn);
-                    timeSeriesGraphControlService.setActiveColumn($stateParams.activeColumn);
-                }
-
-                if($stateParams.activeRun != undefined){
-                    timeSeriesGraphControlService.setActiveRun($stateParams.activeRun);
-                    tagsArray = tagsCollection[$stateParams.activeRun];
-                }
-
-
-                if ($stateParams.columns != undefined) {
-                    var columns = columnTabPanelService.parseUrlColumns($stateParams.columns);
-                    columnTabPanelService.selectColumns(columns);
-                }
-
-
-
-                var offsetVector;
-                var viewVector;
-                if ($stateParams.offsetVector != undefined) {
-                    offsetVector = JSON.parse($stateParams.offsetVector);
-                }
-
-                if ($stateParams.viewVector != undefined) {
-                    viewVector = JSON.parse($stateParams.viewVector);
-                }
-                timeSeriesGraphControlService.graphTransition(viewVector, offsetVector);
-
-                $scope.selectedTab();
-                //$scope.$apply();
-            });
-
-
-
-
-        }).catch(function (error) {
-            $log.log(error);
-        })
+        timeSeriesGraphService.transition(viewVector, offsetVector);
     }
 
-    $scope.back = function(){
+
+
+
+    function back () {
         var options = {
             location: 'replace',
             inherit: false,
         }
 
-        $state.transitionTo('home',{
-            query:$rootScope.query
-        },options);
+        $state.transitionTo('index', {
+            query: $rootScope.query
+        }, options);
     }
 
-    $scope.selectedToggle = function (id, columnName) {
-        var selectedColumns = columnTabPanelService.getSelectedColumns(id, columnName);
-        var columnParam = columnTabPanelService.parseColumnsUrl(selectedColumns);
-        $log.log('columParam', columnParam);
-        $state.go('.', {
-            columns: columnParam
-        })
+    function selectedToggle (runId, columnName) {
+        if (!activeColumn.isActive(runId, columnName)) {
+            var selectedColumns = columnTabPanelService.getSelectedColumns(runId, columnName);
+            var columnParam = columnTabPanelService.parseColumnsUrl(selectedColumns);
+            $log.log('columParam', columnParam);
+            $state.go('.', {
+                columns: columnParam
+            })
+        }
     }
 
-    $scope.tagEdit = function () {
+    function tagEdit() {
         var runId = ($scope.tabs[$scope.activeTabIndex]).id;
         $log.log(runId)
         tagEditPanelService.showTagEditPanel(undefined, runId, tagsArray);
     }
+    
 
-    $scope.exists = function (id, columnName) {
+    function exists(id, columnName) {
         return columnTabPanelService.exists(id, columnName);
     }
 
-    $scope.selectedColumn = function (tabId, columnName) {
-
-        $state.go('.', {
-            activeColumn: tabId + '+' + columnName
-        })
-    }
-
-    $scope.selectedTab = function () {
-        var runId = ($scope.tabs[$scope.activeTabIndex]).id;
-        $log.log(runId);
-        $state.go('.', {
-            activeRun: runId 
-        })
-        
-    }
-
-    $scope.isActiveColumn = function (tabId, columnName) {
-       
-        var activeColumn = timeSeriesGraphControlService.getActiveColumn()
-
-        if(activeColumn == undefined){
-            return false;
-        }
-
-        activeColumn = activeColumn.split('+');
-
-        if (tabId === activeColumn[0] && columnName === activeColumn[1]) {
-        
-            return true;
-        } else {
-            return false;
+    function activeRunClick(tabId, columnName) {
+        if (columnTabPanelService.exists(tabId, columnName)) {
+            $state.go('.', {
+                activeColumn: `${tabId}+${columnName}`
+            })
         }
     }
 
-    $scope.isAuthenticated = function () {
+
+    function isActiveColumn(runId, columnName) {
+        return activeColumn.isActive(runId, columnName);
+    }
+
+    function isAuthenticated() {
         return authenticationService.isAuthenticated();
     }
 
-    $scope.tags = function(){
+    $scope.tags = function () {
         return tagsArray;
     }
 
-   
-    
 
     this.uiOnParamsChanged = function (params) {
         //active selection
 
         if (params.hasOwnProperty('activeColumn')) {
-            timeSeriesGraphControlService.setActiveColumn(params.activeColumn);
+            setActiveColumn(params.activeColumn);
         }
 
 
@@ -176,16 +172,17 @@ app.controller('viewController', ['$scope','$rootScope', '$log', '$state', '$sta
             }
         }
 
-        if(params.hasOwnProperty('activeRun')){
-            timeSeriesGraphControlService.setActiveRun(params.activeRun);
-            $log.log('TAGS ARRAY')
-            tagsArray = tagsCollection[params.activeRun];
-           
-        }
+    }
+
+    function setActiveColumn(runColumn) {
+        var active = runColumn.split('+');
+        activeColumn.setRun(active[0]);
+        activeColumn.setColumn(active[1]);
     }
 
 
-
+    // TODO : these functions have been moved to a service (extractTagsService)
+    // needs testing
     function extractTags(runArray) {
         var tagsCollection = {};
         for (var i = 0, n = runArray.length; i < n; i++) {
@@ -209,12 +206,15 @@ app.controller('viewController', ['$scope','$rootScope', '$log', '$state', '$sta
         return tags;
     }
 
+    function extractData(runArray) {
+        var results = [];
+        for (var i = 0, n = runArray.length; i < n; i++) {
+            //get data
+            results.push(runArray[i].data);
+        }
 
+        return results;
+    }
 
+}
 
-
-
-
-
-
-}])

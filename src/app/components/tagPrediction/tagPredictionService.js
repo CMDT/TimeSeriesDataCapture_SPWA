@@ -2,7 +2,7 @@ app.service('tagPredictionService', ['$rootScope','$log', '$http', function ($ro
 
     var self = this;
   
-    self.getTag = function(tag){
+    self.getTag = function(tag=''){
         var config = {
             responseType: 'json',
             params : {}
