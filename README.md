@@ -6,14 +6,12 @@ Implementation of the Single Page Web App described in TimeSeriesDataCapture
 # Building
 ## Prerequisites
 
-### Browse API
-see [BrowseAPI](https://github.com/CMDT/TimeSeriesDataCapture_BrowseData/blob/master/README.md)
+- [Browse API](https://github.com/CMDT/TimeSeriesDataCapture_BrowseData/blob/master/README.md)
 
-### OneDrive Account
-see [OneDrive](https://github.com/CMDT/TimeSeriesDataCapture#onedrive-application-setup)
+- [OneDrive Account](https://github.com/CMDT/TimeSeriesDataCapture#onedrive-application-setup)
 
-### Auth0 Account
-see [Auth0](https://github.com/CMDT/TimeSeriesDataCapture#auth0)
+- [Auth0 Account](https://github.com/CMDT/TimeSeriesDataCapture#auth0)
+
 
 ## Deployment
 ### Heroku
