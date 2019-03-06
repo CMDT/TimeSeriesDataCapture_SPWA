@@ -17,6 +17,8 @@ var getClientConfig = function () {
 
   if(!process.env.AUTH0_DOMAIN) throw new Error("undefined in environment: AUTH0_DOMAIN");
   if(!process.env.AUTH0_CLIENTID) throw new Error("undefined in environment: AUTH0_CLIENTID");
+
+  if(!process.env.DEFAULT_COLUMN) process.env.DEFAULT_COLUMN = '';
   
   result.BROWSEAPI_URI = process.env.BROWSEAPI_URI;
 
@@ -27,6 +29,8 @@ var getClientConfig = function () {
 
   result.AUTH0_DOMAIN = process.env.AUTH0_DOMAIN;
   result.AUTH0_CLIENTID = process.env.AUTH0_CLIENTID;
+
+  result.DEFAULT_COLUMN = process.env.DEFAULT_COLUMN;
 
   return result;
 }
