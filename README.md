@@ -38,6 +38,7 @@ node server.js
 |ONEDRIVE_CLIENTID|*ONEDRIVE CLIENT ID*|Held by the API service, and written to the SPWA configuration file on initialisation. OneDrive application client id|
 |ONEDRIVE_REDIRECTURI|*ONEDRIVE REDIRECT URI*|Held by the API service, and written to the SPWA configuration file on initialisation. OneDrive redirect when token is obtained|
 |ONEDRIVE_SCOPES|*ONEDRIVE SCOPES*|Held by the API service, and written to the SPWA configuration file on initialisation. Requesting OneDrive access scopes. Multiple scopes must be delimited by a single space.|
+|DEFAULT_COLUMN|*DEFAULT COLUMN*| Default Column to show when a graph is viewed|
 
 **Auth0**
 
