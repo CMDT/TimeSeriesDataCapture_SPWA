@@ -4,16 +4,34 @@ Implementation of the Single Page Web App described in TimeSeriesDataCapture
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
 ## Building
-### Heroku
-To build single page web application on heroku simply click the deploy to heroku button above
+### Prerequisites
 
-### Localhost
+#### MongoDB Database
+see [MongoDB Hosting](https://github.com/CMDT/TimeSeriesDataCapture#mongodb-hosting) and [MongoDB Creation](https://github.com/CMDT/TimeSeriesDataCapture#mongodb-creation)
+
+#### Auth0 Account
+see [Auth0](https://github.com/CMDT/TimeSeriesDataCapture#auth0)
+
+### Deployment
+#### Heroku
+To build the Browse API on heroku simply click the Deploy To Heroku button above
+
+#### Localhost
 To build single page web application locally on a specified port:
 
 ```
-node server.js <port-number>
+node server.js
 ```
-*note don't use ports 8000 or 8001, both are reserved for the APIs*
+
+
+## Environment Variables
+
+| Variable             | Example                                  | Description                              |
+| -------------------- | ---------------------------------------- | ---------------------------------------- |
+| DEBUG | * | Node debugging. Defines what components produce logging. Usually set to *|                                    
+| PORT  |443 | Notionally, this variable is set to 443, but it simply    exists as a placeholder for heroku. When running locally use 8000|
+| AUTH0_CLIENTID|*AUTH CLIENT ID*|Held by the API service, and written to the SPWA configuration file on initialisation. Used by the SPWA in the browser, as interface identifier in the Auth0 implicit flow. Must be passed to Auth0 as a parameter.Client ID associated with the App name in the Auth0 account.|
+|AUTH0_DOMAIN|*AUTH DOMAIN*|Held by the API service, and written to the SPWA configuration file on initialisation. Used by the SPWA in the browser, as interface identifier in the Auth0 implicit flow. Must be passed to Auth0 as a parameter.|
 
 ---
 
