@@ -32,6 +32,8 @@ node server.js
 | PORT  |443 | Notionally, this variable is set to 443, but it simply    exists as a placeholder for heroku. When running locally use 8000|
 | AUTH0_CLIENTID|*AUTH CLIENT ID*|Held by the API service, and written to the SPWA configuration file on initialisation. Used by the SPWA in the browser, as interface identifier in the Auth0 implicit flow. Must be passed to Auth0 as a parameter.Client ID associated with the App name in the Auth0 account.|
 |AUTH0_DOMAIN|*AUTH DOMAIN*|Held by the API service, and written to the SPWA configuration file on initialisation. Used by the SPWA in the browser, as interface identifier in the Auth0 implicit flow. Must be passed to Auth0 as a parameter.|
+|BROWSEAPI_URI|*BROWSE API URI*|Held by the API service, and written to the SPWA configuration file on initialisation. The URI of the Browse API|
+|ONEDRIVE_AUTHSERVICEURI|*ONEDRIVE AUTH SERVICE URI*|Held by the API service, and written to the SPWA configuration file on initialisation. The URI of the OneDrive authentication service|
 
 ---
 
