@@ -34,6 +34,9 @@ node server.js
 |AUTH0_DOMAIN|*AUTH DOMAIN*|Held by the API service, and written to the SPWA configuration file on initialisation. Used by the SPWA in the browser, as interface identifier in the Auth0 implicit flow. Must be passed to Auth0 as a parameter.|
 |BROWSEAPI_URI|*BROWSE API URI*|Held by the API service, and written to the SPWA configuration file on initialisation. The URI of the Browse API|
 |ONEDRIVE_AUTHSERVICEURI|*ONEDRIVE AUTH SERVICE URI*|Held by the API service, and written to the SPWA configuration file on initialisation. The URI of the OneDrive authentication service|
+|ONEDRIVE_CLIENTID|*ONEDRIVE CLIENT ID*|Held by the API service, and written to the SPWA configuration file on initialisation. OneDrive application client id|
+|ONEDRIVE_REDIRECTURI|*ONEDRIVE REDIRECT URI*|Held by the API service, and written to the SPWA configuration file on initialisation. OneDrive redirect when token is obtained|
+|ONEDRIVE_SCOPES|*ONEDRIVE SCOPES*|Held by the API service, and written to the SPWA configuration file on initialisation. Requesting OneDrive access scopes. Multiple scopes must be delimited by a single space.|
 
 ---
 
