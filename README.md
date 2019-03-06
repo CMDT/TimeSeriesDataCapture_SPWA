@@ -3,20 +3,23 @@ Implementation of the Single Page Web App described in TimeSeriesDataCapture
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
-## Building
-### Prerequisites
+# Building
+## Prerequisites
 
-#### MongoDB Database
-see [MongoDB Hosting](https://github.com/CMDT/TimeSeriesDataCapture#mongodb-hosting) and [MongoDB Creation](https://github.com/CMDT/TimeSeriesDataCapture#mongodb-creation)
+### Browse API
+see [BrowseAPI](https://github.com/CMDT/TimeSeriesDataCapture_BrowseData/blob/master/README.md)
 
-#### Auth0 Account
+### OneDrive Account
+see [OneDrive](https://github.com/CMDT/TimeSeriesDataCapture#onedrive-application-setup)
+
+### Auth0 Account
 see [Auth0](https://github.com/CMDT/TimeSeriesDataCapture#auth0)
 
-### Deployment
-#### Heroku
+## Deployment
+### Heroku
 To build the Browse API on heroku simply click the Deploy To Heroku button above
 
-#### Localhost
+### Localhost
 To build single page web application locally on a specified port:
 
 ```
