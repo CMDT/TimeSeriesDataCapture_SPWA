@@ -49,7 +49,7 @@ node server.js
 
 *OneDrive Auth Service Uri*, *OneDrive Client ID*, *OneDrive Redirect URI* and *OneDrive Scopes* can be located your OneDrive application dashboard.
 
-*For help see [OneDrive](https://github.com/CMDT/TimeSeriesDataCapture#onedrive-application-setup)
+*For help see [OneDrive](https://github.com/CMDT/TimeSeriesDataCapture#onedrive-application-setup)*
 
 ---
 
