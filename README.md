@@ -39,6 +39,18 @@ node server.js
 |ONEDRIVE_REDIRECTURI|*ONEDRIVE REDIRECT URI*|Held by the API service, and written to the SPWA configuration file on initialisation. OneDrive redirect when token is obtained|
 |ONEDRIVE_SCOPES|*ONEDRIVE SCOPES*|Held by the API service, and written to the SPWA configuration file on initialisation. Requesting OneDrive access scopes. Multiple scopes must be delimited by a single space.|
 
+**Auth0**
+
+*Auth Domain*, *Auth Client ID*, can be located on your Auth0 dashboard Single Page Application.
+
+*For help see [Auth0](https://github.com/CMDT/TimeSeriesDataCapture#auth0)*
+
+**OneDrive**
+
+*OneDrive Auth Service Uri*, *OneDrive Client ID*, *OneDrive Redirect URI* and *OneDrive Scopes* can be located your OneDrive application dashboard.
+
+*For help see [OneDrive](https://github.com/CMDT/TimeSeriesDataCapture#onedrive-application-setup)
+
 ---
 
 This project was funded via the [Marloes Peeters Research Group](https://www.marloespeeters.nl/) and mentored by [DigitalLabs@MMU](https://digitallabs.mmu.ac.uk/) as a [DigitalLabs Summer Project](https://digitallabs.mmu.ac.uk/what-we-do/teaching/). It is the work of [Yusof Bandar](https://github.com/YusofBandar).
