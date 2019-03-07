@@ -33,7 +33,6 @@ app.service('getFolderService', ['$log', 'folderBrowserService', 'runRequestServ
                 }
                 
                 var newFolder = self.newFolder(componentObject.id,componentObject.name,data);
-                $log.log(newFolder);
                 return resolve(newFolder);
             }).catch(function(error){
                 return reject(error)
@@ -87,9 +86,7 @@ app.service('getFolderService', ['$log', 'folderBrowserService', 'runRequestServ
                 id: runs[i]
             })
         }
-        componentIdsService.postComponentIds(runsArray).then(function(result){
-            $log.log(result);
-        })
+        componentIdsService.postComponentIds(runsArray);
     }
 
     self.newFolder = function (folderId, folderName, data, parentId) {

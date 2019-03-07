@@ -45,7 +45,6 @@ function authenticationService(
     self.initialize();
 
     function setSession(authResult) {
-        $log.log('AUTH RESULT', authResult);
         var expiresAt = JSON.stringify(authResult.expiresIn * 1000 + new Date().getTime());
         localStorage.setItem('accessToken', authResult.idToken);
         localStorage.setItem('expiresAt', expiresAt)

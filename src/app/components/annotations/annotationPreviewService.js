@@ -33,7 +33,6 @@ function annotationPreviewService(
                 controller: annotaionPreviewPanelController
 
             }).catch(function (annotation) {
-                $log.log(annotation)
                 if (annotation != undefined) {
                     resolve(annotation);
                 } else {
@@ -110,7 +109,6 @@ function annotationPreviewService(
             timeSeriesAnnotationService.removeAnnotation(annotation.data.groupId, annotation.id);
             //http request to delete annotation
             annotationsService.deleteAnnotation(annotation.data.groupId, annotation.id).then(function (result) {
-                console.log(result);
                 $mdDialog.cancel();
             }).catch(function (error) {
                 console.log(error);
@@ -121,7 +119,6 @@ function annotationPreviewService(
         //user editing the position of annotation
         //  annotation panel closes, and annotation controls are shown
         $scope.annotationPosEdit = function () {
-            $log.log(annotation);
             $mdDialog.cancel(annotation);
         }
 

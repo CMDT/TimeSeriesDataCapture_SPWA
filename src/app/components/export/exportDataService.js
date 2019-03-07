@@ -10,10 +10,8 @@ app.service('exportDataService', ['$rootScope', '$log', '$http', function ($root
             }
 
             var url = $rootScope.url + '/apis/export?componentIds='+componentId.join(',')+'&exportRequestId=test';
-            $log.log(url);
 
             $http.get(url, config).then(function (result) {
-                $log.log(result);
                 var a = document.createElement('a');
                 var blob = new Blob([result.data], { type: "octet/stream" });
                 url = window.URL.createObjectURL(blob);
@@ -33,7 +31,6 @@ app.service('exportDataService', ['$rootScope', '$log', '$http', function ($root
             }
 
             var url = $rootScope.url + '/apis/exportProgess?exportRequestId='+exportRequestId;
-            $log.log(url);
 
             $http.get(url, config).then(function (result) {
                resolve(result);
@@ -49,7 +46,6 @@ app.service('exportDataService', ['$rootScope', '$log', '$http', function ($root
             }
           
             var url = $rootScope.url + '/apis/reserveExport';
-            $log.log(url);
 
             $http.post(url,undefined, config).then(function (result) {
                 resolve(result);

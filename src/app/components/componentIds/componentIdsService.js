@@ -15,7 +15,6 @@ app.service('componentIdsService', ['$rootScope', '$log', '$http', 'authenticati
             config.params.folderID = folderId;
 
             var url = $rootScope.url + '/apis/components';
-            $log.log(url);
 
             $http.get(url, config).then(function (result) {
                 resolve(result);
@@ -35,7 +34,6 @@ app.service('componentIdsService', ['$rootScope', '$log', '$http', 'authenticati
 
 
             var url = $rootScope.url + '/apis/components';
-            $log.log(url);
 
             $http.post(url, components, config).then(function (result) {
                 resolve(result);

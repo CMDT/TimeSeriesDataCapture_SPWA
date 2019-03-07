@@ -94,17 +94,19 @@ function config($stateProvider, $urlRouterProvider) {
 app.run(run);
 
 run.$inject = [
-  '$rootScope', 'authenticationService', 'configDetails'
+  '$rootScope','$log', 'authenticationService', 'configDetails'
 ]
 
-function run($rootScope, authenticationService, configDetails) {
-  console.log('version 1.1');
+function run($rootScope,$log, authenticationService, configDetails) {
+  $log.info('version 1.1.0');
+  $log.info(`This project was funded via the Marloes Peeters Research Group and mentored 
+  by DigitalLabs@MMU as a DigitalLabs Summer Project. It is the work of Yusof Bandar.`);
 
   $rootScope.url = configDetails.BROWSEAPI_URI;
   //$rootScope.url = 'http://localhost:8000';
   $rootScope.isAuthenticated = authenticationService.isAuthenticated();
   $rootScope.query = '';
-  console.log($rootScope.isAuthenticated);
+  
 }
 
 

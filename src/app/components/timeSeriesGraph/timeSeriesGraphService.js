@@ -281,7 +281,6 @@ function timeSeriesGraphService(
                     y: runData[columnY][i]
                 })
             }
-            console.log(xyData);
             return xyData;
         } else {
             throw new Error("data in wrong format");
@@ -294,7 +293,6 @@ function timeSeriesGraphService(
     //  runId which run does the trend belong to
     //  columnY which column does the trend belong to (e.g. voltage) 
     function addTrend(runId, columnY) {
-        console.log(`adding tend ${runId} ${columnY}`)
         var trendData = extractTrendLineData(runId, columnY);
 
         //create new trend
@@ -478,7 +476,6 @@ function timeSeriesGraphService(
                     .x(function (d) { return xt(d.x); })
                     .y(function (d) {
                         var ytDy = yt(d.y);
-                        console.log()
                         return ytDy;
                     })
                 return line(trend.data)

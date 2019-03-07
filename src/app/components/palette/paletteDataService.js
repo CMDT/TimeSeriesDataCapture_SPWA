@@ -10,7 +10,6 @@ app.service('paletteDataService', ['$rootScope', '$log', '$http', function ($roo
             }
 
             var url = $rootScope.url + '/apis/palette/'+palette;
-            $log.log(url);
 
             return $http.get(url, config);
     
