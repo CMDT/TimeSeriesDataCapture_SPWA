@@ -100,7 +100,8 @@ app.service('tagEditPanelService', ['$log', '$mdDialog','$filter', 'tagPredictio
             var query = [];
             console.log($scope.tags);
             Object.keys($scope.tags.tags).forEach(function (key, index) {
-                query.push($scope.tags.tags[key].value);
+                var value = $scope.tags.tags[key].value;
+                query.push(value.replace(/\s/g, ''));
             });
             return query;
         }
