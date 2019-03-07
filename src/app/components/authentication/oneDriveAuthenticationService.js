@@ -13,7 +13,6 @@ app.service('oneDriveAuthenticationService', ['$rootScope', '$log', '$http', '$w
                 authWindow.close();
             }
 
-            $log.log(token);
            
            self.setSession(token);
         }

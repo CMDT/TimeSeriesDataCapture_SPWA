@@ -107,7 +107,6 @@ function timeSeriesAnnotationService(
 
             labelNode.select('.confirm')
                 .on('click', function () {
-                    console.log('stop annotation');
                     annotation.annotationPosEditConfirm(labelNode, annotation, xAxis, vector);
                 })
         }
@@ -178,7 +177,6 @@ function timeSeriesAnnotationService(
     }
 
     function addAnnotation(annotationGroupId, id, data, label) {
-        console.log('adding annotation', annotationGroupId);
         var newAnnotation = new annotationBadge(annotationGroupId, id, data, label);
         var annotationGroup = annotationGroups.get(annotationGroupId);
         annotationGroup.annotations.push(newAnnotation);
@@ -228,7 +226,6 @@ function timeSeriesAnnotationService(
         var annotationGroup = annotationGroups.get(annotationGroupId);
         var asciiA = 65;
         var asciiValueNormalized = self.normalizeLength([0, 26], [asciiA, 91], annotationGroup.annotations.length % 26)
-        $log.log(asciiValueNormalized);
         return (String.fromCharCode(asciiValueNormalized) + Math.floor(annotationGroup.annotations.length / 26));
     }
 

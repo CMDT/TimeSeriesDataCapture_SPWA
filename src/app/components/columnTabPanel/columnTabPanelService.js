@@ -127,7 +127,6 @@ app.service('columnTabPanelService', ['$log', 'runRequestService', 'selectionSer
         columns = columns.split('+');
         var columnGroup = new Map();
 
-        $log.log(columns);
 
         for (var i = 0, n = columns.length; i < n; i++) {
             var column = columns[i].split(':');

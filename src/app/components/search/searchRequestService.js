@@ -14,7 +14,7 @@ app.service('searchService', ['$log', '$http','$rootScope', function ($log, $htt
         config.headers.Authorization = 'Bearer ' + localStorage.getItem('accessToken');
         config.params.query = encodeURI(query);
         
-        $log.log(url);
+     
         return $http.get(url, config);
     }
 
