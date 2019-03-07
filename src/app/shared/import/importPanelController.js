@@ -52,7 +52,7 @@ app.controller('importPanelController', ['$scope', '$log', '$mdDialog', '$filter
                 })
 
                 timeSeriesGraphService.graphInit([data], options);
-                graphEventEmitterService.publishAddTrend(result.id,'Time');
+                graphEventEmitterService.publishAddTrend(result.id,configDetails.DEFAULT_COLUMN);
                 
 
             }else{
