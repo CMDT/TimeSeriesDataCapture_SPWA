@@ -4,7 +4,6 @@ app.controller('importPanelController', ['$scope', '$log', '$mdDialog', '$filter
 
     var algorithmMap = new Map();
 
-    $log.log(oneDriveAuthenticationService.isAuthenticated());
     $scope.activePage = [];
     $scope.breadcrumb = [];
     $scope.preview = false;
@@ -56,7 +55,6 @@ app.controller('importPanelController', ['$scope', '$log', '$mdDialog', '$filter
                 
 
             }else{
-                $log.log(result);
                 $scope.activePage = result;
                 $scope.$apply();
             }
@@ -166,10 +164,8 @@ app.controller('importPanelController', ['$scope', '$log', '$mdDialog', '$filter
         var path = localStorage.getItem('path');
         getFolderService.setRootFolder(root.id);
         path = (path) ? JSON.parse(path) : [];
-        $log.log(path);
         if (path != null && path.length > 0) {
             for (var i = 0, n = path.length; i < n; i++) {
-                $log.log(path[i]);
                 pathChange(path[i]);
             }
         } else {

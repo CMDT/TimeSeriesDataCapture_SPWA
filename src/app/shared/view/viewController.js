@@ -59,7 +59,7 @@ function viewController($scope,
     if (runData) {
         // TODO : need to test getRunV2 
         result = extractData(runData);
-        console.log(result);
+       
 
         timeSeriesAnnotationService.extractAnnotations(result);
 
@@ -114,7 +114,7 @@ function viewController($scope,
         if (!activeColumn.isActive(runId, columnName)) {
             var selectedColumns = columnTabPanelService.getSelectedColumns(runId, columnName);
             var columnParam = columnTabPanelService.parseColumnsUrl(selectedColumns);
-            $log.log('columParam', columnParam);
+            
             $state.go('.', {
                 columns: columnParam
             })
@@ -123,7 +123,7 @@ function viewController($scope,
 
     function tagEdit() {
         var runId = ($scope.tabs[$scope.activeTabIndex]).id;
-        $log.log(runId)
+       
         tagEditPanelService.showTagEditPanel(undefined, runId, tagsArray);
     }
     

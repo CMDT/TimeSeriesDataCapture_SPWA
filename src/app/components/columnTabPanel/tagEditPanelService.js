@@ -80,7 +80,6 @@ app.service('tagEditPanelService', ['$log', '$mdDialog','$filter', 'tagPredictio
         $scope.confirm = function () {
          
             var difference = arrayDiff(intialTags, $scope.extractTags());
-            $log.log(difference);
             if (difference[0].length > 0) {
                 tagPredictionService.addTags(componentId, difference[0]);
             }
@@ -98,7 +97,6 @@ app.service('tagEditPanelService', ['$log', '$mdDialog','$filter', 'tagPredictio
 
         $scope.extractTags = function () {
             var query = [];
-            console.log($scope.tags);
             Object.keys($scope.tags.tags).forEach(function (key, index) {
                 var value = $scope.tags.tags[key].value;
                 query.push(value.replace(/\s/g, ''));

@@ -28,9 +28,6 @@ function annotationsService(
         config.headers.Authorization = 'Bearer ' + localStorage.getItem('accessToken');
 
         var url = $rootScope.url + '/apis/components/' + componentId + '/annotations/' + annotationId;
-        $log.log(url);
-        $log.log(annotation);
-
         return $http.put(url, annotation, config)
     }
 
@@ -43,7 +40,6 @@ function annotationsService(
         config.headers.Authorization = 'Bearer ' + localStorage.getItem('accessToken');
 
         var url = $rootScope.url + '/apis/components/' + componentId + '/annotations'
-        $log.log(url);
 
         return $http.post(url, annotations, config);
 
@@ -56,7 +52,6 @@ function annotationsService(
         config.headers.Authorization = 'Bearer ' + localStorage.getItem('accessToken');
 
         var url = $rootScope.url + '/apis/components/' + componentId + '/annotations/' + annotationId;
-        $log.log(url);
 
         return $http.delete(url, config)
     }

@@ -12,7 +12,7 @@ app.service('runRequestService', ['$rootScope', '$log', '$http', function ($root
             config.headers.Authorization = 'Bearer ' + localStorage.getItem('accessToken');
 
             var url = $rootScope.url + '/apis/components/' + componentId + '/preview';
-            $log.log(url);
+            
 
             $http.get(url, config).then(function (result) {
                 resolve(result);
@@ -35,7 +35,7 @@ app.service('runRequestService', ['$rootScope', '$log', '$http', function ($root
             }
 
             var url = $rootScope.url + '/apis/components/' + componentId;
-            $log.log(url);
+            
 
             $http.get(url, config).then(function (result) {
                 resolve(result);
@@ -98,7 +98,7 @@ app.service('runRequestService', ['$rootScope', '$log', '$http', function ($root
             }
 
             var url = $rootScope.url + '/apis/components/' + componentId;
-            $log.log(url);
+           
 
             $http.get(url, config).then(function (result) {
                 resolve(result);
@@ -116,7 +116,7 @@ app.service('runRequestService', ['$rootScope', '$log', '$http', function ($root
 
 
             var url = $rootScope.url + '/apis/components/' + components[0];
-            $log.log(url);
+            
 
             $http.delete(url, config).then(function (result) {
                 resolve(result);
