@@ -1,6 +1,17 @@
 
-app.service('fileStorageAuthenticationDataService', ['$rootScope', '$log', '$http',function ($rootScope, $log, $http) {
+angular.module('app').service('fileStorageAuthenticationDataService',fileStorageAuthenticationDataService);
 
+fileStorageAuthenticationDataService.$inject = [
+    '$rootScope', 
+    '$log', 
+    '$http'
+]
+
+function fileStorageAuthenticationDataService(
+    $rootScope, 
+    $log, 
+    $http
+){
     var self = this;
 
     self.postAuthentication = function (authentication) {
@@ -37,4 +48,4 @@ app.service('fileStorageAuthenticationDataService', ['$rootScope', '$log', '$htt
 
 
 
-}])
+}

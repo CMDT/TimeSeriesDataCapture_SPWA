@@ -1,4 +1,4 @@
-app.controller('importPanelController', ['$scope', '$log', '$mdDialog', '$filter', 'getFolderService', 'folderBreadcrumbService', 'algorithmsService', 'selectionService', 'fileStorageAuthenticationDataService', 'oneDriveAuthenticationService', 'authenticationNotifyService', 'timeSeriesTrendService','timeSeriesGraphService','graphEventEmitterService','configDetails', function ($scope, $log, $mdDialog, $filter, getFolderService, folderBreadcrumbService, algorithmsService, selectionService, fileStorageAuthenticationDataService, oneDriveAuthenticationService, authenticationNotifyService, timeSeriesTrendService,timeSeriesGraphService,graphEventEmitterService,configDetails) {
+app.controller('importPanelController', ['$scope', '$log', '$mdDialog', '$filter', 'getFolderService', 'folderBreadcrumbService', 'algorithmsService', 'selectionService', 'fileStorageAuthenticationDataService', 'oneDriveAuthenticationService', 'authenticationNotifyService', 'timeSeriesTrendService','timeSeriesGraphService','graphEventEmitterService', function ($scope, $log, $mdDialog, $filter, getFolderService, folderBreadcrumbService, algorithmsService, selectionService, fileStorageAuthenticationDataService, oneDriveAuthenticationService, authenticationNotifyService, timeSeriesTrendService,timeSeriesGraphService,graphEventEmitterService) {
 
     var self = this;
 
@@ -51,7 +51,7 @@ app.controller('importPanelController', ['$scope', '$log', '$mdDialog', '$filter
                 })
 
                 timeSeriesGraphService.graphInit([data], options);
-                graphEventEmitterService.publishAddTrend(result.id,configDetails.DEFAULT_COLUMN);
+                graphEventEmitterService.publishAddTrend(result.id,CONFIG.DEFAULT_COLUMN);
                 
 
             }else{
@@ -73,7 +73,7 @@ app.controller('importPanelController', ['$scope', '$log', '$mdDialog', '$filter
     }
 
     $scope.previewToggle = function (component) {
-        if(configDetails.DEFAULT_COLUMN){
+        if(CONFIG.DEFAULT_COLUMN){
             if ($scope.preview) {
                 $scope.preview = false;
                 pathChange($scope.breadcrumb[$scope.breadcrumb.length - 2]);

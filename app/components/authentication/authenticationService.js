@@ -4,50 +4,41 @@ angular.module('app').service('authenticationService', authenticationService);
 
 authenticationService.$inject = [
     '$log',
+    '$state',
     'authenticationNotifyService',
-    'configDetails'
+    'angularAuth0'
 ];
 
 function authenticationService(
     $log,
+    $state,
     authenticationNotifyService,
-    configDetails
+    angularAuth0
 ) {
     var self = this;
-
-    self.initialize = initialize;
 
     self.setSession = setSession;
 
     self.isAuthenticated = isAuthenticated;
 
+    self.handleAuthentication = handleAuthentication;
+    self.renewTokens = renewTokens;
+
     self.login = login;
     self.logout = logout;
 
-    var lock = null;
-    var options = {
-        autoclose: true,
-        auth: {
-            responseType: "token id_token",
-            redirect: false
-        }
-    }
-
-    function initialize() {
-        if (lock == null) {
-            lock = new Auth0Lock(
-                configDetails.AUTH0_CLIENTID,
-                configDetails.AUTH0_DOMAIN,
-                options
-            );
-        }
-    }
-    self.initialize();
+   
 
     function setSession(authResult) {
         var expiresAt = JSON.stringify(authResult.expiresIn * 1000 + new Date().getTime());
+        localStorage.setItem('isLoggedIn', 'true');
         localStorage.setItem('accessToken', authResult.idToken);
         localStorage.setItem('expiresAt', expiresAt)
+        authenticationNotifyService.publishAuth0();
+        $state.go('.', {
+        }, {
+                reload: true
+            });
     }
 
     function isAuthenticated() {
@@ -56,7 +47,22 @@ function authenticationService(
     }
 
     function login() {
-        lock.show();
+        //lock.show();
+        angularAuth0.authorize();
+    }
+
+
+    function handleAuthentication() {
+        console.log('go')
+        angularAuth0.parseHash(function (err, authResult) {
+            if (authResult && authResult.accessToken && authResult.idToken) {
+                setSession(authResult);
+            } else if (err) {
+                console.log(err);
+            }
+            
+            
+        });
     }
 
     function logout() {
@@ -64,17 +70,22 @@ function authenticationService(
         localStorage.setItem('accessToken', 'na');
     }
 
-    lock.on('authenticated', function (authResult) {
-        lock.getUserInfo(authResult.accessToken, function (error, profile) {
-            if (error) {
-                $log.error('authentication error');
-                return;
+
+    function renewTokens() {
+        angularAuth0.checkSession({},
+            function (err, result) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    setSession(result);
+                }
             }
-            localStorage.setItem('profile', profile.sub);
-            self.setSession(authResult);
-            authenticationNotifyService.publishAuth0();
-        })
-    })
+        );
+    }
+
+
+
+
 
 }
 

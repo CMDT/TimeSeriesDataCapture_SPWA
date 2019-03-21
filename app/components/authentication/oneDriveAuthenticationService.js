@@ -1,11 +1,21 @@
+angular.module('app').service('oneDriveAuthenticationService', oneDriveAuthenticationService)
 
-app.service('oneDriveAuthenticationService', ['$rootScope', '$log', '$http', '$window', 'odauthService', 'fileStorageAuthenticationDataService', 'authenticationNotifyService','configDetails', function ($rootScope, $log, $http, $window, odauthService, fileStorageAuthenticationDataService, authenticationNotifyService,configDetails) {
+oneDriveAuthenticationService.$inject = [
+    '$window',
+    'odauthService',
+    'fileStorageAuthenticationDataService',
+    'authenticationNotifyService',
+]
+
+function oneDriveAuthenticationService(
+    $window,
+    odauthService,
+    fileStorageAuthenticationDataService,
+    authenticationNotifyService,
+) {
 
     var self = this;
-
-
-   
-
+    
     $window.onAuthenticated = function (token, authWindow) {
         if (token) {
             if (authWindow) {
@@ -13,21 +23,21 @@ app.service('oneDriveAuthenticationService', ['$rootScope', '$log', '$http', '$w
                 authWindow.close();
             }
 
-           
-           self.setSession(token);
+
+            self.setSession(token);
         }
     }
 
-    self.setSession = function(token){
+    self.setSession = function (token) {
         var profileId = (localStorage.getItem('profile'));
-        fileStorageAuthenticationDataService.postAuthentication({ profileID: profileId, storageToken: token }).then(function(result){
+        fileStorageAuthenticationDataService.postAuthentication({ profileID: profileId, storageToken: token }).then(function (result) {
             var expiresAt = JSON.stringify(3600 * 1000 + new Date().getTime());
-            localStorage.setItem('oneDriveExpiresAt',expiresAt);
+            localStorage.setItem('oneDriveExpiresAt', expiresAt);
             authenticationNotifyService.publishOneDrive();
         })
     }
 
-    self.isAuthenticated = function(){
+    self.isAuthenticated = function () {
         var expiresAt = JSON.parse(localStorage.getItem('oneDriveExpiresAt'));
         return new Date().getTime() < expiresAt;
     }
@@ -36,10 +46,10 @@ app.service('oneDriveAuthenticationService', ['$rootScope', '$log', '$http', '$w
 
 
         var appInfo = {
-            "clientId": configDetails.ONEDRIVE_CLIENTID,
-            "redirectUri": configDetails.ONEDRIVE_REDIRECTURI,
-            "scopes": configDetails.ONEDRIVE_SCOPES,
-            "authServiceUri": configDetails.ONEDRIVE_AUTHSERVICEURI
+            "clientId": CONFIG.ONEDRIVE_CLIENTID,
+            "redirectUri": CONFIG.ONEDRIVE_REDIRECTURI,
+            "scopes": CONFIG.ONEDRIVE_SCOPES,
+            "authServiceUri": CONFIG.ONEDRIVE_AUTHSERVICEURI
         }
 
         odauthService.provideAppInfo(appInfo);
@@ -47,14 +57,8 @@ app.service('oneDriveAuthenticationService', ['$rootScope', '$log', '$http', '$w
         return false;
     }
 
-    self.logout= function logout(){
-        localStorage.setItem('oneDriveExpiresAt',0);
+    self.logout = function logout() {
+        localStorage.setItem('oneDriveExpiresAt', 0);
     }
 
-
-
-
-
-
-
-}])
+}
