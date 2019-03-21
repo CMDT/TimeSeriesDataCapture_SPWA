@@ -1,9 +1,10 @@
-
 <div class="top-bar" ng-if='!isAuthenticated()'>
+    <h3 class="title">TimeSeriesDataCapture</h3>
     <md-button class="md-raised" ng-click='login()'>Login</md-button>
 </div>
 
 <div class="top-bar" ng-if='isAuthenticated()'>
+    <h3 class="title">TimeSeriesDataCapture</h3>
     <md-button class="md-raised" ng-click="logout()">Logout</md-button>
     <md-button class="md-raised" ng-click="importClick()">Import</md-button>
 </div>
