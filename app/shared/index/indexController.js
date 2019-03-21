@@ -16,8 +16,19 @@ indexController.$inject = [
 ];
 
 
-function indexController($scope,$log, $mdDialog, authenticationService, searchService, $state, $stateParams, 
-    selectionService, exportDataService, authenticationNotifyService,runRequestService, searchInputService) {
+function indexController(
+    $scope,
+    $log, 
+    $mdDialog, 
+    authenticationService, 
+    searchService, 
+    $state, 
+    $stateParams, 
+    selectionService, 
+    exportDataService, 
+    authenticationNotifyService,
+    runRequestService, 
+    searchInputService) {
    
     start();
 

@@ -1,43 +1,58 @@
-<!doctype html>
-<html>
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="description" content="Application To View Time Series Data">
+    <meta name="keywords" content="Yusof,Bandar,DigitalLabs,TimeSeries,TimeSeriesDataCapture,Data,">
+    <meta name="author" content="Yusof Bandar">
+    <meta name="author" content="DigitalLabs">
+
+    <title>TimeSeriesDataCapture</title>
+
+    <base href="/">
 
     <link rel="stylesheet" href="./assets/css/typeahead.css">
 
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
+    <link rel="stylesheet" href="./assets/css/jsTag.css">
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab" rel="stylesheet">
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.8/angular-material.min.css">
+    <link rel="stylesheet" href="./assets/css/styling.css">
+
     <!--jquery-->
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
-        crossorigin="anonymous"></script>
+    <script type="text/javascript" src="./node_modules/jquery/dist/jquery.js"></script>
 
     <!--angular-->
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.2/angular.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular-animate.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular-aria.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular-messages.min.js"></script>
-    <!-- <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.8/angular-material.min.js"></script> -->
-    <script src='assets/js/angular-material.js'></script>
-
+    <script type="text/javascript" src="./node_modules/angular/angular.js"></script>
+    <script type="text/javascript" src="./node_modules/angular-animate/angular-animate.js"></script>
+    <script type="text/javascript" src="./node_modules/angular-aria/angular-aria.js"></script>
+    <script type="text/javascript" src="./node_modules/angular-messages/angular-messages.js"></script>
+    <script type="text/javascript" src='assets/js/angular-material.js'></script>
+    
     <!--ui-router-->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-router/1.0.18/angular-ui-router.min.js"></script>
+    <script type="text/javascript" src="./node_modules/@uirouter/angularjs/release/angular-ui-router.js"></script>
 
-
-    <!-- typeahead.js -->
+    <!-- typeahead.js https://github.com/twitter/typeahead.js-->
+    <!-- latest versions of typeahead do not work with angularjs, use version 0.11.1-->
     <script src="assets/js/angular-typeahead.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.10.2/typeahead.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.10.2/typeahead.bundle.min.js"></script>
 
-    <!-- jsTag javascript file -->
+    <!-- jsTag javascript file https://github.com/eranhirs/jsTag/tree/master-->
     <script src="assets/js/jsTag.min.js"></script>
 
 
     <!--authentication-->
-    <script src="https://cdn.auth0.com/js/lock/11.7.2/lock.min.js"></script>
+    <script type="text/javascript" src="node_modules/auth0-js/build/auth0.js"></script>
+    <script type="text/javascript" src="node_modules/angular-auth0/dist/angular-auth0.js"></script>
     <script id="odauth" src="assets/js/odauth.js"></script>
 
-   
+
     <!--d3-->
-    <script src="https://d3js.org/d3.v4.js"></script>
+    <script type="text/javascript" src="node_modules/d3/dist/d3.js"></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/d3-annotation/2.3.0/d3-annotation.min.js'></script>
 
     <!--app-->
@@ -52,57 +67,62 @@
     <!--components-->
     <script src='./app/components/authentication/authenticationService.js'></script>
     <script src='./app/components/authentication/oneDriveAuthenticationService.js'></script>
+    <script src='./app/components/authentication/fileStorageAuthenticationDataService.js'></script>
+    <script src='./app/components/authentication/authenticationNotifyService.js'></script>
+
     <script src='./app/components/search/searchRequestService.js'></script>
+    <script src="./app/components/search/searchInputService.js"></script>
+
     <script src='./app/components/tagPrediction/tagPredictionService.js'></script>
+    <script src='./app/components/tagPrediction/extractTagsService.js'></script>
+
     <script src='./app/components/dtFormatterService/dtFormatterService.js'></script>
+
     <script src='./app/components/folder/folderBrowserService.js'></script>
     <script src='./app/components/folder/getFolderService.js'></script>
     <script src='./app/components/folder/folderBreadcrumbService.js'></script>
+
     <script src='./app/components/run/runRequestService.js'></script>
+
     <script src='./app/components/componentIds/componentIdsService.js'></script>
+
     <script src='./app/components/algorithms/algorithmsService.js'></script>
+
     <script src='./app/components/odauth/odauthService.js'></script>
+
     <script src='./app/components/selection/selectionService.js'></script>
+
     <script src='./app/components/annotations/timeSeriesAnnotationService.js'></script>
+    <script src='./app/components/annotations/annotationInEditService.js'></script>
+
     <script src='./app/components/timeSeriesGraph/timeSeriesTrendService.js'></script>
+    <script src='./app/components/timeSeriesGraph/timeSeriesGraphService.js'></script>
+    <script src="./app/components/timeSeriesGraph/graphEventEmitterService.js"></script>
+    <script src="./app/components/timeSeriesGraph/activeColumn.js"></script>
+
     <script src='./app/components/columnTabPanel/tagEditPanelService.js'></script>
     <script src='./app/components/columnTabPanel/columnTabPanelService.js'></script>
+
     <script src='./app/components/annotations/annotationPreviewService.js'></script>
     <script src='./app/components/annotations/annotationsService.js'></script>
-    <script src='./app/components/authentication/fileStorageAuthenticationDataService.js'></script>
-    <script src='./app/components/authentication/authenticationNotifyService.js'></script>
+
     <script src='./app/components/export/exportDataService.js'></script>
+
     <script src='./app/components/palette/paletteDataService.js'></script>
-    <script src='./app/components/timeSeriesGraph/timeSeriesGraphService.js'></script>
-    <script src='./app/components/annotations/annotationInEditService.js'></script>
-    <script src='./app/components/tagPrediction/extractTagsService.js'></script>
-    <script src="./app/components/search/searchInputService.js"></script>
-    <script src="./app/components/timeSeriesGraph/graphEventEmitterService.js"></script>
 
     <!--filters-->
     <script src='./app/components/componentFilters/runFilter.js'></script>
     <script src='./app/components/componentFilters/componentIdFilter.js'></script>
-    <script src='./app/components/componentFilters/componentIdClassFilter.js'></script>
-    <script src='./app/components/tagPrediction/tagFilter.js'></script>
+    <script src='./app/components/componentFilters/componentIdClassFilter.js'></script>   
     <script src='./app/components/componentFilters/dateFilter.js'></script>
     <script src='./app/components/componentFilters/timeFilter.js'></script>
 
+    <script src='./app/components/tagPrediction/tagFilter.js'></script>
 
-     <!-- config -->
-     <script src="./app/components/configDetails/configDetailsConstant.js"></script>
-     <script src="./app/components/timeSeriesGraph/activeColumn.js"></script>
-
-
-
-
-    <link rel="stylesheet" href="./assets/css/jsTag.css">
-    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab" rel="stylesheet">
-    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.8/angular-material.min.css">
-    <link rel="stylesheet" href="./assets/css/styling.css">
-
+    <!-- config -->
+    <script src="./configDetailsConstant.js"></script>
 
 </head>
-
 <body ng-app="app" ng-cloak="">
     <header class='version'>
         <a target="_blank" class='help' href="https://github.com/CMDT/TimeSeriesDataCapture/blob/master/Documents/help/searching.md">help</a>
@@ -113,7 +133,10 @@
 
     <ui-view></ui-view>
 
-
 </body>
+
+
+
+
 
 </html>

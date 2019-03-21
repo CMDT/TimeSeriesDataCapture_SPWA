@@ -6,11 +6,22 @@
     "node": "10.5.0"
   },
   "scripts": {
-    "start": "node src/server.js 8080"
+    "start": "node ./server.js 8080"
   },
   "dependencies": {
+    "@types/typeahead": "^0.11.32",
+    "@uirouter/angularjs": "^1.0.22",
+    "angular-animate": "^1.7.8",
+    "angular-aria": "^1.7.8",
+    "angular-auth0": "^3.0.0",
+    "angular-messages": "^1.7.8",
     "angular-typeahead": "^1.0.2",
+    "angularjs": "0.0.1",
+    "auth0-js": "^9.10.1",
+    "d3": "^5.9.2",
+    "d3-svg-annotation": "^2.3.1",
     "express": "^4.16.3",
+    "jquery": "^3.3.1",
     "path": "^0.12.7"
   }
 }

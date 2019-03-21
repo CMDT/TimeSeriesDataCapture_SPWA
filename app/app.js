@@ -1,15 +1,28 @@
-var app = angular.module('app', ['ui.router', 'ngMaterial', 'jsTag', 'siyfion.sfTypeahead']);
+var app = angular.module('app', ['ui.router', 'ngMaterial', 'jsTag', 'siyfion.sfTypeahead', 'auth0.auth0']);
 
 
 app.config(config);
 
 config.$inject = [
   '$stateProvider',
-  '$urlRouterProvider'
+  '$locationProvider',
+  '$urlRouterProvider',
+  'angularAuth0Provider'
 ]
 
-function config($stateProvider, $urlRouterProvider) {
+function config(
+  $stateProvider,
+  $locationProvider,
+  $urlRouterProvider,
+  angularAuth0Provider) {
 
+  // Initialization for the angular-auth0 library
+  angularAuth0Provider.init({
+    clientID: CONFIG.AUTH0_CLIENTID,
+    domain: CONFIG.AUTH0_DOMAIN,
+    responseType: 'token id_token',
+    redirectUri: window.location.href,
+  });
 
 
   var indexState = {
@@ -64,15 +77,15 @@ function config($stateProvider, $urlRouterProvider) {
         runRequestService.getRuns(runs).then(function (result) {
 
           //temp solution for unathenticated
-          if(Object.keys(result[0].data).length > 0){
+          if (Object.keys(result[0].data).length > 0) {
             deferred.resolve(result);
-          }else{
+          } else {
             console.error('unauthenticated')
             $state.go('index');
             deferred.reject();
           }
 
-         
+
         }).catch(function (error) {
           console.error(error);
           $state.go('index');
@@ -89,24 +102,41 @@ function config($stateProvider, $urlRouterProvider) {
 
   $urlRouterProvider.otherwise('/index/');
 
+  $locationProvider.hashPrefix('');
+
+    /// Comment out the line below to run the app
+    // without HTML5 mode (will use hashes in routes)
+    $locationProvider.html5Mode(true);
+
 }
 
 app.run(run);
 
 run.$inject = [
-  '$rootScope','$log', 'authenticationService', 'configDetails'
+  '$rootScope', '$log', 'authenticationService'
 ]
 
-function run($rootScope,$log, authenticationService, configDetails) {
+function run($rootScope, $log, authenticationService) {
   $log.info('version 1.1.0');
   $log.info(`This project was funded via the Marloes Peeters Research Group and mentored 
   by DigitalLabs@MMU as a DigitalLabs Summer Project. It is the work of Yusof Bandar.`);
 
-  $rootScope.url = configDetails.BROWSEAPI_URI;
+  $rootScope.url = CONFIG.BROWSEAPI_URI;
   //$rootScope.url = 'http://localhost:8000';
   $rootScope.isAuthenticated = authenticationService.isAuthenticated();
+
+
+  if (localStorage.getItem('isLoggedIn') === 'true') {
+    authenticationService.renewTokens();
+  } else {
+    // Handle the authentication
+    // result in the hash
+    authenticationService.handleAuthentication();
+  }
+
+
   $rootScope.query = '';
-  
+
 }
 
 
