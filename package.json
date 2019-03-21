@@ -9,7 +9,9 @@
     "start": "node src/server.js 8080"
   },
   "dependencies": {
+    "angular-auth0": "^3.0.0",
     "angular-typeahead": "^1.0.2",
+    "auth0-js": "^9.10.1",
     "express": "^4.16.3",
     "path": "^0.12.7"
   }

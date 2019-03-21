@@ -1,4 +1,4 @@
-var app = angular.module('app', ['ui.router', 'ngMaterial', 'jsTag', 'siyfion.sfTypeahead']);
+var app = angular.module('app', ['ui.router', 'ngMaterial', 'jsTag', 'siyfion.sfTypeahead','auth0.auth0']);
 
 
 app.config(config);
