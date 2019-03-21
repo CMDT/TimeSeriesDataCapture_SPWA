@@ -14,6 +14,12 @@ body {
     
 }
 
+.title{
+    float: right;
+    margin-right: 40%;
+    color: aliceblue;
+}
+
 .top-bar{
     background-color: #455964;
     padding: 10px;
