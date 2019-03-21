@@ -67,7 +67,8 @@ function authenticationService(
 
     function logout() {
         localStorage.setItem('expiresAt', 0);
-        localStorage.setItem('accessToken', 'na');
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('accessToken');
     }
 
 
