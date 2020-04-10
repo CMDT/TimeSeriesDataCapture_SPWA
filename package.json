@@ -17,7 +17,7 @@
     "angular-messages": "^1.7.8",
     "angular-typeahead": "^1.0.2",
     "angularjs": "0.0.1",
-    "auth0-js": "^9.10.1",
+    "auth0-js": "^9.13.2",
     "d3": "^5.9.2",
     "d3-svg-annotation": "^2.3.1",
     "express": "^4.16.3",
